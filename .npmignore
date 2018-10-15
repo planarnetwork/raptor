@@ -1,0 +1,7 @@
+node_modules/
+.idea/
+npm-debug.log
+src/
+test/
+tsconfig.json
+.travis.yml

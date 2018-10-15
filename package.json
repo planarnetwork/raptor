@@ -1,0 +1,36 @@
+{
+  "name": "raptor-journey-planner",
+  "version": "1.0.0",
+  "description": "Implementation of the Route Based Public Transit Algorithm (Raptor)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/planarnetwork/raptor.git"
+  },
+  "keywords": [
+    "Journey",
+    "planning",
+    "algorith",
+    "public",
+    "transit"
+  ],
+  "author": "Linus Norton <linusnorton@gmail.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/planarnetwork/raptor/issues"
+  },
+  "homepage": "https://github.com/planarnetwork/raptor#readme",
+  "devDependencies": {
+    "@types/chai": "^4.1.6",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.11.7",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.3"
+  }
+}
