@@ -81,6 +81,69 @@ describe("Raptor", () => {
     ]);
   });
 
+  it("chooses the fastest journey where the number of journeys is the same", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1100, null)
+      ),
+      t(
+        st("C", null, 1200),
+        st("D", 1230, 1230),
+        st("E", 1300, null)
+      ),
+      t(
+        st("A", null, 1100),
+        st("F", 1130, 1130),
+        st("G", 1200, null)
+      ),
+      t(
+        st("G", null, 1200),
+        st("H", 1230, 1230),
+        st("E", 1255, null)
+      ),
+    ];
+
+    const raptor = new Raptor(trips);
+    const result = raptor.plan("A", "E", 20181016);
+
+    chai.expect(result).to.deep.equal([
+      ["A", "G", "E"]
+    ]);
+  });
+
+  it("chooses an arbitrary journey when they are the same", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1100, null)
+      ),
+      t(
+        st("C", null, 1200),
+        st("D", 1230, 1230),
+        st("E", 1300, null)
+      ),
+      t(
+        st("A", null, 1100),
+        st("F", 1130, 1130),
+        st("G", 1200, null)
+      ),
+      t(
+        st("G", null, 1200),
+        st("H", 1230, 1230),
+        st("E", 1300, null)
+      ),
+    ];
+
+    const raptor = new Raptor(trips);
+    const result = raptor.plan("A", "E", 20181016);
+
+    chai.expect(result).to.deep.equal([
+      ["A", "C", "E"]
+    ]);
+  });
 });
 
 let tripId = 0;
