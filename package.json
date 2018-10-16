@@ -1,10 +1,15 @@
 {
   "name": "raptor-journey-planner",
   "version": "1.0.0",
-  "description": "Implementation of the Route Based Public Transit Algorithm (Raptor)",
+  "description": "Implementation of the Round bAsed Public Transit Optimized Router (Raptor) journey planning algorithm.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run lint && mocha --require ts-node/register 'test/**/*.spec.ts'",
+    "gtest": "mocha --require ts-node/register 'test/**/*.spec.ts' --grep",
+    "watch-test": "mocha -w --require ts-node/register 'test/**/*.spec.ts'",
+    "prepublishOnly": "rm -rf ./dist/ && tsc -p ./ --outDir dist/",
+    "lint-raw": "tslint --project tsconfig.json",
+    "lint": "npm run lint-raw -- -t stylish"
   },
   "repository": {
     "type": "git",
@@ -32,5 +37,8 @@
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typescript": "^3.1.3"
+  },
+  "dependencies": {
+    "ts-array-utils": "^0.5.0"
   }
 }
