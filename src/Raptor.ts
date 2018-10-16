@@ -50,6 +50,7 @@ export class Raptor {
       kArrivals[k] = Object.assign({}, kArrivals[k - 1]);
 
       for (const [routeId, stopP] of Object.entries(queue)) {
+        let boardingPoint = -1;
         let stopTimes: StopTime[] | undefined = undefined;
 
         for (let stopPi = this.routeStopIndex[routeId][stopP]; stopPi < this.routePath[routeId].length; stopPi++) {
@@ -57,7 +58,7 @@ export class Raptor {
 
           if (stopTimes && stopTimes[stopPi].dropOff && stopTimes[stopPi].arrivalTime < kArrivals[k][stopPiName]) {
             kArrivals[k][stopPiName] = stopTimes[stopPi].arrivalTime;
-            kConnections[stopPiName][k] = stopP;
+            kConnections[stopPiName][k] = [stopTimes, boardingPoint, stopPi];
 
             markedStops.add(stopPiName);
           }
@@ -65,6 +66,7 @@ export class Raptor {
           // As we may have arrived at pi sooner than the previous stop we might have an earlier trip on this route
           if (!stopTimes || kArrivals[k - 1][stopPiName] < stopTimes[stopPi].arrivalTime) {
             stopTimes = this.getEarliestTrip(routeId, stopPi, kArrivals[k - 1][stopPiName]);
+            boardingPoint = stopPi;
           }
         }
       }
@@ -104,13 +106,14 @@ export class Raptor {
       let d = destination;
       let i = k as any | 0; // perf, is just an any better
 
-      const legs: any = [d];
+      const legs: any = [];
 
       while (i > 0) {
-        const o = kConnections[d][i];
+        const [stopTimes, start, end] = kConnections[d][i];
+        const legStopTimes = stopTimes.slice(start, end + 1);
 
-        legs.push(o);
-        d = o;
+        legs.push(legStopTimes);
+        d = legStopTimes[0].stop;
         i--;
       }
 
@@ -124,7 +127,7 @@ export class Raptor {
 
 type RouteID = string;
 type StopArrivalTimeIndex = Record<Stop, Time>;
-type ConnectionIndex = Record<Stop, Record<number, Stop>>;
+type ConnectionIndex = Record<Stop, Record<number, [StopTime[], number, number]>>;
 type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
 type RoutePaths = Record<RouteID, Stop[]>;
 type RouteQueue = Record<RouteID, Stop>;
