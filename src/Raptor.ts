@@ -15,6 +15,7 @@ export class Raptor {
       const routeId = path.join(); // add pickup / drop off?
 
       if (!this.routeStopIndex[routeId]) {
+        this.tripsByRoute[routeId] = [];
         this.routeStopIndex[routeId] = {};
         this.routePath[routeId] = path;
 
@@ -26,13 +27,8 @@ export class Raptor {
         }
       }
 
-      this.tripStopTime[trip.tripId] = {};
-
-      for (const stopTime of trip.stopTimes) { // perf, reverse? At least make consistent with above
-        this.tripStopTime[trip.tripId][stopTime.stop] = this.tripStopTime[trip.tripId][stopTime.stop] || stopTime;
-      }
-
-      pushNested(trip.tripId, this.tripsByRoute, routeId);
+      this.tripStopTime[trip.tripId] = trip.stopTimes;
+      this.tripsByRoute[routeId].push(trip.tripId);
     }
 
     this.stops = Object.keys(this.routesAtStop);
@@ -54,21 +50,21 @@ export class Raptor {
       kArrivals[k] = Object.assign({}, kArrivals[k - 1]);
 
       for (const [routeId, stopP] of Object.entries(queue)) {
-        let stopTimes: TripStopTimes | undefined = undefined;
+        let stopTimes: StopTime[] | undefined = undefined;
 
-        for (let pi = this.routeStopIndex[routeId][stopP]; pi < this.routePath[routeId].length; pi++) {
-          const stopPi = this.routePath[routeId][pi];
+        for (let stopPi = this.routeStopIndex[routeId][stopP]; stopPi < this.routePath[routeId].length; stopPi++) {
+          const stopPiName = this.routePath[routeId][stopPi];
 
-          if (stopTimes && stopTimes[stopPi].dropOff && stopTimes[stopPi].arrivalTime < kArrivals[k][stopPi]) {
-            kArrivals[k][stopPi] = stopTimes[stopPi].arrivalTime;
-            kConnections[stopPi][k] = stopP;
+          if (stopTimes && stopTimes[stopPi].dropOff && stopTimes[stopPi].arrivalTime < kArrivals[k][stopPiName]) {
+            kArrivals[k][stopPiName] = stopTimes[stopPi].arrivalTime;
+            kConnections[stopPiName][k] = stopP;
 
-            markedStops.add(stopPi);
+            markedStops.add(stopPiName);
           }
           // This comes after to avoid getting a new trip for the first stop, we've already got our arrival time there.
           // As we may have arrived at pi sooner than the previous stop we might have an earlier trip on this route
-          if (!stopTimes || kArrivals[k - 1][stopPi] < stopTimes[stopPi].arrivalTime) {
-            stopTimes = this.getEarliestTrip(routeId, stopPi, kArrivals[k - 1][stopPi]);
+          if (!stopTimes || kArrivals[k - 1][stopPiName] < stopTimes[stopPi].arrivalTime) {
+            stopTimes = this.getEarliestTrip(routeId, stopPi, kArrivals[k - 1][stopPiName]);
           }
         }
       }
@@ -93,9 +89,9 @@ export class Raptor {
     return this.routeStopIndex[routeId][stopA] < this.routeStopIndex[routeId][stopB];
   }
 
-  private getEarliestTrip(routeId: RouteID, stop: Stop, time: Time): TripStopTimes | undefined {
+  private getEarliestTrip(routeId: RouteID, stopIndex: number, time: Time): StopTime[] | undefined {
     // perf, store index of trip, it will only ever increase - may not true for overtaken trains
-    const tripId = this.tripsByRoute[routeId].find(id => this.tripStopTime[id][stop].departureTime >= time);
+    const tripId = this.tripsByRoute[routeId].find(id => this.tripStopTime[id][stopIndex].departureTime >= time);
 
     return tripId ? this.tripStopTime[tripId] : undefined;
   }
@@ -134,5 +130,4 @@ type RoutePaths = Record<RouteID, Stop[]>;
 type RouteQueue = Record<RouteID, Stop>;
 type RoutesIndexedByStop = Record<Stop, RouteID[]>;
 type TripsIndexedByRoute = Record<RouteID, TripID[]>;
-type TripStopTimeIndex = Record<TripID, TripStopTimes>;
-type TripStopTimes = Record<Stop, StopTime>;
+type TripStopTimeIndex = Record<TripID, StopTime[]>;
