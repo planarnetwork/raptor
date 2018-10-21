@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import {Journey, Leg, Stop, StopTime, Time, Trip} from "../src/GTFS";
+import {Journey, Leg, Stop, StopTime, Time, Transfer, Trip} from "../src/GTFS";
 import {Raptor} from "../src/Raptor";
 
 describe("Raptor", () => {
@@ -13,7 +13,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips);
+    const raptor = new Raptor(trips, {});
     const result = raptor.plan("A", "C", 20181016);
 
     chai.expect(result).to.deep.equal([
@@ -39,7 +39,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips);
+    const raptor = new Raptor(trips, {});
     const result = raptor.plan("A", "E", 20181016);
 
     chai.expect(result).to.deep.equal([
@@ -67,7 +67,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips);
+    const raptor = new Raptor(trips, {});
     const result = raptor.plan("A", "E", 20181016);
 
     chai.expect(result).to.deep.equal([]);
@@ -86,7 +86,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips);
+    const raptor = new Raptor(trips, {});
     const result = raptor.plan("A", "C", 20181016);
 
     const direct = j([
@@ -133,7 +133,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips);
+    const raptor = new Raptor(trips, {});
     const result = raptor.plan("A", "E", 20181016);
 
     const fastest = j([
@@ -175,7 +175,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips);
+    const raptor = new Raptor(trips, {});
     const result = raptor.plan("A", "E", 20181016);
 
     const journey1 = j([
@@ -215,7 +215,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips);
+    const raptor = new Raptor(trips, {});
     const result = raptor.plan("A", "E", 20181016);
 
     const change = j([
@@ -230,6 +230,43 @@ describe("Raptor", () => {
       change
     ]);
   });
+
+  it("finds journeys with a transfer", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      ),
+      t(
+        st("D", null, 1200),
+        st("E", 1300, null)
+      )
+    ];
+
+    const transfers = {
+      "C": [
+        tf("C", "D", 10)
+      ]
+    };
+
+    const raptor = new Raptor(trips, transfers);
+    const result = raptor.plan("A", "E", 20181016);
+
+    chai.expect(result).to.deep.equal([
+      j([
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      ],
+      tf("C", "D", 10)
+      , [
+        st("D", null, 1200),
+        st("E", 1300, null)
+      ])
+    ]);
+  });
+
 });
 
 let tripId = 0;
@@ -251,12 +288,20 @@ function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | null): S
   };
 }
 
-function j(...legStopTimes: StopTime[][]): Journey {
+function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
   return {
-    legs: legStopTimes.map(stopTimes => ({
+    legs: legStopTimes.map(stopTimes => isTransfer(stopTimes) ? stopTimes : ({
       stopTimes,
       origin: stopTimes[0].stop,
       destination: stopTimes[stopTimes.length - 1].stop
     }))
   };
+}
+
+function isTransfer(connection: StopTime[] | Transfer): connection is Transfer {
+  return (connection as Transfer).origin !== undefined;
+}
+
+function tf(origin: Stop, destination: Stop, duration: Time): Transfer {
+  return { origin, destination, duration };
 }

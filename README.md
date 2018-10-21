@@ -2,20 +2,39 @@ Raptor Journey Planner
 =========================
 [![Travis](https://img.shields.io/travis/planarnetwork/raptor.svg?style=flat-square)](https://travis-ci.org/planarnetwork/raptor) ![npm](https://img.shields.io/npm/v/raptor-journey-planner.svg?style=flat-square) ![David](https://img.shields.io/david/planarnetwork/raptor.svg?style=flat-square)
 
-A near direct implementation of the [Round bAsed Public Transit Optimized Router (Raptor)](https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf) journey planning algorithm as described in the paper. It does not contain the multi-threading or multi-criteria (mcRaptor) variants but does contain the range query (rRaptor) algorithm.
+A near direct implementation of the [Round bAsed Public Transit Optimized Router (Raptor)](https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf) journey planning algorithm as described in the paper. 
+
+It does not contain the multi-threading or multi-criteria (mcRaptor) variants but does contain the range query (rRaptor) algorithm.
+
+Variations from the paper implementation:
+- Footpaths are checked before routes and taking a footpath counts towards the number of changes (journey legs)
+- Interchange time at each station is applied (in progress)
+- Pickup / set down marker of stop times are obeyed (in progress)
+- Calendars are checked to ensure services are running on the specified day (in progress)
+
+## Status
+
+Work in progress.
 
 ## Usage
 
-The algorithm can be run on any GTFS data set.
+The algorithm can be run on any GTFS data set via the CLI.
 
 ```
-npm install --save raptor-journey-planner
+sudo npm install -g raptor-journey-planner
+raptor gtfs.zip stopA stopB yyyyMMdd
+
+# e.g
+raptor gb-rail.zip NRW STA 20180515
 ```
 
-## Testing
- 
+Alternatively, it can be used as a library:
+
 ```
-npm test
+import {Raptor} from "raptor-journey-planner";
+
+const raptor = new Raptor(trips, transfers, interchange);
+const journeys = raptor.plan("NRW", "STA", 20180515);
 ```
 
 ## Contributing
