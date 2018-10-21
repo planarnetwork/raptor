@@ -267,6 +267,42 @@ describe("Raptor", () => {
     ]);
   });
 
+  it("uses a transfer if it is faster", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1100, null)
+      ),
+      t(
+        st("C", null, 1130),
+        st("D", 1200, null)
+      )
+    ];
+
+    const transfers = {
+      "C": [
+        tf("C", "D", 10)
+      ]
+    };
+
+    const raptor = new Raptor(trips, transfers);
+    const result = raptor.plan("A", "D", 20181016);
+
+    const transfer = j(
+      [
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1100, null)
+      ],
+      tf("C", "D", 10)
+    );
+
+    chai.expect(result).to.deep.equal([
+      transfer
+    ]);
+  });
+
 });
 
 let tripId = 0;
