@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import {Stop, StopTime, Time, Trip} from "../src/GTFS";
+import {Journey, Leg, Stop, StopTime, Time, Trip} from "../src/GTFS";
 import {Raptor} from "../src/Raptor";
 
 describe("Raptor", () => {
@@ -16,7 +16,13 @@ describe("Raptor", () => {
     const raptor = new Raptor(trips);
     const result = raptor.plan("A", "C", 20181016);
 
-    chai.expect(result).to.deep.equal([["A", "C"]]);
+    chai.expect(result).to.deep.equal([
+      j([
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      ])
+    ]);
   });
 
   it("finds journeys with a single connection", () => {
@@ -36,7 +42,15 @@ describe("Raptor", () => {
     const raptor = new Raptor(trips);
     const result = raptor.plan("A", "E", 20181016);
 
-    chai.expect(result).to.deep.equal([["A", "B", "E"]]);
+    chai.expect(result).to.deep.equal([
+      j([
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+      ], [
+        st("B", 1030, 1035),
+        st("E", 1100, null)
+      ])
+    ]);
   });
 
   it("does not return journeys that cannot be made", () => {
@@ -75,9 +89,23 @@ describe("Raptor", () => {
     const raptor = new Raptor(trips);
     const result = raptor.plan("A", "C", 20181016);
 
+    const direct = j([
+      st("A", null, 1000),
+      st("B", 1030, 1030),
+      st("C", 1200, null)
+    ]);
+
+    const change = j([
+      st("A", null, 1000),
+      st("B", 1030, 1030),
+    ], [
+      st("B", null, 1030),
+      st("C", 1100, null)
+    ]);
+
     chai.expect(result).to.deep.equal([
-      ["A", "C"],
-      ["A", "B", "C"]
+      direct,
+      change
     ]);
   });
 
@@ -108,8 +136,18 @@ describe("Raptor", () => {
     const raptor = new Raptor(trips);
     const result = raptor.plan("A", "E", 20181016);
 
+    const fastest = j([
+      st("A", null, 1100),
+      st("F", 1130, 1130),
+      st("G", 1200, null)
+    ], [
+      st("G", null, 1200),
+      st("H", 1230, 1230),
+      st("E", 1255, null)
+    ]);
+
     chai.expect(result).to.deep.equal([
-      ["A", "G", "E"]
+      fastest
     ]);
   });
 
@@ -140,8 +178,18 @@ describe("Raptor", () => {
     const raptor = new Raptor(trips);
     const result = raptor.plan("A", "E", 20181016);
 
+    const journey1 = j([
+      st("A", null, 1000),
+      st("B", 1030, 1030),
+      st("C", 1100, null)
+    ], [
+      st("C", null, 1200),
+      st("D", 1230, 1230),
+      st("E", 1300, null)
+    ]);
+
     chai.expect(result).to.deep.equal([
-      ["A", "C", "E"]
+      journey1
     ]);
   });
 
@@ -170,8 +218,16 @@ describe("Raptor", () => {
     const raptor = new Raptor(trips);
     const result = raptor.plan("A", "E", 20181016);
 
+    const change = j([
+      st("A", null, 1000),
+      st("B", 1030, null)
+    ], [
+      st("B", 1030, 1030),
+      st("E", 1100, null)
+    ]);
+
     chai.expect(result).to.deep.equal([
-      ["A", "B", "E"]
+      change
     ]);
   });
 });
@@ -192,5 +248,15 @@ function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | null): S
     departureTime: departureTime || arrivalTime!,
     dropOff: arrivalTime !== null,
     pickUp: departureTime !== null
+  };
+}
+
+function j(...legStopTimes: StopTime[][]): Journey {
+  return {
+    legs: legStopTimes.map(stopTimes => ({
+      stopTimes,
+      origin: stopTimes[0].stop,
+      destination: stopTimes[stopTimes.length - 1].stop
+    }))
   };
 }

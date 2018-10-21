@@ -1,4 +1,4 @@
-import {Stop, StopTime, Time, Trip, TripID} from "./GTFS";
+import {Journey, Stop, StopTime, Time, Trip, TripID} from "./GTFS";
 import {keyValue, pushNested} from "ts-array-utils";
 
 export class Raptor {
@@ -36,7 +36,7 @@ export class Raptor {
     // sort trips?
   }
 
-  public plan(origin: Stop, destination: Stop, date: number): Stop[][] {
+  public plan(origin: Stop, destination: Stop, date: number): Journey[] {
     const kArrivals: StopArrivalTimeIndex[] = [];
     const kConnections: ConnectionIndex = this.stops.reduce(keyValue(s => [s, {}]), {});
 
@@ -58,7 +58,7 @@ export class Raptor {
 
           if (stopTimes && stopTimes[stopPi].dropOff && stopTimes[stopPi].arrivalTime < kArrivals[k][stopPiName]) {
             kArrivals[k][stopPiName] = stopTimes[stopPi].arrivalTime;
-            kConnections[stopPiName][k] = [stopTimes, boardingPoint, stopPi];
+            kConnections[stopPiName][k] = [stopTimes, boardingPoint, stopPi]; // perf, cast k to string?
 
             markedStops.add(stopPiName);
           }
@@ -98,26 +98,29 @@ export class Raptor {
     return tripId ? this.tripStopTime[tripId] : undefined;
   }
 
-  private getResults(kConnections: ConnectionIndex, destination: Stop): Stop[][] {
+  private getResults(kConnections: ConnectionIndex, finalDestination: Stop): Journey[] {
     const results: any = [];
 
     // perf for in?
-    for (const k of Object.keys(kConnections[destination])) {
-      let d = destination;
+    for (const k of Object.keys(kConnections[finalDestination])) {
+      let destination = finalDestination;
       let i = k as any | 0; // perf, is just an any better
 
       const legs: any = [];
 
       while (i > 0) {
-        const [stopTimes, start, end] = kConnections[d][i];
-        const legStopTimes = stopTimes.slice(start, end + 1);
+        const [tripStopTimes, start, end] = kConnections[destination][i];
+        const stopTimes = tripStopTimes.slice(start, end + 1);
+        const origin = stopTimes[0].stop;
 
-        legs.push(legStopTimes);
-        d = legStopTimes[0].stop;
+        destination = stopTimes[stopTimes.length - 1].stop;
+        legs.push({ stopTimes, origin, destination });
+
+        destination = origin;
         i--;
       }
 
-      results.push(legs.reverse());
+      results.push({ legs: legs.reverse() });
     }
 
     return results;
