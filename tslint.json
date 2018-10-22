@@ -24,7 +24,7 @@
     "member-ordering": false,
     "no-any": false,
     "no-arg": true,
-    "no-bitwise": true,
+    "no-bitwise": false,
     "no-console": false,
     "no-consecutive-blank-lines": true,
     "no-construct": true,

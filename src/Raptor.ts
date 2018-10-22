@@ -1,16 +1,18 @@
-import {Journey, Leg, Stop, StopTime, Time, Transfer, Trip, TripID, AnyLeg} from "./GTFS";
-import {keyValue, pushNested} from "ts-array-utils";
+import {Journey, Stop, StopTime, Time, Transfer, Trip, TripID, AnyLeg} from "./GTFS";
+import {keyValue} from "ts-array-utils";
 
 export class Raptor {
+  private static readonly DEFAULT_INTERCHANGE_TIME = 0;
   private readonly routeStopIndex: RouteStopIndex = {};
   private readonly routePath: RoutePaths = {};
   private readonly routesAtStop: RoutesIndexedByStop = {};
   private readonly tripsByRoute: TripsIndexedByRoute = {};
   private readonly tripStopTime: TripStopTimeIndex = {};
-  private readonly transfers: TransferIndex = {};
+  private readonly transfers: TransfersByOrigin = {};
+  private readonly interchange: Interchange = {};
   private readonly stops: Stop[] = [];
 
-  constructor(trips: Trip[], transfers: TransferIndex) {
+  constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange) {
     for (const trip of trips) {
       const path = trip.stopTimes.map(s => s.stop);
       const routeId = path.join(); // add pickup / drop off?
@@ -22,9 +24,13 @@ export class Raptor {
 
         for (let i = path.length - 1; i >= 0; i--) {
           this.routeStopIndex[routeId][path[i]] = i;
+          this.transfers[path[i]] = transfers[path[i]] || [];
+          this.routesAtStop[path[i]] = this.routesAtStop[path[i]] || [];
+          this.interchange[path[i]] = interchange[path[i]] || Raptor.DEFAULT_INTERCHANGE_TIME;
 
-          // if (trip.stopTimes[i].pickUp) { needed for stops array
-          pushNested(routeId, this.routesAtStop, path[i]);
+          if (trip.stopTimes[i].pickUp) {
+            this.routesAtStop[path[i]].push(routeId);
+          }
         }
       }
 
@@ -32,22 +38,19 @@ export class Raptor {
       this.tripsByRoute[routeId].push(trip.tripId);
     }
 
-    for (const stop of Object.keys(this.routesAtStop)) {
-      this.transfers[stop] = transfers[stop] || [];
-      this.stops.push(stop);
-    }
+    this.stops = Object.keys(this.transfers);
 
     // sort trips?
   }
 
   public plan(origin: Stop, destination: Stop, date: number): Journey[] {
     const kArrivals: StopArrivalTimeIndex[] = [];
-    const kConnections: ConnectionIndex = this.stops.reduce(keyValue(s => [s, {}]), {});
+    const kConnections: ConnectionIndex = this.stops.reduce(keyValue(s => [s, {}]), {}); // perf, predefine + obj assign
 
-    kArrivals[0] = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
+    kArrivals[0] = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {}); // perf, predefine + obj assign
     kArrivals[0][origin] = 0;
 
-    for (let k = 1, markedStops = new Set([origin]); markedStops.size > 0; k++) {
+    for (let k = 1, markedStops = new Set([origin]); markedStops.size > 0; k++) { // perf, set markedStops outside for
       const queue = this.getQueue(markedStops);
       const newMarkedStops = new Set();
 
@@ -57,7 +60,7 @@ export class Raptor {
       for (const stopP of markedStops) {
         for (const transfer of this.transfers[stopP]) {
           const stopPi = transfer.destination;
-          const arrivalTime = kArrivals[k - 1][stopP] + transfer.duration;
+          const arrivalTime = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
 
           if (arrivalTime < kArrivals[k - 1][stopPi]) {
             kArrivals[k][stopPi] = arrivalTime;
@@ -69,22 +72,23 @@ export class Raptor {
       }
 
       // examine routes
-      for (const [routeId, stopP] of Object.entries(queue)) {
+      for (const [routeId, stopP] of Object.entries(queue)) { // perf, for in?
         let boardingPoint = -1;
-        let stopTimes: StopTime[] | undefined = undefined;
+        let stops: StopTime[] | undefined = undefined;
 
         for (let stopPi = this.routeStopIndex[routeId][stopP]; stopPi < this.routePath[routeId].length; stopPi++) {
           const stopPiName = this.routePath[routeId][stopPi];
+          const interchange = this.interchange[stopPiName];
 
-          if (stopTimes && stopTimes[stopPi].dropOff && stopTimes[stopPi].arrivalTime < kArrivals[k][stopPiName]) {
-            kArrivals[k][stopPiName] = stopTimes[stopPi].arrivalTime;
-            kConnections[stopPiName][k] = [stopTimes, boardingPoint, stopPi]; // perf, cast k to string?
+          if (stops && stops[stopPi].dropOff && stops[stopPi].arrivalTime + interchange < kArrivals[k][stopPiName]) {
+            kArrivals[k][stopPiName] = stops[stopPi].arrivalTime + interchange;
+            kConnections[stopPiName][k] = [stops, boardingPoint, stopPi]; // perf, cast k to string?
 
             newMarkedStops.add(stopPiName);
           }
 
-          if (!stopTimes || kArrivals[k - 1][stopPiName] < stopTimes[stopPi].arrivalTime) {
-            stopTimes = this.getEarliestTrip(routeId, stopPi, kArrivals[k - 1][stopPiName]);
+          if (!stops || kArrivals[k - 1][stopPiName] < stops[stopPi].arrivalTime + interchange) {
+            stops = this.getEarliestTrip(routeId, stopPi, kArrivals[k - 1][stopPiName]);
             boardingPoint = stopPi;
           }
         }
@@ -97,7 +101,7 @@ export class Raptor {
   }
 
   private getQueue(markedStops: Set<Stop>): RouteQueue {
-    let queue = {};
+    const queue = {}; // perf, Map?
 
     for (const stop of markedStops) {
       for (const routeId of this.routesAtStop[stop]) {
@@ -113,7 +117,7 @@ export class Raptor {
   }
 
   private getEarliestTrip(routeId: RouteID, stopIndex: number, time: Time): StopTime[] | undefined {
-    // perf, store index of trip, it will only ever increase - may not true for overtaken trains
+    // perf, paper states these are sorted by departure time and it only needs to search later, but I'm not sure
     const tripId = this.tripsByRoute[routeId].find(id => this.tripStopTime[id][stopIndex].departureTime >= time);
 
     return tripId ? this.tripStopTime[tripId] : undefined;
@@ -129,10 +133,10 @@ export class Raptor {
     return results;
   }
 
-  private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: Stop) {
+  private getJourneyLegs(kConnections: ConnectionIndex, k: any, finalDestination: Stop) {
     const legs: AnyLeg[] = [];
 
-    for (let destination = finalDestination, i = k as any | 0; i > 0; i--) { // perf, | 0 or Number or parseInt
+    for (let destination = finalDestination, i = k | 0; i > 0; i--) { // perf, | 0 or Number or parseInt
       const connection = kConnections[destination][i];
 
       if (isTransfer(connection)) {
@@ -168,4 +172,5 @@ type RouteQueue = Record<RouteID, Stop>;
 type RoutesIndexedByStop = Record<Stop, RouteID[]>;
 type TripsIndexedByRoute = Record<RouteID, TripID[]>;
 type TripStopTimeIndex = Record<TripID, StopTime[]>;
-type TransferIndex = Record<Stop, Transfer[]>;
+type TransfersByOrigin = Record<Stop, Transfer[]>;
+type Interchange = Record<Stop, number>;

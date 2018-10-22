@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import {Journey, Leg, Stop, StopTime, Time, Transfer, Trip} from "../src/GTFS";
+import {Journey, Stop, StopTime, Time, Transfer, Trip} from "../src/GTFS";
 import {Raptor} from "../src/Raptor";
 
 describe("Raptor", () => {
@@ -13,7 +13,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {});
+    const raptor = new Raptor(trips, {}, {});
     const result = raptor.plan("A", "C", 20181016);
 
     chai.expect(result).to.deep.equal([
@@ -39,7 +39,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {});
+    const raptor = new Raptor(trips, {}, {});
     const result = raptor.plan("A", "E", 20181016);
 
     chai.expect(result).to.deep.equal([
@@ -67,7 +67,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {});
+    const raptor = new Raptor(trips, {}, {});
     const result = raptor.plan("A", "E", 20181016);
 
     chai.expect(result).to.deep.equal([]);
@@ -86,7 +86,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {});
+    const raptor = new Raptor(trips, {}, {});
     const result = raptor.plan("A", "C", 20181016);
 
     const direct = j([
@@ -133,7 +133,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {});
+    const raptor = new Raptor(trips, {}, {});
     const result = raptor.plan("A", "E", 20181016);
 
     const fastest = j([
@@ -175,7 +175,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {});
+    const raptor = new Raptor(trips, {}, {});
     const result = raptor.plan("A", "E", 20181016);
 
     const journey1 = j([
@@ -215,7 +215,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {});
+    const raptor = new Raptor(trips, {}, {});
     const result = raptor.plan("A", "E", 20181016);
 
     const change = j([
@@ -250,7 +250,7 @@ describe("Raptor", () => {
       ]
     };
 
-    const raptor = new Raptor(trips, transfers);
+    const raptor = new Raptor(trips, transfers, {});
     const result = raptor.plan("A", "E", 20181016);
 
     chai.expect(result).to.deep.equal([
@@ -286,7 +286,7 @@ describe("Raptor", () => {
       ]
     };
 
-    const raptor = new Raptor(trips, transfers);
+    const raptor = new Raptor(trips, transfers, {});
     const result = raptor.plan("A", "D", 20181016);
 
     const transfer = j(
@@ -300,6 +300,153 @@ describe("Raptor", () => {
 
     chai.expect(result).to.deep.equal([
       transfer
+    ]);
+  });
+
+  it("doesn't allow pick up from locations without pickup specified", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1200, null)
+      ),
+      t(
+        st("E", null, 1000),
+        st("B", 1030, null),
+        st("C", 1100, null)
+      )
+    ];
+
+    const raptor = new Raptor(trips, {}, {});
+    const result = raptor.plan("A", "C", 20181016);
+
+    const direct = j([
+      st("A", null, 1000),
+      st("B", 1030, 1030),
+      st("C", 1200, null)
+    ]);
+
+    chai.expect(result).to.deep.equal([
+      direct
+    ]);
+  });
+
+  it("doesn't allow drop off at non-drop off locations", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", null, 1030),
+        st("C", 1200, null)
+      ),
+      t(
+        st("E", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1100, null)
+      )
+    ];
+
+    const raptor = new Raptor(trips, {}, {});
+    const result = raptor.plan("A", "C", 20181016);
+
+    const direct = j([
+      st("A", null, 1000),
+      st("B", null, 1030),
+      st("C", 1200, null)
+    ]);
+
+    chai.expect(result).to.deep.equal([
+      direct
+    ]);
+  });
+
+  it("applies interchange times", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1200, null)
+      ),
+      t(
+        st("B", null, 1030),
+        st("C", 1100, null)
+      ),
+      t(
+        st("B", null, 1040),
+        st("C", 1110, null)
+      )
+    ];
+
+    const transfers = {};
+    const interchange = { B: 10 };
+
+    const raptor = new Raptor(trips, transfers, interchange);
+    const result = raptor.plan("A", "C", 20181016);
+
+    const direct = j([
+      st("A", null, 1000),
+      st("B", 1030, 1030),
+      st("C", 1200, null)
+    ]);
+
+    const change = j([
+      st("A", null, 1000),
+      st("B", 1030, 1030),
+    ], [
+      st("B", null, 1040),
+      st("C", 1110, null)
+    ]);
+
+    chai.expect(result).to.deep.equal([
+      direct,
+      change
+    ]);
+  });
+
+  it("applies interchange times to transfers", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, null)
+      ),
+      t(
+        st("C", null, 1030),
+        st("D", 1100, null)
+      ),
+      t(
+        st("C", null, 1050),
+        st("D", 1110, null)
+      ),
+      t(
+        st("C", null, 1100),
+        st("D", 1120, null)
+      )
+    ];
+
+    const transfers = {
+      "B": [
+        tf("B", "C", 10)
+      ]
+    };
+
+    const interchange = { B: 10, C: 10 };
+
+    const raptor = new Raptor(trips, transfers, interchange);
+    const result = raptor.plan("A", "D", 20181016);
+
+    const lastPossible = j(
+      [
+        st("A", null, 1000),
+        st("B", 1030, null),
+      ],
+      tf("B", "C", 10),
+      [
+        st("C", null, 1100),
+        st("D", 1120, null)
+      ]
+    );
+
+    chai.expect(result).to.deep.equal([
+      lastPossible
     ]);
   });
 
