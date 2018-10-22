@@ -10,7 +10,7 @@ Variations from the paper implementation:
 - Footpaths are checked before routes and taking a footpath counts towards the number of changes (journey legs)
 - Interchange time at each station is applied
 - Pickup / set down marker of stop times are obeyed
-- Calendars are checked to ensure services are running on the specified day (in progress)
+- Calendars are checked to ensure services are running on the specified day
 
 ## Status
 

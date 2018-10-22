@@ -1,5 +1,18 @@
-import {Journey, Stop, StopTime, Time, Transfer, Trip, TripID, AnyLeg} from "./GTFS";
-import {keyValue} from "ts-array-utils";
+import {
+  Journey,
+  Stop,
+  StopTime,
+  Time,
+  Transfer,
+  Trip,
+  TripID,
+  AnyLeg,
+  DateNumber,
+  DayOfWeek,
+  Service,
+  ServiceID
+} from "./GTFS";
+import {keyValue, indexBy} from "ts-array-utils";
 
 export class Raptor {
   private static readonly DEFAULT_INTERCHANGE_TIME = 0;
@@ -7,12 +20,13 @@ export class Raptor {
   private readonly routePath: RoutePaths = {};
   private readonly routesAtStop: RoutesIndexedByStop = {};
   private readonly tripsByRoute: TripsIndexedByRoute = {};
-  private readonly tripStopTime: TripStopTimeIndex = {};
+  private readonly trips: TripsByID = {};
   private readonly transfers: TransfersByOrigin = {};
   private readonly interchange: Interchange = {};
   private readonly stops: Stop[] = [];
+  private readonly services: ServicesByID;
 
-  constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange) {
+  constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange, services: Service[]) {
     for (const trip of trips) {
       const path = trip.stopTimes.map(s => s.stop);
       const routeId = path.join(); // add pickup / drop off?
@@ -34,16 +48,18 @@ export class Raptor {
         }
       }
 
-      this.tripStopTime[trip.tripId] = trip.stopTimes;
+      this.trips[trip.tripId] = trip;
       this.tripsByRoute[routeId].push(trip.tripId);
     }
 
     this.stops = Object.keys(this.transfers);
-
+    this.services = services.reduce(indexBy(s => s.serviceId), {});
     // sort trips?
   }
 
-  public plan(origin: Stop, destination: Stop, date: number): Journey[] {
+  public plan(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
+    const date = this.getDateNumber(dateObj);
+    const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const kArrivals: StopArrivalTimeIndex[] = [];
     const kConnections: ConnectionIndex = this.stops.reduce(keyValue(s => [s, {}]), {}); // perf, predefine + obj assign
 
@@ -88,7 +104,7 @@ export class Raptor {
           }
 
           if (!stops || kArrivals[k - 1][stopPiName] < stops[stopPi].arrivalTime + interchange) {
-            stops = this.getEarliestTrip(routeId, stopPi, kArrivals[k - 1][stopPiName]);
+            stops = this.getEarliestTrip(routeId, date, dayOfWeek, stopPi, kArrivals[k - 1][stopPiName]);
             boardingPoint = stopPi;
           }
         }
@@ -98,6 +114,12 @@ export class Raptor {
     }
 
     return this.getResults(kConnections, destination);
+  }
+
+  private getDateNumber(date: Date): number {
+    const str = date.toISOString();
+
+    return str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10) as any | 0; // perf, other?
   }
 
   private getQueue(markedStops: Set<Stop>): RouteQueue {
@@ -116,11 +138,31 @@ export class Raptor {
     return this.routeStopIndex[routeId][stopA] < this.routeStopIndex[routeId][stopB];
   }
 
-  private getEarliestTrip(routeId: RouteID, stopIndex: number, time: Time): StopTime[] | undefined {
-    // perf, paper states these are sorted by departure time and it only needs to search later, but I'm not sure
-    const tripId = this.tripsByRoute[routeId].find(id => this.tripStopTime[id][stopIndex].departureTime >= time);
+  private getEarliestTrip(
+    routeId: RouteID,
+    date: DateNumber,
+    dow: DayOfWeek,
+    stopIndex: number,
+    time: Time
+  ): StopTime[] | undefined {
 
-    return tripId ? this.tripStopTime[tripId] : undefined;
+    // perf, paper states these are sorted by departure time and it only needs to search later, but I'm not sure
+    for (const tripId of this.tripsByRoute[routeId]) {
+      const trip = this.trips[tripId];
+
+      // perf, memoize service running date?
+      if (trip.stopTimes[stopIndex].departureTime >= time && this.serviceIsRunning(trip.serviceId, date, dow)) {
+        return trip.stopTimes;
+      }
+    }
+  }
+
+  private serviceIsRunning(serviceId: ServiceID, date: DateNumber, dow: DayOfWeek): boolean {
+    return !this.services[serviceId].exclude[date] && (this.services[serviceId].include[date] || (
+      this.services[serviceId].from <= date &&
+      this.services[serviceId].to >= date &&
+      this.services[serviceId].days[dow]
+    ));
   }
 
   private getResults(kConnections: ConnectionIndex, destination: Stop): Journey[] {
@@ -171,6 +213,7 @@ type RoutePaths = Record<RouteID, Stop[]>;
 type RouteQueue = Record<RouteID, Stop>;
 type RoutesIndexedByStop = Record<Stop, RouteID[]>;
 type TripsIndexedByRoute = Record<RouteID, TripID[]>;
-type TripStopTimeIndex = Record<TripID, StopTime[]>;
+type TripsByID = Record<TripID, Trip>;
 type TransfersByOrigin = Record<Stop, Transfer[]>;
 type Interchange = Record<Stop, number>;
+type ServicesByID = Record<ServiceID, Service>;
