@@ -27,9 +27,11 @@ export class Raptor {
   private readonly services: ServicesByID;
 
   constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange, services: Service[]) {
+    trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime); // perf, sort trips route index?
+
     for (const trip of trips) {
       const path = trip.stopTimes.map(s => s.stop);
-      const routeId = path.join(); // add pickup / drop off?
+      const routeId = path.join();
 
       if (!this.routeStopIndex[routeId]) {
         this.tripsByRoute[routeId] = [];
@@ -54,7 +56,6 @@ export class Raptor {
 
     this.stops = Object.keys(this.transfers);
     this.services = services.reduce(indexBy(s => s.serviceId), {});
-    // sort trips?
   }
 
   public plan(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
@@ -146,7 +147,7 @@ export class Raptor {
     time: Time
   ): StopTime[] | undefined {
 
-    // perf, paper states these are sorted by departure time and it only needs to search later, but I'm not sure
+    // perf, first time service from earliest, then keep the index of that as a maximum and look earlier
     for (const tripId of this.tripsByRoute[routeId]) {
       const trip = this.trips[tripId];
 

@@ -36,6 +36,32 @@ describe("Raptor", () => {
     ]);
   });
 
+  it("finds the earliest services", () => {
+    const trips = [
+      t(
+        st("A", null, 1400),
+        st("B", 1430, 1435),
+        st("C", 1500, null)
+      ),
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      )
+    ];
+
+    const raptor = new Raptor(trips, {}, {}, services);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+
+    chai.expect(result).to.deep.equal([
+      j([
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      ])
+    ]);
+  });
+
   it("finds journeys with a single connection", () => {
     const trips = [
       t(
