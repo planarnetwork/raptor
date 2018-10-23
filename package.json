@@ -9,7 +9,8 @@
     "watch-test": "mocha -w --require ts-node/register 'test/**/*.spec.ts'",
     "prepublishOnly": "rm -rf ./dist/ && tsc -p ./ --outDir dist/",
     "lint-raw": "tslint --project tsconfig.json",
-    "lint": "npm run lint-raw -- -t stylish"
+    "lint": "npm run lint-raw -- -t stylish",
+    "int": "ts-node ./test/integration.ts"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.12.0",
     "chai": "^4.2.0",
+    "gtfs-stream": "^1.0.4",
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",

@@ -9,7 +9,7 @@ import {
   AnyLeg,
   DateNumber,
   DayOfWeek,
-  Service,
+  Calendar,
   ServiceID
 } from "./GTFS";
 import {keyValue, indexBy} from "ts-array-utils";
@@ -24,9 +24,9 @@ export class Raptor {
   private readonly transfers: TransfersByOrigin = {};
   private readonly interchange: Interchange = {};
   private readonly stops: Stop[] = [];
-  private readonly services: ServicesByID;
+  private readonly calendars: CalendarsByServiceID;
 
-  constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange, services: Service[]) {
+  constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange, calendars: Calendar[]) {
     trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime); // perf, sort trips route index?
 
     for (const trip of trips) {
@@ -55,7 +55,7 @@ export class Raptor {
     }
 
     this.stops = Object.keys(this.transfers);
-    this.services = services.reduce(indexBy(s => s.serviceId), {});
+    this.calendars = calendars.reduce(indexBy(c => c.serviceId), {});
   }
 
   public plan(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
@@ -79,7 +79,7 @@ export class Raptor {
           const stopPi = transfer.destination;
           const arrivalTime = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
 
-          if (arrivalTime < kArrivals[k - 1][stopPi]) {
+          if (arrivalTime < kArrivals[k][stopPi]) {
             kArrivals[k][stopPi] = arrivalTime;
             kConnections[stopPi][k] = transfer; // perf, cast k to string?
 
@@ -159,10 +159,10 @@ export class Raptor {
   }
 
   private serviceIsRunning(serviceId: ServiceID, date: DateNumber, dow: DayOfWeek): boolean {
-    return !this.services[serviceId].exclude[date] && (this.services[serviceId].include[date] || (
-      this.services[serviceId].from <= date &&
-      this.services[serviceId].to >= date &&
-      this.services[serviceId].days[dow]
+    return !this.calendars[serviceId].exclude[date] && (this.calendars[serviceId].include[date] || (
+      this.calendars[serviceId].startDate <= date &&
+      this.calendars[serviceId].endDate >= date &&
+      this.calendars[serviceId].days[dow]
     ));
   }
 
@@ -215,6 +215,7 @@ type RouteQueue = Record<RouteID, Stop>;
 type RoutesIndexedByStop = Record<Stop, RouteID[]>;
 type TripsIndexedByRoute = Record<RouteID, TripID[]>;
 type TripsByID = Record<TripID, Trip>;
-type TransfersByOrigin = Record<Stop, Transfer[]>;
-type Interchange = Record<Stop, number>;
-type ServicesByID = Record<ServiceID, Service>;
+type CalendarsByServiceID = Record<ServiceID, Calendar>;
+
+export type Interchange = Record<Stop, number>;
+export type TransfersByOrigin = Record<Stop, Transfer[]>;

@@ -49,10 +49,10 @@ export type DateIndex = Record<DateNumber, boolean>;
 // Sunday = 0, Monday = 1... don't blame me, blame JavaScript .getDay
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-export interface Service {
+export interface Calendar {
   serviceId: ServiceID;
-  from: DateNumber;
-  to: DateNumber;
+  startDate: DateNumber;
+  endDate: DateNumber;
   days: Record<DayOfWeek, boolean>;
   exclude: DateIndex;
   include: DateIndex;
