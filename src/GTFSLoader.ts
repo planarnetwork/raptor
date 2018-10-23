@@ -15,15 +15,15 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
 
   const processor = {
     link: row => {
-      const t = { origin: row.from_stop_id, destination: row.to_stop_id, duration: row.duration | 0 };
+      const t = { origin: row.from_stop_id, destination: row.to_stop_id, duration: parseInt(row.duration, 10) };
 
       pushNested(t, transfers, row.from_stop_id);
     },
     calendar: row => {
       const cal = {
         serviceId: row.service_id,
-        startDate: row.start_date | 0,
-        endDate: row.end_date | 0,
+        startDate: parseInt(row.start_date, 10),
+        endDate: parseInt(row.end_date, 10),
         days: {
           0: row.sunday,
           1: row.monday,
@@ -60,7 +60,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
       stopTimes[row.trip_id].push(stopTime);
     },
     transfer: row => {
-      interchange[row.from_stop_id] = row.min_transfer_time | 0;
+      interchange[row.from_stop_id] = parseInt(row.min_transfer_time, 10);
     },
     route: () => {},
     stop: () => {},

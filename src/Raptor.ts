@@ -27,7 +27,8 @@ export class Raptor {
   private readonly calendars: CalendarsByServiceID;
 
   constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange, calendars: Calendar[]) {
-    trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime); // perf, sort trips route index?
+    // perf, sort trips after they've been indexed by route?
+    trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
 
     for (const trip of trips) {
       const path = trip.stopTimes.map(s => s.stop);
@@ -61,13 +62,12 @@ export class Raptor {
   public plan(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
     const date = this.getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const kArrivals: StopArrivalTimeIndex[] = [];
-    const kConnections: ConnectionIndex = this.stops.reduce(keyValue(s => [s, {}]), {}); // perf, predefine + obj assign
+    const kArrivals = [this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {})];
+    const kConnections = this.stops.reduce(keyValue(s => [s, {}]), {});
 
-    kArrivals[0] = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {}); // perf, predefine + obj assign
     kArrivals[0][origin] = 0;
 
-    for (let k = 1, markedStops = new Set([origin]); markedStops.size > 0; k++) { // perf, set markedStops outside for
+    for (let k = 1, markedStops = new Set([origin]); markedStops.size > 0; k++) {
       const queue = this.getQueue(markedStops);
       const newMarkedStops = new Set();
 
@@ -81,7 +81,7 @@ export class Raptor {
 
           if (arrivalTime < kArrivals[k][stopPi]) {
             kArrivals[k][stopPi] = arrivalTime;
-            kConnections[stopPi][k] = transfer; // perf, cast k to string?
+            kConnections[stopPi][k] = transfer;
 
             newMarkedStops.add(stopPi);
           }
@@ -89,7 +89,7 @@ export class Raptor {
       }
 
       // examine routes
-      for (const [routeId, stopP] of Object.entries(queue)) { // perf, for in?
+      for (const [routeId, stopP] of Object.entries(queue)) {
         let boardingPoint = -1;
         let stops: StopTime[] | undefined = undefined;
 
@@ -99,7 +99,7 @@ export class Raptor {
 
           if (stops && stops[stopPi].dropOff && stops[stopPi].arrivalTime + interchange < kArrivals[k][stopPiName]) {
             kArrivals[k][stopPiName] = stops[stopPi].arrivalTime + interchange;
-            kConnections[stopPiName][k] = [stops, boardingPoint, stopPi]; // perf, cast k to string?
+            kConnections[stopPiName][k] = [stops, boardingPoint, stopPi];
 
             newMarkedStops.add(stopPiName);
           }
@@ -120,11 +120,11 @@ export class Raptor {
   private getDateNumber(date: Date): number {
     const str = date.toISOString();
 
-    return str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10) as any | 0; // perf, other?
+    return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);
   }
 
   private getQueue(markedStops: Set<Stop>): RouteQueue {
-    const queue = {}; // perf, Map?
+    const queue = {};
 
     for (const stop of markedStops) {
       for (const routeId of this.routesAtStop[stop]) {
@@ -169,7 +169,7 @@ export class Raptor {
   private getResults(kConnections: ConnectionIndex, destination: Stop): Journey[] {
     const results: any = [];
 
-    for (const k of Object.keys(kConnections[destination])) { // perf, for in?
+    for (const k of Object.keys(kConnections[destination])) {
       results.push({ legs: this.getJourneyLegs(kConnections, k, destination) });
     }
 
@@ -179,7 +179,7 @@ export class Raptor {
   private getJourneyLegs(kConnections: ConnectionIndex, k: any, finalDestination: Stop) {
     const legs: AnyLeg[] = [];
 
-    for (let destination = finalDestination, i = k | 0; i > 0; i--) { // perf, | 0 or Number or parseInt
+    for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
 
       if (isTransfer(connection)) {
@@ -207,7 +207,6 @@ function isTransfer(connection: [StopTime[], number, number] | Transfer): connec
 }
 
 type RouteID = string;
-type StopArrivalTimeIndex = Record<Stop, Time>;
 type ConnectionIndex = Record<Stop, Record<number, [StopTime[], number, number] | Transfer>>;
 type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
 type RoutePaths = Record<RouteID, Stop[]>;

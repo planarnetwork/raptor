@@ -10,7 +10,8 @@
     "prepublishOnly": "rm -rf ./dist/ && tsc -p ./ --outDir dist/",
     "lint-raw": "tslint --project tsconfig.json",
     "lint": "npm run lint-raw -- -t stylish",
-    "int": "ts-node ./test/integration.ts"
+    "int": "ts-node ./test/integration.ts",
+    "perf": "ts-node ./test/performance.ts"
   },
   "repository": {
     "type": "git",
