@@ -73,21 +73,6 @@ export class Raptor {
 
       kArrivals[k] = Object.assign({}, kArrivals[k - 1]);
 
-      // examine transfers
-      for (const stopP of markedStops) {
-        for (const transfer of this.transfers[stopP]) {
-          const stopPi = transfer.destination;
-          const arrivalTime = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
-
-          if (arrivalTime < kArrivals[k][stopPi]) {
-            kArrivals[k][stopPi] = arrivalTime;
-            kConnections[stopPi][k] = transfer;
-
-            newMarkedStops.add(stopPi);
-          }
-        }
-      }
-
       // examine routes
       for (const [routeId, stopP] of Object.entries(queue)) {
         let boardingPoint = -1;
@@ -107,6 +92,21 @@ export class Raptor {
           if (!stops || kArrivals[k - 1][stopPiName] < stops[stopPi].arrivalTime + interchange) {
             stops = this.getEarliestTrip(routeId, date, dayOfWeek, stopPi, kArrivals[k - 1][stopPiName]);
             boardingPoint = stopPi;
+          }
+        }
+      }
+
+      // examine transfers
+      for (const stopP of markedStops) {
+        for (const transfer of this.transfers[stopP]) {
+          const stopPi = transfer.destination;
+          const arrivalTime = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
+
+          if (arrivalTime < kArrivals[k][stopPi]) {
+            kArrivals[k][stopPi] = arrivalTime;
+            kConnections[stopPi][k] = transfer;
+
+            newMarkedStops.add(stopPi);
           }
         }
       }
