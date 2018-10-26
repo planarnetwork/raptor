@@ -7,7 +7,7 @@ A near direct implementation of the [Round bAsed Public Transit Optimized Router
 It does not contain the multi-threading or multi-criteria (mcRaptor) variants but does contain the range query (rRaptor) algorithm.
 
 Variations from the paper implementation:
-- Footpaths are checked before routes and taking a footpath counts towards the number of changes (journey legs)
+- Taking a footpath counts towards the number of changes (journey legs)
 - Interchange time at each station is applied
 - Pickup / set down marker of stop times are obeyed
 - Calendars are checked to ensure services are running on the specified day

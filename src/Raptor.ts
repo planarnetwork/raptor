@@ -20,7 +20,6 @@ export class Raptor {
   private readonly routePath: RoutePaths = {};
   private readonly routesAtStop: RoutesIndexedByStop = {};
   private readonly tripsByRoute: TripsIndexedByRoute = {};
-  private readonly trips: TripsByID = {};
   private readonly transfers: TransfersByOrigin = {};
   private readonly interchange: Interchange = {};
   private readonly stops: Stop[] = [];
@@ -32,7 +31,17 @@ export class Raptor {
 
     for (const trip of trips) {
       const path = trip.stopTimes.map(s => s.stop);
-      const routeId = path.join();
+      let routeId = trip.stopTimes.map(s => s.stop + (s.pickUp ? 1 : 0) + (s.dropOff ? 1 : 0)).join();
+
+      for (const t of this.tripsByRoute[routeId] || []) {
+        const arrivalTimeA = trip.stopTimes[trip.stopTimes.length - 1].arrivalTime;
+        const arrivalTimeB = t.stopTimes[t.stopTimes.length - 1].arrivalTime;
+
+        if (arrivalTimeA < arrivalTimeB) {
+          routeId += "overtakes";
+          break;
+        }
+      }
 
       if (!this.routeStopIndex[routeId]) {
         this.tripsByRoute[routeId] = [];
@@ -51,8 +60,7 @@ export class Raptor {
         }
       }
 
-      this.trips[trip.tripId] = trip;
-      this.tripsByRoute[routeId].push(trip.tripId);
+      this.tripsByRoute[routeId].push(trip);
     }
 
     this.stops = Object.keys(this.transfers);
@@ -88,8 +96,7 @@ export class Raptor {
 
             newMarkedStops.add(stopPiName);
           }
-
-          if (!stops || kArrivals[k - 1][stopPiName] < stops[stopPi].arrivalTime + interchange) {
+          else if (!stops || kArrivals[k - 1][stopPiName] < stops[stopPi].arrivalTime + interchange) {
             stops = this.getEarliestTrip(routeId, date, dayOfWeek, stopPi, kArrivals[k - 1][stopPiName]);
             boardingPoint = stopPi;
           }
@@ -147,15 +154,11 @@ export class Raptor {
     time: Time
   ): StopTime[] | undefined {
 
-    // perf, first time service from earliest, then keep the index of that as a maximum and look earlier
-    for (const tripId of this.tripsByRoute[routeId]) {
-      const trip = this.trips[tripId];
+    const tId = this.tripsByRoute[routeId].findIndex(t => {
+      return (t.stopTimes[stopIndex].departureTime >= time && this.serviceIsRunning(t.serviceId, date, dow));
+    });
 
-      // perf, memoize service running date?
-      if (trip.stopTimes[stopIndex].departureTime >= time && this.serviceIsRunning(trip.serviceId, date, dow)) {
-        return trip.stopTimes;
-      }
-    }
+    return tId !== -1 ? this.tripsByRoute[routeId][tId].stopTimes : undefined;
   }
 
   private serviceIsRunning(serviceId: ServiceID, date: DateNumber, dow: DayOfWeek): boolean {
@@ -167,7 +170,7 @@ export class Raptor {
   }
 
   private getResults(kConnections: ConnectionIndex, destination: Stop): Journey[] {
-    const results: any = [];
+    const results: Journey[] = [];
 
     for (const k of Object.keys(kConnections[destination])) {
       results.push({ legs: this.getJourneyLegs(kConnections, k, destination) });
@@ -176,7 +179,7 @@ export class Raptor {
     return results;
   }
 
-  private getJourneyLegs(kConnections: ConnectionIndex, k: any, finalDestination: Stop) {
+  private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: Stop) {
     const legs: AnyLeg[] = [];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
@@ -212,8 +215,7 @@ type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
 type RoutePaths = Record<RouteID, Stop[]>;
 type RouteQueue = Record<RouteID, Stop>;
 type RoutesIndexedByStop = Record<Stop, RouteID[]>;
-type TripsIndexedByRoute = Record<RouteID, TripID[]>;
-type TripsByID = Record<TripID, Trip>;
+type TripsIndexedByRoute = Record<RouteID, Trip[]>;
 type CalendarsByServiceID = Record<ServiceID, Calendar>;
 
 export type Interchange = Record<Stop, number>;

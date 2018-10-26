@@ -1,5 +1,5 @@
-import {Journey} from "../src/GTFS";
-import {Raptor} from "../src/Raptor";
+import {AnyLeg, Journey, StopTime, TimetableLeg, Transfer} from "../src/GTFS";
+import {Raptor2 as Raptor} from "../src/Raptor";
 import {loadGTFS} from "../src/GTFSLoader";
 
 async function run() {
@@ -12,7 +12,7 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.plan("EDB", "TBW", new Date("2018-10-22"));
+  const results = raptor.plan("TBW", "LVC", new Date("2018-10-22"));
   console.timeEnd("planning");
 
   console.log("Results:");
@@ -21,7 +21,17 @@ async function run() {
 }
 
 function journeyToString(j: Journey) {
-  return j.legs[0].origin + "," + j.legs.map(l => l.destination).join(",");
+  const firstLeg = j.legs[0];
+  const departureTime = isTimetableLeg(firstLeg) ? firstLeg.stopTimes[0].departureTime : firstLeg.duration;
+
+  return j.legs[0].origin + ":" + departureTime + ",\n"
+    + j.legs.map(l => l.destination + ":" + (
+      isTimetableLeg(l) ? l.stopTimes[l.stopTimes.length - 1].arrivalTime : "+" + l.duration)
+    ).join(",\n") + "\n";
 }
 
 run().catch(e => console.error(e));
+
+function isTimetableLeg(connection: AnyLeg): connection is TimetableLeg {
+  return (connection as TimetableLeg).stopTimes !== undefined;
+}

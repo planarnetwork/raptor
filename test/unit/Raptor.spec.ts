@@ -662,6 +662,117 @@ describe("Raptor", () => {
     ]);
   });
 
+  it("finds journeys after gaps in rounds", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1400, null)
+      ),
+      t(
+        st("B", null, 1035),
+        st("D", 1100, null)
+      ),
+      t(
+        st("D", null, 1100),
+        st("E", 1130, null)
+      ),
+      t(
+        st("E", null, 1130),
+        st("C", 1200, null)
+      ),
+      t(
+        st("A", null, 1000),
+        st("E", 1135, null)
+      ),
+      t(
+        st("E", null, 1135),
+        st("C", 1330, null)
+      ),
+    ];
+
+    const raptor = new Raptor(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+
+    const direct = j([
+      st("A", null, 1000),
+      st("B", 1030, 1035),
+      st("C", 1400, null)
+    ]);
+
+    const slowChange = j(
+      [
+        st("A", null, 1000),
+        st("E", 1135, null)
+      ],
+      [
+        st("E", null, 1135),
+        st("C", 1330, null)
+      ],
+    );
+
+    const change = j(
+      [
+        st("A", null, 1000),
+        st("B", 1030, 1035)
+      ],
+      [
+        st("B", null, 1035),
+        st("D", 1100, null)
+      ],
+      [
+        st("D", null, 1100),
+        st("E", 1130, null)
+      ],
+      [
+        st("E", null, 1130),
+        st("C", 1200, null)
+      ]
+    );
+
+    chai.expect(result).to.deep.equal([
+      direct,
+      slowChange,
+      change
+    ]);
+  });
+
+  it("puts overtaken trains in different routes", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1100, 1110),
+        st("D", 1130, 1130),
+        st("E", 1200, null)
+      ),
+      t(
+        st("A", null, 1010),
+        st("B", 1040, 1040),
+        st("C", 1050, 1100),
+        st("D", 1120, 1120),
+        st("E", 1150, null)
+      ),
+    ];
+
+    const raptor = new Raptor(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+
+    const faster = j(
+      [
+        st("A", null, 1010),
+        st("B", 1040, 1040),
+        st("C", 1050, 1100),
+        st("D", 1120, 1120),
+        st("E", 1150, null)
+      ]
+    );
+
+    chai.expect(result).to.deep.equal([
+      faster
+    ]);
+  });
+
 });
 
 let tripId = 0;
