@@ -1,5 +1,5 @@
-import {AnyLeg, Journey, StopTime, TimetableLeg, Transfer} from "../src/GTFS";
-import {Raptor2 as Raptor} from "../src/Raptor";
+import {AnyLeg, Journey, TimetableLeg} from "../src/GTFS";
+import {Raptor} from "../src/Raptor";
 import {loadGTFS} from "../src/GTFSLoader";
 
 async function run() {
