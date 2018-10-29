@@ -52,6 +52,14 @@ export class RouteScanner {
   }
 }
 
+class RouteScannerNoFilter extends RouteScanner {
+
+  protected serviceIsRunning(): boolean {
+    return true;
+  }
+
+}
+
 export class RouteScannerFactory {
 
   constructor(
@@ -63,14 +71,6 @@ export class RouteScannerFactory {
     return this.calendars
       ? new RouteScanner(this.tripsByRoute, this.calendars, {})
       : new RouteScannerNoFilter(this.tripsByRoute, {}, {});
-  }
-
-}
-
-class RouteScannerNoFilter extends RouteScanner {
-
-  protected serviceIsRunning(): boolean {
-    return true;
   }
 
 }
