@@ -43,7 +43,7 @@ export class RouteScanner {
     }
   }
 
-  private serviceIsRunning(serviceId: ServiceID, date: DateNumber, dow: DayOfWeek): boolean {
+  protected serviceIsRunning(serviceId: ServiceID, date: DateNumber, dow: DayOfWeek): boolean {
     return !this.calendars[serviceId].exclude[date] && (this.calendars[serviceId].include[date] || (
       this.calendars[serviceId].startDate <= date &&
       this.calendars[serviceId].endDate >= date &&
@@ -56,11 +56,21 @@ export class RouteScannerFactory {
 
   constructor(
     private readonly tripsByRoute: TripsIndexedByRoute,
-    private readonly calendars: CalendarsByServiceID
+    private readonly calendars: CalendarsByServiceID | false
   ) {}
 
   public create(): RouteScanner {
-    return new RouteScanner(this.tripsByRoute, this.calendars, {});
+    return this.calendars
+      ? new RouteScanner(this.tripsByRoute, this.calendars, {})
+      : new RouteScannerNoFilter(this.tripsByRoute, {}, {});
+  }
+
+}
+
+class RouteScannerNoFilter extends RouteScanner {
+
+  protected serviceIsRunning(): boolean {
+    return true;
   }
 
 }

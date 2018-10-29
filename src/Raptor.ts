@@ -1,8 +1,8 @@
-import {Journey, Stop, StopTime, Transfer, Trip, DayOfWeek, Calendar, Time} from "./GTFS";
+import {Journey, Stop, StopTime, Transfer, Trip, DayOfWeek, Calendar, Time, ServiceID, DateNumber} from "./GTFS";
 import {keyValue, indexBy} from "ts-array-utils";
 import {QueueFactory} from "./QueueFactory";
 import {ConnectionIndex, ResultsFactory} from "./ResultsFactory";
-import {RouteID, RouteScanner, RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
+import {CalendarsByServiceID, RouteID, RouteScanner, RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
 
 export class Raptor {
 
@@ -19,7 +19,7 @@ export class Raptor {
   ) { }
 
   public plan(origin: Stop, destination: Stop, dateObj: Date, departureTime: Time): Journey[] {
-    const date = this.getDateNumber(dateObj);
+    const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
     const routeScanner = this.routeScannerFactory.create();
@@ -29,7 +29,7 @@ export class Raptor {
   }
 
   public range(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
-    const date = this.getDateNumber(dateObj);
+    const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
     const routeScanner = this.routeScannerFactory.create();
@@ -40,12 +40,6 @@ export class Raptor {
 
       return results.concat(journeys);
     }, [] as Journey[]).reverse();
-  }
-
-  private getDateNumber(date: Date): number {
-    const str = date.toISOString();
-
-    return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);
   }
 
   private scan(
@@ -114,7 +108,8 @@ export class RaptorFactory {
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
-    calendars: Calendar[]
+    calendars: Calendar[],
+    date?: Date
   ): Raptor {
 
     const routesAtStop = {};
@@ -123,6 +118,14 @@ export class RaptorFactory {
     const routePath = {};
     const usefulTransfers = {};
     const departureTimesAtStop = {};
+    const calendarsIndex = calendars.reduce(indexBy(c => c.serviceId), {});
+
+    if (date) {
+      const dateNumber = getDateNumber(date);
+      const dow = date.getDay() as DayOfWeek;
+
+      trips = trips.filter(trip => this.isRunning(calendarsIndex, trip.serviceId, dateNumber, dow));
+    }
 
     trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
 
@@ -166,7 +169,10 @@ export class RaptorFactory {
       Object.keys(usefulTransfers),
       new QueueFactory(routesAtStop, routeStopIndex),
       new ResultsFactory(),
-      new RouteScannerFactory(tripsByRoute, calendars.reduce(indexBy(c => c.serviceId), {})),
+      new RouteScannerFactory(
+        tripsByRoute,
+        date ? false : calendarsIndex
+      ),
     );
   }
 
@@ -185,6 +191,26 @@ export class RaptorFactory {
     return routeId;
   }
 
+  private static isRunning(
+    calendars: CalendarsByServiceID,
+    serviceId: ServiceID,
+    date: DateNumber,
+    dow: DayOfWeek
+  ): boolean {
+
+    return !calendars[serviceId].exclude[date] && (calendars[serviceId].include[date] || (
+      calendars[serviceId].startDate <= date &&
+      calendars[serviceId].endDate >= date &&
+      calendars[serviceId].days[dow]
+    ));
+  }
+
+}
+
+function getDateNumber(date: Date): number {
+  const str = date.toISOString();
+
+  return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);
 }
 
 export type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
