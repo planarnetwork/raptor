@@ -1,6 +1,6 @@
 import * as chai from "chai";
 import {Journey, Stop, StopTime, Time, Transfer, Trip} from "../../src/GTFS";
-import {Raptor} from "../../src/Raptor";
+import {Raptor, RaptorFactory} from "../../src/Raptor";
 
 describe("Raptor", () => {
   const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
@@ -24,8 +24,8 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     chai.expect(result).to.deep.equal([
       j([
@@ -50,8 +50,8 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     chai.expect(result).to.deep.equal([
       j([
@@ -76,8 +76,8 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     chai.expect(result).to.deep.equal([
       j([
@@ -104,8 +104,8 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     chai.expect(result).to.deep.equal([]);
   });
@@ -123,8 +123,8 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     const direct = j([
       st("A", null, 1000),
@@ -170,8 +170,8 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     const fastest = j([
       st("A", null, 1100),
@@ -212,8 +212,8 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     const journey1 = j([
       st("A", null, 1000),
@@ -252,8 +252,8 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     const change = j([
       st("A", null, 1000),
@@ -287,8 +287,8 @@ describe("Raptor", () => {
       ]
     };
 
-    const raptor = new Raptor(trips, transfers, {}, calendars);
-    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, transfers, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     chai.expect(result).to.deep.equal([
       j([
@@ -323,8 +323,8 @@ describe("Raptor", () => {
       ]
     };
 
-    const raptor = new Raptor(trips, transfers, {}, calendars);
-    const result = raptor.plan("A", "D", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, transfers, {}, calendars);
+    const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
 
     const transfer = j(
       [
@@ -354,8 +354,8 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     const direct = j([
       st("A", null, 1000),
@@ -382,8 +382,8 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     const direct = j([
       st("A", null, 1000),
@@ -416,8 +416,8 @@ describe("Raptor", () => {
     const transfers = {};
     const interchange = { B: 10 };
 
-    const raptor = new Raptor(trips, transfers, interchange, calendars);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     const direct = j([
       st("A", null, 1000),
@@ -467,8 +467,8 @@ describe("Raptor", () => {
 
     const interchange = { B: 10, C: 10 };
 
-    const raptor = new Raptor(trips, transfers, interchange, calendars);
-    const result = raptor.plan("A", "D", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
+    const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
 
     const lastPossible = j(
       [
@@ -511,8 +511,8 @@ describe("Raptor", () => {
     const interchange = {};
     const calendar = { serviceId: "2", startDate: 20181001, endDate: 20181015, days: allDays, include: {}, exclude: {}};
 
-    const raptor = new Raptor(trips, transfers, interchange, calendars.concat(calendar));
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     const change = j([
       st("A", null, 1000),
@@ -552,8 +552,8 @@ describe("Raptor", () => {
     const days = Object.assign({}, allDays, { 1: false });
     const calendar = { serviceId: "2", startDate: 20181001, endDate: 20991231, days: days, include: {}, exclude: {} };
 
-    const raptor = new Raptor(trips, transfers, interchange, calendars.concat(calendar));
-    const result = raptor.plan("A", "C", new Date("2018-10-22"));
+    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
     const change = j([
       st("A", null, 1000),
@@ -599,8 +599,8 @@ describe("Raptor", () => {
       exclude: {}
     };
 
-    const raptor = new Raptor(trips, transfers, interchange, calendars.concat(calendar));
-    const result = raptor.plan("A", "C", new Date("2018-10-22"));
+    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
     const change = j([
       st("A", null, 1000),
@@ -646,8 +646,8 @@ describe("Raptor", () => {
       exclude: { 20181022: true }
     };
 
-    const raptor = new Raptor(trips, transfers, interchange, calendars.concat(calendar));
-    const result = raptor.plan("A", "C", new Date("2018-10-22"));
+    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
     const change = j([
       st("A", null, 1000),
@@ -691,8 +691,8 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     const direct = j([
       st("A", null, 1000),
@@ -755,8 +755,8 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = new Raptor(trips, {}, {}, calendars);
-    const result = raptor.plan("A", "E", new Date("2018-10-16"));
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     const faster = j(
       [
@@ -770,6 +770,47 @@ describe("Raptor", () => {
 
     chai.expect(result).to.deep.equal([
       faster
+    ]);
+  });
+
+  it("performs profile queries", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      ),
+      t(
+        st("A", null, 1100),
+        st("B", 1130, 1135),
+        st("C", 1200, null)
+      ),
+      t(
+        st("A", null, 1200),
+        st("B", 1230, 1235),
+        st("C", 1300, null)
+      )
+    ];
+
+    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const result = raptor.range("A", "C", new Date("2018-10-16"));
+
+    chai.expect(result).to.deep.equal([
+      j([
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      ]),
+      j([
+        st("A", null, 1100),
+        st("B", 1130, 1135),
+        st("C", 1200, null)
+      ]),
+      j([
+        st("A", null, 1200),
+        st("B", 1230, 1235),
+        st("C", 1300, null)
+      ])
     ]);
   });
 

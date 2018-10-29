@@ -1,4 +1,4 @@
-import {Raptor} from "../src/Raptor";
+import {RaptorFactory} from "../src/Raptor";
 import {loadGTFS} from "../src/GTFSLoader";
 import {product} from "ts-array-utils";
 
@@ -25,7 +25,7 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = new Raptor(trips, transfers, interchange, calendars);
+  const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
   console.timeEnd("pre-processing");
 
   console.time("planning");
@@ -36,7 +36,7 @@ async function run() {
     for (const [origins, destinations] of queries) {
       for (const [origin, destination] of product(origins, destinations)) {
         console.time(origin + destination);
-        const results = raptor.plan(origin, destination, date);
+        const results = raptor.plan(origin, destination, date, 36000);
         console.timeEnd(origin + destination);
 
         if (results.length === 0) {

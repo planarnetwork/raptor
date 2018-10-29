@@ -1,6 +1,7 @@
-import {AnyLeg, Journey, StopTime, TimetableLeg, Transfer} from "../src/GTFS";
-import {Raptor2 as Raptor} from "../src/Raptor";
+import {AnyLeg, Journey, TimetableLeg} from "../src/GTFS";
+import {RaptorFactory} from "../src/Raptor";
 import {loadGTFS} from "../src/GTFSLoader";
+import {flatten} from "ts-array-utils";
 
 async function run() {
   console.time("initial load");
@@ -8,11 +9,11 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = new Raptor(trips, transfers, interchange, calendars);
+  const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.plan("TBW", "LVC", new Date("2018-10-22"));
+  const results = raptor.range("TBW", "LVC", new Date("2018-10-22"));
   console.timeEnd("planning");
 
   console.log("Results:");
