@@ -36,7 +36,7 @@ async function run() {
     for (const [origins, destinations] of queries) {
       for (const [origin, destination] of product(origins, destinations)) {
         console.time(origin + destination);
-        const results = raptor.plan(origin, destination, date);
+        const results = raptor.plan(origin, destination, date, 36000);
         console.timeEnd(origin + destination);
 
         if (results.length === 0) {

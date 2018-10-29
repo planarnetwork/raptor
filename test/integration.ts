@@ -12,7 +12,7 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.plan("TBW", "LVC", new Date("2018-10-22"));
+  const results = raptor.plan("TBW", "LVC", new Date("2018-10-22"), 36000);
   console.timeEnd("planning");
 
   console.log("Results:");
