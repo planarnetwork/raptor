@@ -1,69 +1,21 @@
-import {
-  Journey,
-  Stop,
-  StopTime,
-  Time,
-  Transfer,
-  Trip,
-  AnyLeg,
-  DateNumber,
-  DayOfWeek,
-  Calendar,
-  ServiceID
-} from "./GTFS";
+import {Journey, Stop, StopTime, Transfer, Trip, DayOfWeek, Calendar} from "./GTFS";
 import {keyValue, indexBy} from "ts-array-utils";
+import {QueueFactory} from "./QueueFactory";
+import {ResultsFactory} from "./ResultsFactory";
+import {RouteID, RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
 
 export class Raptor {
-  private static readonly DEFAULT_INTERCHANGE_TIME = 0;
-  private readonly routeStopIndex: RouteStopIndex = {};
-  private readonly routePath: RoutePaths = {};
-  private readonly routesAtStop: RoutesIndexedByStop = {};
-  private readonly tripsByRoute: TripsIndexedByRoute = {};
-  private readonly transfers: TransfersByOrigin = {};
-  private readonly interchange: Interchange = {};
-  private readonly stops: Stop[] = [];
-  private readonly calendars: CalendarsByServiceID;
 
-  constructor(trips: Trip[], transfers: TransfersByOrigin, interchange: Interchange, calendars: Calendar[]) {
-    trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
-
-    for (const trip of trips) {
-      const path = trip.stopTimes.map(s => s.stop);
-      let routeId = trip.stopTimes.map(s => s.stop + (s.pickUp ? 1 : 0) + (s.dropOff ? 1 : 0)).join();
-
-      for (const t of this.tripsByRoute[routeId] || []) {
-        const arrivalTimeA = trip.stopTimes[trip.stopTimes.length - 1].arrivalTime;
-        const arrivalTimeB = t.stopTimes[t.stopTimes.length - 1].arrivalTime;
-
-        if (arrivalTimeA < arrivalTimeB) {
-          routeId += "overtakes";
-          break;
-        }
-      }
-
-      if (!this.routeStopIndex[routeId]) {
-        this.tripsByRoute[routeId] = [];
-        this.routeStopIndex[routeId] = {};
-        this.routePath[routeId] = path;
-
-        for (let i = path.length - 1; i >= 0; i--) {
-          this.routeStopIndex[routeId][path[i]] = i;
-          this.transfers[path[i]] = transfers[path[i]] || [];
-          this.routesAtStop[path[i]] = this.routesAtStop[path[i]] || [];
-          this.interchange[path[i]] = interchange[path[i]] || Raptor.DEFAULT_INTERCHANGE_TIME;
-
-          if (trip.stopTimes[i].pickUp) {
-            this.routesAtStop[path[i]].push(routeId);
-          }
-        }
-      }
-
-      this.tripsByRoute[routeId].push(trip);
-    }
-
-    this.stops = Object.keys(this.transfers);
-    this.calendars = calendars.reduce(indexBy(c => c.serviceId), {});
-  }
+  constructor(
+    private readonly routeStopIndex: RouteStopIndex,
+    private readonly routePath: RoutePaths,
+    private readonly transfers: TransfersByOrigin,
+    private readonly interchange: Interchange,
+    private readonly stops: Stop[],
+    private readonly queueFactory: QueueFactory,
+    private readonly resultsFactory: ResultsFactory,
+    private readonly routeScannerFactory: RouteScannerFactory
+  ) { }
 
   public plan(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
     const date = this.getDateNumber(dateObj);
@@ -71,12 +23,12 @@ export class Raptor {
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
     const kArrivals = [Object.assign({}, bestArrivals)];
     const kConnections = this.stops.reduce(keyValue(s => [s, {}]), {});
-    const routeScanPosition = {};
+    const routeScanner = this.routeScannerFactory.create();
 
     kArrivals[0][origin] = 1;
 
     for (let k = 1, markedStops = [origin]; markedStops.length > 0; k++) {
-      const queue = this.getQueue(markedStops);
+      const queue = this.queueFactory.getQueue(markedStops);
       kArrivals[k] = {};
 
       // examine routes
@@ -94,7 +46,7 @@ export class Raptor {
             kConnections[stopPi][k] = [stops, boardingPoint, pi];
           }
           else if (previousPiArrival && (!stops || previousPiArrival < stops[pi].arrivalTime + interchange)) {
-            stops = this.getEarliestTrip(routeScanPosition, routeId, date, dayOfWeek, pi, previousPiArrival);
+            stops = routeScanner.getTrip(routeId, date, dayOfWeek, pi, previousPiArrival);
             boardingPoint = pi;
           }
         }
@@ -116,7 +68,7 @@ export class Raptor {
       markedStops = Object.keys(kArrivals[k]);
     }
 
-    return this.getResults(kConnections, destination);
+    return this.resultsFactory.getResults(kConnections, destination);
   }
 
   private getDateNumber(date: Date): number {
@@ -125,111 +77,81 @@ export class Raptor {
     return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);
   }
 
-  private getQueue(markedStops: Stop[]): RouteQueue {
-    const queue = {};
-
-    for (const stop of markedStops) {
-      for (const routeId of this.routesAtStop[stop]) {
-        queue[routeId] = queue[routeId] && this.isStopBefore(routeId, queue[routeId], stop) ? queue[routeId] : stop;
-      }
-    }
-
-    return queue;
-  }
-
-  private isStopBefore(routeId: RouteID, stopA: Stop, stopB: Stop): boolean {
-    return this.routeStopIndex[routeId][stopA] < this.routeStopIndex[routeId][stopB];
-  }
-
-  private getEarliestTrip(
-    routeScanPosition: Record<RouteID, number>,
-    routeId: RouteID,
-    date: DateNumber,
-    dow: DayOfWeek,
-    stopIndex: number,
-    time: Time
-  ): StopTime[] | undefined {
-
-    if (!routeScanPosition.hasOwnProperty(routeId)) {
-      routeScanPosition[routeId] = this.tripsByRoute[routeId].length - 1;
-    }
-
-    let lastFound = -1;
-
-    for (let i = routeScanPosition[routeId]; i >= 0; i--) {
-      const trip = this.tripsByRoute[routeId][i];
-
-      if (trip.stopTimes[stopIndex].departureTime < time) {
-        break;
-      }
-      else if (this.serviceIsRunning(trip.serviceId, date, dow)) {
-        lastFound = i;
-      }
-    }
-
-    if (lastFound > -1) {
-      routeScanPosition[routeId] = lastFound;
-
-      return this.tripsByRoute[routeId][lastFound].stopTimes;
-    }
-  }
-
-  private serviceIsRunning(serviceId: ServiceID, date: DateNumber, dow: DayOfWeek): boolean {
-    return !this.calendars[serviceId].exclude[date] && (this.calendars[serviceId].include[date] || (
-      this.calendars[serviceId].startDate <= date &&
-      this.calendars[serviceId].endDate >= date &&
-      this.calendars[serviceId].days[dow]
-    ));
-  }
-
-  private getResults(kConnections: ConnectionIndex, destination: Stop): Journey[] {
-    const results: Journey[] = [];
-
-    for (const k of Object.keys(kConnections[destination])) {
-      results.push({ legs: this.getJourneyLegs(kConnections, k, destination) });
-    }
-
-    return results;
-  }
-
-  private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: Stop) {
-    const legs: AnyLeg[] = [];
-
-    for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
-      const connection = kConnections[destination][i];
-
-      if (isTransfer(connection)) {
-        legs.push(connection);
-
-        destination = connection.origin;
-      }
-      else {
-        const [tripStopTimes, start, end] = connection;
-        const stopTimes = tripStopTimes.slice(start, end + 1);
-        const origin = stopTimes[0].stop;
-
-        legs.push({ stopTimes, origin, destination });
-
-        destination = origin;
-      }
-    }
-
-    return legs.reverse();
-  }
 }
 
-function isTransfer(connection: [StopTime[], number, number] | Transfer): connection is Transfer {
-  return (connection as Transfer).origin !== undefined;
+export class RaptorFactory {
+  private static readonly DEFAULT_INTERCHANGE_TIME = 0;
+  private static readonly OVERTAKING_ROUTE_SUFFIX = "overtakes";
+
+  public static create(
+    trips: Trip[],
+    transfers: TransfersByOrigin,
+    interchange: Interchange,
+    calendars: Calendar[]
+  ): Raptor {
+
+    const routesAtStop = {};
+    const tripsByRoute = {};
+    const routeStopIndex = {};
+    const routePath = {};
+    const usefulTransfers = {};
+
+    trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
+
+    for (const trip of trips) {
+      const path = trip.stopTimes.map(s => s.stop);
+      const routeId = this.getRouteId(trip, tripsByRoute);
+
+      if (!routeStopIndex[routeId]) {
+        tripsByRoute[routeId] = [];
+        routeStopIndex[routeId] = {};
+        routePath[routeId] = path;
+
+        for (let i = path.length - 1; i >= 0; i--) {
+          routeStopIndex[routeId][path[i]] = i;
+          usefulTransfers[path[i]] = transfers[path[i]] || [];
+          interchange[path[i]] = interchange[path[i]] || RaptorFactory.DEFAULT_INTERCHANGE_TIME;
+          routesAtStop[path[i]] = routesAtStop[path[i]] || [];
+
+          if (trip.stopTimes[i].pickUp) {
+            routesAtStop[path[i]].push(routeId);
+          }
+        }
+      }
+
+      tripsByRoute[routeId].push(trip);
+    }
+
+    return new Raptor(
+      routeStopIndex,
+      routePath,
+      usefulTransfers,
+      interchange,
+      Object.keys(usefulTransfers),
+      new QueueFactory(routesAtStop, routeStopIndex),
+      new ResultsFactory(),
+      new RouteScannerFactory(tripsByRoute, calendars.reduce(indexBy(c => c.serviceId), {})),
+    );
+  }
+
+  private static getRouteId(trip: Trip, tripsByRoute: TripsIndexedByRoute) {
+    const routeId = trip.stopTimes.map(s => s.stop + (s.pickUp ? 1 : 0) + (s.dropOff ? 1 : 0)).join();
+
+    for (const t of tripsByRoute[routeId] || []) {
+      const arrivalTimeA = trip.stopTimes[trip.stopTimes.length - 1].arrivalTime;
+      const arrivalTimeB = t.stopTimes[t.stopTimes.length - 1].arrivalTime;
+
+      if (arrivalTimeA < arrivalTimeB) {
+        return routeId + RaptorFactory.OVERTAKING_ROUTE_SUFFIX;
+      }
+    }
+
+    return routeId;
+  }
+
 }
 
-type RouteID = string;
-type ConnectionIndex = Record<Stop, Record<number, [StopTime[], number, number] | Transfer>>;
-type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
-type RoutePaths = Record<RouteID, Stop[]>;
-type RouteQueue = Record<RouteID, Stop>;
-type RoutesIndexedByStop = Record<Stop, RouteID[]>;
-type TripsIndexedByRoute = Record<RouteID, Trip[]>;
-type CalendarsByServiceID = Record<ServiceID, Calendar>;
-
+export type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
+export type RoutePaths = Record<RouteID, Stop[]>;
 export type Interchange = Record<Stop, number>;
 export type TransfersByOrigin = Record<Stop, Transfer[]>;
