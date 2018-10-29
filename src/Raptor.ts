@@ -9,6 +9,7 @@ export class Raptor {
   constructor(
     private readonly routeStopIndex: RouteStopIndex,
     private readonly routePath: RoutePaths,
+    private readonly departureTimesAtStop: Record<Stop, Time[]>,
     private readonly transfers: TransfersByOrigin,
     private readonly interchange: Interchange,
     private readonly stops: Stop[],
@@ -25,6 +26,20 @@ export class Raptor {
     const kConnections = this.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, departureTime);
 
     return this.resultsFactory.getResults(kConnections, destination);
+  }
+
+  public range(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
+    const date = this.getDateNumber(dateObj);
+    const dayOfWeek = dateObj.getDay() as DayOfWeek;
+    const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
+    const routeScanner = this.routeScannerFactory.create();
+
+    return this.departureTimesAtStop[origin].reduce((results, time) => {
+      const kConnections = this.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
+      const journeys = this.resultsFactory.getResults(kConnections, destination);
+
+      return results.concat(journeys);
+    }, [] as Journey[]).reverse();
   }
 
   private getDateNumber(date: Date): number {
@@ -107,6 +122,7 @@ export class RaptorFactory {
     const routeStopIndex = {};
     const routePath = {};
     const usefulTransfers = {};
+    const departureTimesAtStop = {};
 
     trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
 
@@ -124,10 +140,17 @@ export class RaptorFactory {
           usefulTransfers[path[i]] = transfers[path[i]] || [];
           interchange[path[i]] = interchange[path[i]] || RaptorFactory.DEFAULT_INTERCHANGE_TIME;
           routesAtStop[path[i]] = routesAtStop[path[i]] || [];
+          departureTimesAtStop[path[i]] = departureTimesAtStop[path[i]] || [];
 
           if (trip.stopTimes[i].pickUp) {
             routesAtStop[path[i]].push(routeId);
           }
+        }
+      }
+
+      for (const stopTime of trip.stopTimes) {
+        if (stopTime.pickUp) {
+          departureTimesAtStop[stopTime.stop].unshift(stopTime.departureTime);
         }
       }
 
@@ -137,6 +160,7 @@ export class RaptorFactory {
     return new Raptor(
       routeStopIndex,
       routePath,
+      departureTimesAtStop,
       usefulTransfers,
       interchange,
       Object.keys(usefulTransfers),

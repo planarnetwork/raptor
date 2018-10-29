@@ -1,6 +1,7 @@
 import {AnyLeg, Journey, TimetableLeg} from "../src/GTFS";
 import {RaptorFactory} from "../src/Raptor";
 import {loadGTFS} from "../src/GTFSLoader";
+import {flatten} from "ts-array-utils";
 
 async function run() {
   console.time("initial load");
@@ -12,7 +13,7 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.plan("TBW", "LVC", new Date("2018-10-22"), 36000);
+  const results = raptor.range("TBW", "LVC", new Date("2018-10-22"));
   console.timeEnd("planning");
 
   console.log("Results:");
