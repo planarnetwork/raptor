@@ -68,7 +68,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
   };
 
   return new Promise(resolve => {
-    fs.createReadStream("/home/linus/Work/opentrack/dtd2mysql/gtfs.zip")
+    fs.createReadStream(filename)
       .pipe(gtfs())
       .on("data", entity => processor[entity.type](entity.data))
       .on("end", () => {

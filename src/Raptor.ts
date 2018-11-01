@@ -152,7 +152,9 @@ export class RaptorFactory {
       }
 
       for (const stopTime of trip.stopTimes) {
-        if (stopTime.pickUp) {
+        const noStopTimes = departureTimesAtStop[stopTime.stop].length === 0;
+
+        if (stopTime.pickUp && (noStopTimes || stopTime.departureTime > departureTimesAtStop[stopTime.stop][0])) {
           departureTimesAtStop[stopTime.stop].unshift(stopTime.departureTime);
         }
       }
