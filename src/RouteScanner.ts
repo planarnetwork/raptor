@@ -1,5 +1,8 @@
 import {Calendar, DateNumber, DayOfWeek, ServiceID, StopTime, Time, Trip} from "./GTFS";
 
+/**
+ * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce scan time.
+ */
 export class RouteScanner {
 
   constructor(
@@ -52,6 +55,9 @@ export class RouteScanner {
   }
 }
 
+/**
+ * Remove the check to see if a service is running on a particular day
+ */
 class RouteScannerNoFilter extends RouteScanner {
 
   protected serviceIsRunning(): boolean {
@@ -60,6 +66,9 @@ class RouteScannerNoFilter extends RouteScanner {
 
 }
 
+/**
+ * Create the RouteScanner from GTFS trips and calendars
+ */
 export class RouteScannerFactory {
 
   constructor(

@@ -2,6 +2,9 @@ import {Stop} from "./GTFS";
 import {RouteID} from "./RouteScanner";
 import {RouteStopIndex} from "./Raptor";
 
+/**
+ * Create a queue for the Raptor algorithm to use on each iteration of the algorithm.
+ */
 export class QueueFactory {
 
   constructor(
@@ -9,6 +12,9 @@ export class QueueFactory {
     private readonly routeStopIndex: RouteStopIndex
   ) {}
 
+  /**
+   * Take the marked stops and return an index of any routes that pass through those stops.
+   */
   public getQueue(markedStops: Stop[]): RouteQueue {
     const queue = {};
 

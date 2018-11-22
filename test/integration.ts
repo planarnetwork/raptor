@@ -12,7 +12,7 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.range("LIV", "LEI", new Date());
+  const results = raptor.range("HIB", "PDW", new Date());
   console.timeEnd("planning");
 
   console.log("Results:");

@@ -1,7 +1,13 @@
 import {AnyLeg, Journey, Stop, StopTime, Transfer} from "./GTFS";
 
+/**
+ * Extracts journeys from the kConnections index.
+ */
 export class ResultsFactory {
 
+  /**
+   * Take the best result of each round for the given destination and turn it into a journey.
+   */
   public getResults(kConnections: ConnectionIndex, destination: Stop): Journey[] {
     const results: Journey[] = [];
 
@@ -12,6 +18,9 @@ export class ResultsFactory {
     return results;
   }
 
+  /**
+   * Iterator back through each connection and build up a series of legs to create the journey
+   */
   private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: Stop) {
     const legs: AnyLeg[] = [];
 

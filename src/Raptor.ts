@@ -4,6 +4,9 @@ import {QueueFactory} from "./QueueFactory";
 import {ConnectionIndex, ResultsFactory} from "./ResultsFactory";
 import {CalendarsByServiceID, RouteID, RouteScanner, RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
 
+/**
+ * Implementation of the Raptor journey planning algorithm
+ */
 export class Raptor {
 
   constructor(
@@ -18,6 +21,9 @@ export class Raptor {
     private readonly routeScannerFactory: RouteScannerFactory
   ) { }
 
+  /**
+   * Plan a journey between the given stops on the given date and time.
+   */
   public plan(origin: Stop, destination: Stop, dateObj: Date, departureTime: Time): Journey[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
@@ -28,6 +34,9 @@ export class Raptor {
     return this.resultsFactory.getResults(kConnections, destination);
   }
 
+  /**
+   * Perform a range query on the given date
+   */
   public range(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
@@ -42,6 +51,9 @@ export class Raptor {
     }, [] as Journey[]).reverse();
   }
 
+  /**
+   * Perform a scan of the routes at a given time and return the resulting kConnections index
+   */
   private scan(
     routeScanner: RouteScanner,
     bestArrivals: Arrivals,
@@ -100,10 +112,17 @@ export class Raptor {
 
 }
 
+/**
+ * Create the Raptor algorithm from the GTFS data.
+ */
 export class RaptorFactory {
   private static readonly DEFAULT_INTERCHANGE_TIME = 0;
   private static readonly OVERTAKING_ROUTE_SUFFIX = "overtakes";
 
+  /**
+   * Set up indexes that are required by the Raptor algorithm. If a date is provided all trips will be pre-filtered
+   * before being given to the Raptor class.
+   */
   public static create(
     trips: Trip[],
     transfers: TransfersByOrigin,
