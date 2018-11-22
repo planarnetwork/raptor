@@ -8,7 +8,7 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorFactory.create(trips, transfers, interchange, calendars, new Date());
+  const raptor = RaptorFactory.create(trips, transfers, interchange, calendars, new Date("2018-11-23"));
   console.timeEnd("pre-processing");
 
   console.time("planning");

@@ -25,13 +25,13 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
         startDate: parseInt(row.start_date, 10),
         endDate: parseInt(row.end_date, 10),
         days: {
-          0: row.sunday,
-          1: row.monday,
-          2: row.tuesday,
-          3: row.wednesday,
-          4: row.thursday,
-          5: row.friday,
-          6: row.saturday
+          0: row.sunday === "1",
+          1: row.monday === "1",
+          2: row.tuesday === "1",
+          3: row.wednesday === "1",
+          4: row.thursday === "1",
+          5: row.friday === "1",
+          6: row.saturday === "1"
         },
         include: {},
         exclude: {}
