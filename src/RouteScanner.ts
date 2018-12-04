@@ -1,4 +1,4 @@
-import {Calendar, DateNumber, DayOfWeek, ServiceID, StopTime, Time, Trip} from "./GTFS";
+import {Calendar, DateNumber, DayOfWeek, ServiceID, Time, Trip} from "./GTFS";
 
 /**
  * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce scan time.
@@ -20,7 +20,7 @@ export class RouteScanner {
     dow: DayOfWeek,
     stopIndex: number,
     time: Time
-  ): StopTime[] | undefined {
+  ): Trip | undefined {
 
     if (!this.routeScanPosition.hasOwnProperty(routeId)) {
       this.routeScanPosition[routeId] = this.tripsByRoute[routeId].length - 1;
@@ -42,7 +42,7 @@ export class RouteScanner {
     if (lastFound > -1) {
       this.routeScanPosition[routeId] = lastFound;
 
-      return this.tripsByRoute[routeId][lastFound].stopTimes;
+      return this.tripsByRoute[routeId][lastFound];
     }
   }
 

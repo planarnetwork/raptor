@@ -74,6 +74,7 @@ export class Raptor {
       for (const [routeId, stopP] of Object.entries(queue)) {
         let boardingPoint = -1;
         let stops: StopTime[] | undefined = undefined;
+        let trip: Trip | undefined = undefined;
 
         for (let pi = this.routeStopIndex[routeId][stopP]; pi < this.routePath[routeId].length; pi++) {
           const stopPi = this.routePath[routeId][pi];
@@ -82,10 +83,11 @@ export class Raptor {
 
           if (stops && stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
-            kConnections[stopPi][k] = [stops, boardingPoint, pi];
+            kConnections[stopPi][k] = [trip, boardingPoint, pi];
           }
           else if (previousPiArrival && (!stops || previousPiArrival < stops[pi].arrivalTime + interchange)) {
-            stops = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
+            trip = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
+            stops = trip && trip.stopTimes;
             boardingPoint = pi;
           }
         }
@@ -95,10 +97,10 @@ export class Raptor {
       for (const stopP of markedStops) {
         for (const transfer of this.transfers[stopP]) {
           const stopPi = transfer.destination;
-          const arrivalTime = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
+          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
 
-          if (arrivalTime < bestArrivals[stopPi]) {
-            kArrivals[k][stopPi] = bestArrivals[stopPi] = arrivalTime;
+          if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
+            kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
             kConnections[stopPi][k] = transfer;
           }
         }
@@ -131,12 +133,12 @@ export class RaptorFactory {
     date?: Date
   ): Raptor {
 
+    const departureTimeIndex: Record<string, Record<string, number>> = {};
     const routesAtStop = {};
     const tripsByRoute = {};
     const routeStopIndex = {};
     const routePath = {};
     const usefulTransfers = {};
-    const departureTimesAtStop = {};
     const calendarsIndex = calendars.reduce(indexBy(c => c.serviceId), {});
 
     if (date) {
@@ -162,7 +164,7 @@ export class RaptorFactory {
           usefulTransfers[path[i]] = transfers[path[i]] || [];
           interchange[path[i]] = interchange[path[i]] || RaptorFactory.DEFAULT_INTERCHANGE_TIME;
           routesAtStop[path[i]] = routesAtStop[path[i]] || [];
-          departureTimesAtStop[path[i]] = departureTimesAtStop[path[i]] || [];
+          departureTimeIndex[path[i]] = departureTimeIndex[path[i]] || {};
 
           if (trip.stopTimes[i].pickUp) {
             routesAtStop[path[i]].push(routeId);
@@ -170,15 +172,17 @@ export class RaptorFactory {
         }
       }
 
-      for (const stopTime of trip.stopTimes) {
-        const noStopTimes = departureTimesAtStop[stopTime.stop].length === 0;
-
-        if (stopTime.pickUp && (noStopTimes || stopTime.departureTime > departureTimesAtStop[stopTime.stop][0])) {
-          departureTimesAtStop[stopTime.stop].unshift(stopTime.departureTime);
-        }
+      for (const stopTime of trip.stopTimes.filter(st => st.pickUp)) {
+        departureTimeIndex[stopTime.stop][stopTime.departureTime] = stopTime.departureTime;
       }
 
       tripsByRoute[routeId].push(trip);
+    }
+
+    const departureTimesAtStop = {};
+
+    for (const stop in departureTimeIndex) {
+      departureTimesAtStop[stop] = Object.values(departureTimeIndex[stop]).sort((a, b) => b - a);
     }
 
     return new Raptor(

@@ -20,10 +20,13 @@ export interface Leg {
 
 export interface TimetableLeg extends Leg {
   stopTimes: StopTime[];
+  trip: Trip;
 }
 
 export interface Transfer extends Leg {
   duration: Duration;
+  startTime: Time;
+  endTime: Time;
 }
 
 export type AnyLeg = Transfer | TimetableLeg;

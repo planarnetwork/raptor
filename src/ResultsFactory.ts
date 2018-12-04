@@ -1,4 +1,4 @@
-import {AnyLeg, Journey, Stop, StopTime, Transfer} from "./GTFS";
+import {AnyLeg, Journey, Stop, StopTime, Transfer, Trip} from "./GTFS";
 
 /**
  * Extracts journeys from the kConnections index.
@@ -33,11 +33,11 @@ export class ResultsFactory {
         destination = connection.origin;
       }
       else {
-        const [tripStopTimes, start, end] = connection;
-        const stopTimes = tripStopTimes.slice(start, end + 1);
+        const [trip, start, end] = connection;
+        const stopTimes = trip.stopTimes.slice(start, end + 1);
         const origin = stopTimes[0].stop;
 
-        legs.push({ stopTimes, origin, destination });
+        legs.push({ stopTimes, origin, destination, trip });
 
         destination = origin;
       }
@@ -48,8 +48,8 @@ export class ResultsFactory {
 
 }
 
-export type ConnectionIndex = Record<Stop, Record<number, [StopTime[], number, number] | Transfer>>;
+export type ConnectionIndex = Record<Stop, Record<number, [Trip, number, number] | Transfer>>;
 
-function isTransfer(connection: [StopTime[], number, number] | Transfer): connection is Transfer {
+function isTransfer(connection: [Trip, number, number] | Transfer): connection is Transfer {
   return (connection as Transfer).origin !== undefined;
 }

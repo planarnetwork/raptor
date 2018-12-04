@@ -15,7 +15,13 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
 
   const processor = {
     link: row => {
-      const t = { origin: row.from_stop_id, destination: row.to_stop_id, duration: parseInt(row.duration, 10) };
+      const t = {
+        origin: row.from_stop_id,
+        destination: row.to_stop_id,
+        duration: parseInt(row.duration, 10),
+        startTime: getTime(row.start_time),
+        endTime: getTime(row.end_time)
+      };
 
       pushNested(t, transfers, row.from_stop_id);
     },
