@@ -52,6 +52,26 @@ export class Raptor {
   }
 
   /**
+   * Perform a range query on the given date after the specified time
+   */
+  public limitedRange(origin: Stop, destination: Stop, dateObj: Date, departureTime: Time): Journey[] {
+    const date = getDateNumber(dateObj);
+    const dayOfWeek = dateObj.getDay() as DayOfWeek;
+    const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
+    const routeScanner = this.routeScannerFactory.create();
+    const endIndex = this.departureTimesAtStop[origin].findIndex(t => t < departureTime);
+    const startIndex = Math.max(0, endIndex - 20);
+    const times = this.departureTimesAtStop[origin].slice(startIndex, endIndex);
+
+    return times.reduce((results, time) => {
+      const kConnections = this.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
+      const journeys = this.resultsFactory.getResults(kConnections, destination);
+
+      return results.concat(journeys);
+    }, [] as Journey[]).reverse();
+  }
+
+  /**
    * Perform a scan of the routes at a given time and return the resulting kConnections index
    */
   private scan(

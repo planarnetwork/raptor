@@ -12,7 +12,7 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.range("NRW", "STA", new Date("2018-12-05"));
+  const results = raptor.limitedRange("PET", "BHI", new Date("2018-12-05"), 5 * 60 * 60);
   console.timeEnd("planning");
 
   console.log("Results:");
