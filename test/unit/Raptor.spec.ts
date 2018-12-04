@@ -27,6 +27,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     chai.expect(result).to.deep.equal([
       j([
         st("A", null, 1000),
@@ -53,6 +55,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     chai.expect(result).to.deep.equal([
       j([
         st("A", null, 1000),
@@ -78,6 +82,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
+
+    setDefaultTrip(result);
 
     chai.expect(result).to.deep.equal([
       j([
@@ -107,6 +113,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     chai.expect(result).to.deep.equal([]);
   });
 
@@ -125,6 +133,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
+
+    setDefaultTrip(result);
 
     const direct = j([
       st("A", null, 1000),
@@ -173,6 +183,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const fastest = j([
       st("A", null, 1100),
       st("F", 1130, 1130),
@@ -215,6 +227,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const journey1 = j([
       st("A", null, 1000),
       st("B", 1030, 1030),
@@ -255,6 +269,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const change = j([
       st("A", null, 1000),
       st("B", 1030, null)
@@ -289,6 +305,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, transfers, {}, calendars);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
+
+    setDefaultTrip(result);
 
     chai.expect(result).to.deep.equal([
       j([
@@ -326,6 +344,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, transfers, {}, calendars);
     const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const transfer = j(
       [
         st("A", null, 1000),
@@ -357,6 +377,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const direct = j([
       st("A", null, 1000),
       st("B", 1030, 1030),
@@ -384,6 +406,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
+
+    setDefaultTrip(result);
 
     const direct = j([
       st("A", null, 1000),
@@ -418,6 +442,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
+
+    setDefaultTrip(result);
 
     const direct = j([
       st("A", null, 1000),
@@ -470,6 +496,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
     const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const lastPossible = j(
       [
         st("A", null, 1000),
@@ -514,6 +542,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const change = j([
       st("A", null, 1000),
       st("B", 1030, null),
@@ -554,6 +584,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
     const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
+
+    setDefaultTrip(result);
 
     const change = j([
       st("A", null, 1000),
@@ -602,6 +634,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
     const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
+    setDefaultTrip(result);
+
     const change = j([
       st("A", null, 1000),
       st("B", 1030, null),
@@ -649,6 +683,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
     const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
+    setDefaultTrip(result);
+
     const change = j([
       st("A", null, 1000),
       st("B", 1030, null),
@@ -693,6 +729,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
+
+    setDefaultTrip(result);
 
     const direct = j([
       st("A", null, 1000),
@@ -758,6 +796,8 @@ describe("Raptor", () => {
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
+    setDefaultTrip(result);
+
     const faster = j(
       [
         st("A", null, 1010),
@@ -794,6 +834,8 @@ describe("Raptor", () => {
 
     const raptor = RaptorFactory.create(trips, {}, {}, calendars);
     const result = raptor.range("A", "C", new Date("2018-10-16"));
+
+    setDefaultTrip(result);
 
     chai.expect(result).to.deep.equal([
       j([
@@ -836,12 +878,15 @@ function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | null): S
   };
 }
 
+const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [] };
+
 function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
   return {
     legs: legStopTimes.map(stopTimes => isTransfer(stopTimes) ? stopTimes : ({
       stopTimes,
       origin: stopTimes[0].stop,
-      destination: stopTimes[stopTimes.length - 1].stop
+      destination: stopTimes[stopTimes.length - 1].stop,
+      trip: defaultTrip
     }))
   };
 }
@@ -851,5 +896,15 @@ function isTransfer(connection: StopTime[] | Transfer): connection is Transfer {
 }
 
 function tf(origin: Stop, destination: Stop, duration: Time): Transfer {
-  return { origin, destination, duration };
+  return { origin, destination, duration, startTime: 0, endTime: Number.MAX_SAFE_INTEGER };
+}
+
+function setDefaultTrip(results: Journey[]) {
+  for (const trip of results) {
+    for (const leg of trip.legs as any[]) {
+      if (leg.trip) {
+        leg.trip = defaultTrip;
+      }
+    }
+  }
 }
