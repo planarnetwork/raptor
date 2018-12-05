@@ -1,6 +1,7 @@
-import {RaptorFactory} from "../src/Raptor";
-import {loadGTFS} from "../src/GTFSLoader";
+import {RaptorQueryFactory} from "../src/raptor/RaptorAlgorithm";
+import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {product} from "ts-array-utils";
+import {JourneyFactory} from "../src/results/JourneyFactory";
 
 const queries = [
   [["MRF", "LVC", "LVJ", "LIV", "NRW", "BHM"], ["WWW"]],
@@ -25,7 +26,8 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
+  const resultsFactory = new JourneyFactory();
+  const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, interchange, calendars, resultsFactory);
   console.timeEnd("pre-processing");
 
   console.time("planning");

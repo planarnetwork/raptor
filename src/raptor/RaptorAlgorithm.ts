@@ -1,60 +1,29 @@
-import {Journey, Stop, StopTime, Transfer, Trip, DayOfWeek, Calendar, Time, ServiceID, DateNumber} from "./GTFS";
+import {Stop, StopTime, Transfer, Trip, DayOfWeek, Calendar, Time, ServiceID, DateNumber} from "../gtfs/GTFS";
 import {keyValue, indexBy} from "ts-array-utils";
 import {QueueFactory} from "./QueueFactory";
-import {ConnectionIndex, ResultsFactory} from "./ResultsFactory";
-import {CalendarsByServiceID, RouteID, RouteScanner, RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
+import {ConnectionIndex, ResultsFactory} from "../results/ResultsFactory";
+import {CalendarsByServiceID, RouteID, RouteScanner, TripsIndexedByRoute, RouteScannerFactory} from "./RouteScanner";
+import {RaptorRangeQuery} from "./RaptorRangeQuery";
+import {RaptorDepartAfterQuery} from "./RaptorDepartAfterQuery";
 
 /**
  * Implementation of the Raptor journey planning algorithm
  */
-export class Raptor {
+export class RaptorAlgorithm {
 
   constructor(
     private readonly routeStopIndex: RouteStopIndex,
     private readonly routePath: RoutePaths,
-    private readonly departureTimesAtStop: Record<Stop, Time[]>,
     private readonly transfers: TransfersByOrigin,
     private readonly interchange: Interchange,
     private readonly stops: Stop[],
-    private readonly queueFactory: QueueFactory,
-    private readonly resultsFactory: ResultsFactory,
-    private readonly routeScannerFactory: RouteScannerFactory
+    private readonly queueFactory: QueueFactory
   ) { }
-
-  /**
-   * Plan a journey between the given stops on the given date and time.
-   */
-  public plan(origin: Stop, destination: Stop, dateObj: Date, departureTime: Time): Journey[] {
-    const date = getDateNumber(dateObj);
-    const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
-    const routeScanner = this.routeScannerFactory.create();
-    const kConnections = this.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, departureTime);
-
-    return this.resultsFactory.getResults(kConnections, destination);
-  }
-
-  /**
-   * Perform a range query on the given date
-   */
-  public range(origin: Stop, destination: Stop, dateObj: Date): Journey[] {
-    const date = getDateNumber(dateObj);
-    const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
-    const routeScanner = this.routeScannerFactory.create();
-
-    return this.departureTimesAtStop[origin].reduce((results, time) => {
-      const kConnections = this.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
-      const journeys = this.resultsFactory.getResults(kConnections, destination);
-
-      return results.concat(journeys);
-    }, [] as Journey[]).reverse();
-  }
 
   /**
    * Perform a scan of the routes at a given time and return the resulting kConnections index
    */
-  private scan(
+  public scan(
     routeScanner: RouteScanner,
     bestArrivals: Arrivals,
     origin: Stop,
@@ -117,21 +86,81 @@ export class Raptor {
 /**
  * Create the Raptor algorithm from the GTFS data.
  */
-export class RaptorFactory {
+export class RaptorQueryFactory {
   private static readonly DEFAULT_INTERCHANGE_TIME = 0;
   private static readonly OVERTAKING_ROUTE_SUFFIX = "overtakes";
+
+  /**
+   * Create a raptor range query
+   */
+  public static createRangeQuery<T>(
+    trips: Trip[],
+    transfers: TransfersByOrigin,
+    interchange: Interchange,
+    calendars: Calendar[],
+    resultsFactory: ResultsFactory<T>,
+    date?: Date
+  ): RaptorRangeQuery<T> {
+
+    const {
+      routeStopIndex,
+      routePath,
+      departureTimesAtStop,
+      usefulTransfers,
+      stops,
+      queueFactory,
+      routeScannerFactory
+    } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
+
+    return new RaptorRangeQuery(
+      new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
+      stops,
+      routeScannerFactory,
+      departureTimesAtStop,
+      resultsFactory
+    );
+  }
+
+  /**
+   * Create a raptor depart after query
+   */
+  public static createDepartAfterQuery<T>(
+    trips: Trip[],
+    transfers: TransfersByOrigin,
+    interchange: Interchange,
+    calendars: Calendar[],
+    resultsFactory: ResultsFactory<T>,
+    date?: Date
+  ): RaptorDepartAfterQuery<T> {
+
+    const {
+      routeStopIndex,
+      routePath,
+      usefulTransfers,
+      stops,
+      queueFactory,
+      routeScannerFactory
+    } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
+
+    return new RaptorDepartAfterQuery(
+      new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
+      stops,
+      routeScannerFactory,
+      resultsFactory
+    );
+  }
 
   /**
    * Set up indexes that are required by the Raptor algorithm. If a date is provided all trips will be pre-filtered
    * before being given to the Raptor class.
    */
-  public static create(
+  private static create(
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
     calendars: Calendar[],
     date?: Date
-  ): Raptor {
+  ) {
 
     const departureTimeIndex: Record<string, Record<string, number>> = {};
     const routesAtStop = {};
@@ -162,7 +191,7 @@ export class RaptorFactory {
         for (let i = path.length - 1; i >= 0; i--) {
           routeStopIndex[routeId][path[i]] = i;
           usefulTransfers[path[i]] = transfers[path[i]] || [];
-          interchange[path[i]] = interchange[path[i]] || RaptorFactory.DEFAULT_INTERCHANGE_TIME;
+          interchange[path[i]] = interchange[path[i]] || RaptorQueryFactory.DEFAULT_INTERCHANGE_TIME;
           routesAtStop[path[i]] = routesAtStop[path[i]] || [];
           departureTimeIndex[path[i]] = departureTimeIndex[path[i]] || {};
 
@@ -185,20 +214,16 @@ export class RaptorFactory {
       departureTimesAtStop[stop] = Object.values(departureTimeIndex[stop]).sort((a, b) => b - a);
     }
 
-    return new Raptor(
+    return {
       routeStopIndex,
       routePath,
       departureTimesAtStop,
       usefulTransfers,
       interchange,
-      Object.keys(usefulTransfers),
-      new QueueFactory(routesAtStop, routeStopIndex),
-      new ResultsFactory(),
-      new RouteScannerFactory(
-        tripsByRoute,
-        date ? false : calendarsIndex
-      ),
-    );
+      stops: Object.keys(usefulTransfers),
+      queueFactory: new QueueFactory(routesAtStop, routeStopIndex),
+      routeScannerFactory: new RouteScannerFactory(tripsByRoute, date ? false : calendarsIndex),
+    };
   }
 
   private static getRouteId(trip: Trip, tripsByRoute: TripsIndexedByRoute) {
@@ -209,7 +234,7 @@ export class RaptorFactory {
       const arrivalTimeB = t.stopTimes[t.stopTimes.length - 1].arrivalTime;
 
       if (arrivalTimeA < arrivalTimeB) {
-        return routeId + RaptorFactory.OVERTAKING_ROUTE_SUFFIX;
+        return routeId + RaptorQueryFactory.OVERTAKING_ROUTE_SUFFIX;
       }
     }
 
@@ -232,7 +257,7 @@ export class RaptorFactory {
 
 }
 
-function getDateNumber(date: Date): number {
+export function getDateNumber(date: Date): number {
   const str = date.toISOString();
 
   return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);

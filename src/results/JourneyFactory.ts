@@ -1,9 +1,10 @@
-import {AnyLeg, Journey, Stop, Transfer, Trip} from "./GTFS";
+import {AnyLeg, Journey, Stop} from "../gtfs/GTFS";
+import {ConnectionIndex, isTransfer, ResultsFactory} from "./ResultsFactory";
 
 /**
  * Extracts journeys from the kConnections index.
  */
-export class ResultsFactory {
+export class JourneyFactory implements ResultsFactory<Journey> {
 
   /**
    * Take the best result of each round for the given destination and turn it into a journey.
@@ -12,7 +13,7 @@ export class ResultsFactory {
     const results: Journey[] = [];
 
     for (const k of Object.keys(kConnections[destination])) {
-      results.push({ legs: this.getJourneyLegs(kConnections, k, destination) });
+      results.push({legs: this.getJourneyLegs(kConnections, k, destination)});
     }
 
     return results;
@@ -21,7 +22,7 @@ export class ResultsFactory {
   /**
    * Iterator back through each connection and build up a series of legs to create the journey
    */
-  private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: Stop) {
+  private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: Stop): AnyLeg[] {
     const legs: AnyLeg[] = [];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
@@ -31,13 +32,12 @@ export class ResultsFactory {
         legs.push(connection);
 
         destination = connection.origin;
-      }
-      else {
+      } else {
         const [trip, start, end] = connection;
         const stopTimes = trip.stopTimes.slice(start, end + 1);
         const origin = stopTimes[0].stop;
 
-        legs.push({ stopTimes, origin, destination, trip });
+        legs.push({stopTimes, origin, destination, trip});
 
         destination = origin;
       }
@@ -46,10 +46,4 @@ export class ResultsFactory {
     return legs.reverse();
   }
 
-}
-
-export type ConnectionIndex = Record<Stop, Record<number, [Trip, number, number] | Transfer>>;
-
-function isTransfer(connection: [Trip, number, number] | Transfer): connection is Transfer {
-  return (connection as Transfer).origin !== undefined;
 }

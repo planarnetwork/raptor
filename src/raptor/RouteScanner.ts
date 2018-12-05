@@ -1,4 +1,4 @@
-import {Calendar, DateNumber, DayOfWeek, ServiceID, Time, Trip} from "./GTFS";
+import {Calendar, DateNumber, DayOfWeek, ServiceID, Time, Trip} from "../gtfs/GTFS";
 
 /**
  * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce scan time.

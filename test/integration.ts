@@ -1,6 +1,7 @@
-import {AnyLeg, Journey, Time, TimetableLeg} from "../src/GTFS";
-import {RaptorFactory} from "../src/Raptor";
-import {loadGTFS} from "../src/GTFSLoader";
+import {AnyLeg, Journey, Time, TimetableLeg} from "../src/gtfs/GTFS";
+import {RaptorQueryFactory} from "../src/raptor/RaptorAlgorithm";
+import {loadGTFS} from "../src/gtfs/GTFSLoader";
+import {JourneyFactory} from "../src/results/JourneyFactory";
 
 async function run() {
   console.time("initial load");
@@ -8,11 +9,19 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorFactory.create(trips, transfers, interchange, calendars, new Date("2018-12-05"));
+  const raptor = RaptorQueryFactory.createRangeQuery(
+    trips,
+    transfers,
+    interchange,
+    calendars,
+    new JourneyFactory(),
+    new Date("2018-12-05")
+  );
+
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.limitedRange("PET", "BHI", new Date("2018-12-05"), 5 * 60 * 60);
+  const results = raptor.plan("PET", "BHI", new Date("2018-12-05"));
   console.timeEnd("planning");
 
   console.log("Results:");

@@ -1,7 +1,7 @@
 import * as gtfs from "gtfs-stream";
 import * as fs from "fs";
 import {Calendar, Trip} from "./GTFS";
-import {Interchange, TransfersByOrigin} from "./Raptor";
+import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
 
 export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, Interchange, Calendar[]]> {

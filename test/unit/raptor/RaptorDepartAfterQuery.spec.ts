@@ -1,19 +1,10 @@
 import * as chai from "chai";
-import {Journey, Stop, StopTime, Time, Transfer, Trip} from "../../src/GTFS";
-import {Raptor, RaptorFactory} from "../../src/Raptor";
+import {RaptorQueryFactory} from "../../../src/raptor/RaptorAlgorithm";
+import {JourneyFactory} from "../../../src/results/JourneyFactory";
+import {allDays, calendars, j, setDefaultTrip, st, t, tf} from "../util";
 
-describe("Raptor", () => {
-  const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
-  const calendars = [
-    {
-      serviceId: "1",
-      startDate: 20180101,
-      endDate: 20991231,
-      days: allDays,
-      include: {},
-      exclude: {}
-    }
-  ];
+describe("RaptorDepartAfterQuery", () => {
+  const journeyFactory = new JourneyFactory();
 
   it("finds journeys with direct connections", () => {
     const trips = [
@@ -24,7 +15,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -52,7 +43,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -80,7 +71,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -110,7 +101,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -131,7 +122,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -180,7 +171,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -224,7 +215,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -266,7 +257,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -303,7 +294,7 @@ describe("Raptor", () => {
       ]
     };
 
-    const raptor = RaptorFactory.create(trips, transfers, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -341,7 +332,7 @@ describe("Raptor", () => {
       ]
     };
 
-    const raptor = RaptorFactory.create(trips, transfers, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -374,7 +365,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -404,7 +395,7 @@ describe("Raptor", () => {
       )
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -440,7 +431,7 @@ describe("Raptor", () => {
     const transfers = {};
     const interchange = { B: 10 };
 
-    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, interchange, calendars, journeyFactory);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -493,7 +484,7 @@ describe("Raptor", () => {
 
     const interchange = { B: 10, C: 10 };
 
-    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, interchange, calendars, journeyFactory);
     const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -539,7 +530,13 @@ describe("Raptor", () => {
     const interchange = {};
     const calendar = { serviceId: "2", startDate: 20181001, endDate: 20181015, days: allDays, include: {}, exclude: {}};
 
-    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(
+      trips,
+      transfers,
+      interchange,
+      calendars.concat(calendar),
+      journeyFactory
+    );
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -582,7 +579,14 @@ describe("Raptor", () => {
     const days = Object.assign({}, allDays, { 1: false });
     const calendar = { serviceId: "2", startDate: 20181001, endDate: 20991231, days: days, include: {}, exclude: {} };
 
-    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(
+      trips,
+      transfers,
+      interchange,
+      calendars.concat(calendar),
+      journeyFactory
+    );
+
     const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
     setDefaultTrip(result);
@@ -631,7 +635,14 @@ describe("Raptor", () => {
       exclude: {}
     };
 
-    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(
+      trips,
+      transfers,
+      interchange,
+      calendars.concat(calendar),
+      journeyFactory
+    );
+
     const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
     setDefaultTrip(result);
@@ -680,7 +691,14 @@ describe("Raptor", () => {
       exclude: { 20181022: true }
     };
 
-    const raptor = RaptorFactory.create(trips, transfers, interchange, calendars.concat(calendar));
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(
+      trips,
+      transfers,
+      interchange,
+      calendars.concat(calendar),
+      journeyFactory
+    );
+
     const result = raptor.plan("A", "C", new Date("2018-10-22"), 900);
 
     setDefaultTrip(result);
@@ -727,7 +745,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -793,7 +811,7 @@ describe("Raptor", () => {
       ),
     ];
 
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
     const result = raptor.plan("A", "E", new Date("2018-10-16"), 900);
 
     setDefaultTrip(result);
@@ -813,98 +831,4 @@ describe("Raptor", () => {
     ]);
   });
 
-  it("performs profile queries", () => {
-    const trips = [
-      t(
-        st("A", null, 1000),
-        st("B", 1030, 1035),
-        st("C", 1100, null)
-      ),
-      t(
-        st("A", null, 1100),
-        st("B", 1130, 1135),
-        st("C", 1200, null)
-      ),
-      t(
-        st("A", null, 1200),
-        st("B", 1230, 1235),
-        st("C", 1300, null)
-      )
-    ];
-
-    const raptor = RaptorFactory.create(trips, {}, {}, calendars);
-    const result = raptor.range("A", "C", new Date("2018-10-16"));
-
-    setDefaultTrip(result);
-
-    chai.expect(result).to.deep.equal([
-      j([
-        st("A", null, 1000),
-        st("B", 1030, 1035),
-        st("C", 1100, null)
-      ]),
-      j([
-        st("A", null, 1100),
-        st("B", 1130, 1135),
-        st("C", 1200, null)
-      ]),
-      j([
-        st("A", null, 1200),
-        st("B", 1230, 1235),
-        st("C", 1300, null)
-      ])
-    ]);
-  });
-
 });
-
-let tripId = 0;
-
-function t(...stopTimes: StopTime[]): Trip {
-  return {
-    tripId: "trip" + tripId++,
-    stopTimes: stopTimes,
-    serviceId: "1"
-  };
-}
-
-function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | null): StopTime {
-  return {
-    stop: stop,
-    arrivalTime: arrivalTime || departureTime!,
-    departureTime: departureTime || arrivalTime!,
-    dropOff: arrivalTime !== null,
-    pickUp: departureTime !== null
-  };
-}
-
-const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [] };
-
-function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
-  return {
-    legs: legStopTimes.map(stopTimes => isTransfer(stopTimes) ? stopTimes : ({
-      stopTimes,
-      origin: stopTimes[0].stop,
-      destination: stopTimes[stopTimes.length - 1].stop,
-      trip: defaultTrip
-    }))
-  };
-}
-
-function isTransfer(connection: StopTime[] | Transfer): connection is Transfer {
-  return (connection as Transfer).origin !== undefined;
-}
-
-function tf(origin: Stop, destination: Stop, duration: Time): Transfer {
-  return { origin, destination, duration, startTime: 0, endTime: Number.MAX_SAFE_INTEGER };
-}
-
-function setDefaultTrip(results: Journey[]) {
-  for (const trip of results) {
-    for (const leg of trip.legs as any[]) {
-      if (leg.trip) {
-        leg.trip = defaultTrip;
-      }
-    }
-  }
-}

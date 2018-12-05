@@ -1,6 +1,6 @@
-import {Stop} from "./GTFS";
+import {Stop} from "../gtfs/GTFS";
 import {RouteID} from "./RouteScanner";
-import {RouteStopIndex} from "./Raptor";
+import {RouteStopIndex} from "./RaptorAlgorithm";
 
 /**
  * Create a queue for the Raptor algorithm to use on each iteration of the algorithm.
