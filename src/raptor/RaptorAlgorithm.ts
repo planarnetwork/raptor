@@ -29,7 +29,9 @@ export class RaptorAlgorithm {
     time: Time
   ): ConnectionIndex {
 
-    const kArrivals = [Object.assign({}, bestArrivals, { [origin]: time })];
+    bestArrivals[origin] = time;
+
+    const kArrivals = [Object.assign({}, bestArrivals)];
     const kConnections = this.stops.reduce(keyValue(s => [s, {}]), {});
 
     for (let k = 1, markedStops = [origin]; markedStops.length > 0; k++) {

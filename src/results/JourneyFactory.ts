@@ -1,5 +1,6 @@
 import {AnyLeg, Journey, Stop} from "../gtfs/GTFS";
-import {ConnectionIndex, isTransfer, ResultsFactory} from "./ResultsFactory";
+import {isTransfer, ResultsFactory} from "./ResultsFactory";
+import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
 
 /**
  * Extracts journeys from the kConnections index.

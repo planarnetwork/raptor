@@ -11,7 +11,8 @@
     "lint-raw": "tslint --project tsconfig.json",
     "lint": "npm run lint-raw -- -t stylish",
     "int": "NODE_OPTIONS=$NODE_DEBUG_OPTION ts-node ./test/integration.ts",
-    "perf": "ts-node ./test/performance.ts"
+    "perf": "ts-node ./test/performance.ts",
+    "patterns": "NODE_OPTIONS='--max-old-space-size=6000' ts-node ./test/transfer-patterns.ts"
   },
   "repository": {
     "type": "git",
