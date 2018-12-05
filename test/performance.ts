@@ -1,4 +1,4 @@
-import {RaptorQueryFactory} from "../src/raptor/RaptorAlgorithm";
+import {RaptorQueryFactory} from "../src/raptor/RaptorQueryFactory";
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {product} from "ts-array-utils";
 import {JourneyFactory} from "../src/results/JourneyFactory";

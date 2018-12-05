@@ -1,5 +1,5 @@
 import {calendars, j, setDefaultTrip, st, t} from "../util";
-import {RaptorQueryFactory} from "../../../src/raptor/RaptorAlgorithm";
+import {RaptorQueryFactory} from "../../../src/raptor/RaptorQueryFactory";
 import * as chai from "chai";
 import {JourneyFactory} from "../../../src/results/JourneyFactory";
 

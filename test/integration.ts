@@ -1,5 +1,5 @@
 import {AnyLeg, Journey, Time, TimetableLeg} from "../src/gtfs/GTFS";
-import {RaptorQueryFactory} from "../src/raptor/RaptorAlgorithm";
+import {RaptorQueryFactory} from "../src/raptor/RaptorQueryFactory";
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {JourneyFactory} from "../src/results/JourneyFactory";
 
