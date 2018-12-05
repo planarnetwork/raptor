@@ -1,4 +1,4 @@
-import {AnyLeg, Journey, Stop, StopTime, Transfer, Trip} from "./GTFS";
+import {AnyLeg, Journey, Stop, Transfer, Trip} from "./GTFS";
 
 /**
  * Extracts journeys from the kConnections index.
