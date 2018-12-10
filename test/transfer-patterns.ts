@@ -1,6 +1,6 @@
 import {RaptorQueryFactory} from "../src/raptor/RaptorQueryFactory";
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
-import {TransferPattern} from "../src/raptor/TransferPatternGenerator";
+import {TreeNode} from "../src/raptor/TransferPatternGenerator";
 import {Stop} from "../src/gtfs/GTFS";
 
 async function run() {
@@ -9,48 +9,35 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
+  const startHeap = process.memoryUsage().heapUsed;
   const raptor = RaptorQueryFactory.createTransferPatternGenerator(
     trips,
     transfers,
     interchange,
     calendars,
-    new Date("2018-12-05")
+    new Date("2018-12-10")
   );
 
+  const endHeap = process.memoryUsage().heapUsed;
   console.timeEnd("pre-processing");
 
   console.time("patterns");
   const results = raptor.create("PET", new Date("2018-12-05"));
   console.timeEnd("patterns");
 
-  // console.log(results);
-
   console.time("paths");
-  const paths = getPaths(results, [], "PET", "BHI");
+  const paths = results["BHI"].map(leaf => getPath(leaf, []));
   console.timeEnd("paths");
 
   console.log("Results:");
   console.log(paths);
-  console.log(`Memory usage: ${Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100} MB`);
+  console.log(`Memory usage: ${Math.round(((endHeap - startHeap) / 1024 / 1024) * 100) / 100} MB`);
 }
 
-function getPaths(graph: TransferPattern, path: Stop[], origin: Stop, current: Stop): Stop[][] {
-  // put the current node at the head of the list
-  path.unshift(current);
+function getPath(node: TreeNode, path: Stop[]): Stop[] {
+  path.unshift(node.label);
 
-  if (current === origin) {
-    return [path];
-  }
-  else {
-    const paths = [] as Stop[][];
-
-    // return paths to all parent nodes until the root node is reached
-    for (const previous of graph[current]) {
-      paths.push(...getPaths(graph, path.slice(), origin, previous));
-    }
-
-    return paths;
-  }
+  return node.parent ? getPath(node.parent, path) : path;
 }
 
 run().catch(e => console.error(e));
