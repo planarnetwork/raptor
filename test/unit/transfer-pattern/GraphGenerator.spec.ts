@@ -1,11 +1,11 @@
 import * as chai from "chai";
-import {mergePath} from "../../../src/raptor/TransferPatternGenerator";
+import {GraphGenerator} from "../../../src/transfer-pattern/GraphGenerator";
+import {Stop} from "../../../src/gtfs/GTFS";
 
-describe("TransferPatternMerge", () => {
+describe("GraphGenerator", () => {
 
   it("Merges a path into an empty tree", () => {
-    const tree = {};
-    const path = ["C", "B", "A"];
+    const tree = new GraphGenerator();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -16,13 +16,13 @@ describe("TransferPatternMerge", () => {
       "C": [C]
     };
 
-    mergePath(path, tree);
+    mergePath(["A", "B", "C"], tree);
 
-    chai.expect(tree).to.deep.equal(expected);
+    chai.expect(tree.finalize()).to.deep.equal(expected);
   });
 
   it("Merges duplicate paths", () => {
-    const tree = {};
+    const tree = new GraphGenerator();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -33,14 +33,14 @@ describe("TransferPatternMerge", () => {
       "C": [C]
     };
 
-    mergePath(["C", "B", "A"], tree);
-    mergePath(["B", "A"], tree);
+    mergePath(["A", "B", "C"], tree);
+    mergePath(["A", "B"], tree);
 
-    chai.expect(tree).to.deep.equal(expected);
+    chai.expect(tree.finalize()).to.deep.equal(expected);
   });
 
   it("Appends to existing paths", () => {
-    const tree = {};
+    const tree = new GraphGenerator();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -51,14 +51,14 @@ describe("TransferPatternMerge", () => {
       "C": [C]
     };
 
-    mergePath(["B", "A"], tree);
-    mergePath(["C", "B", "A"], tree);
+    mergePath(["A", "B"], tree);
+    mergePath(["A", "B", "C"], tree);
 
-    chai.expect(tree).to.deep.equal(expected);
+    chai.expect(tree.finalize()).to.deep.equal(expected);
   });
 
   it("Appends different paths", () => {
-    const tree = {};
+    const tree = new GraphGenerator();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -72,10 +72,24 @@ describe("TransferPatternMerge", () => {
       "D": [D, D1]
     };
 
-    mergePath(["D", "C", "B", "A"], tree);
-    mergePath(["D", "B", "A"], tree);
+    mergePath(["A", "B", "C", "D"], tree);
+    mergePath(["A", "B", "D"], tree);
 
-    chai.expect(tree).to.deep.equal(expected);
+    chai.expect(tree.finalize()).to.deep.equal(expected);
   });
 
 });
+
+function mergePath(path: Stop[], tree: GraphGenerator): void {
+  const kConnections = {};
+
+  for (let i = 1; i < path.length; i++) {
+    const origin = path[i - 1];
+    const destination = path[i];
+
+    kConnections[destination] = {};
+    kConnections[destination][i] = [{ stopTimes: [{ stop: origin }] }, 0, 1];
+  }
+
+  tree.add(kConnections);
+}

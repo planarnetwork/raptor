@@ -6,7 +6,6 @@ import {indexBy} from "ts-array-utils";
 import {QueueFactory} from "./QueueFactory";
 import {CalendarsByServiceID, RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
 import {getDateNumber, Interchange, RaptorAlgorithm, TransfersByOrigin} from "./RaptorAlgorithm";
-import {TransferPatternGenerator} from "./TransferPatternGenerator";
 
 /**
  * Create the Raptor algorithm from the GTFS data.
@@ -76,39 +75,10 @@ export class RaptorQueryFactory {
   }
 
   /**
-   * Create a raptor depart after query
-   */
-  public static createTransferPatternGenerator(
-    trips: Trip[],
-    transfers: TransfersByOrigin,
-    interchange: Interchange,
-    calendars: Calendar[],
-    date?: Date
-  ): TransferPatternGenerator {
-
-    const {
-      routeStopIndex,
-      routePath,
-      usefulTransfers,
-      stops,
-      queueFactory,
-      routeScannerFactory,
-      departureTimesAtStop
-    } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
-
-    return new TransferPatternGenerator(
-      new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
-      stops,
-      routeScannerFactory,
-      departureTimesAtStop
-    );
-  }
-
-  /**
    * Set up indexes that are required by the Raptor algorithm. If a date is provided all trips will be pre-filtered
    * before being given to the Raptor class.
    */
-  private static create(
+  public static create(
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,

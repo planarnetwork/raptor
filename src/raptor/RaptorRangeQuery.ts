@@ -4,6 +4,9 @@ import {DayOfWeek, Stop, Time} from "../gtfs/GTFS";
 import {keyValue} from "ts-array-utils";
 import {RouteScannerFactory} from "./RouteScanner";
 
+/**
+ * Use the Raptor algorithm to generate a full day of results.
+ */
 export class RaptorRangeQuery<T> {
 
   constructor(

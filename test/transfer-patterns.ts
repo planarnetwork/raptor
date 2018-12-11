@@ -1,7 +1,6 @@
-import {RaptorQueryFactory} from "../src/raptor/RaptorQueryFactory";
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
-import {TreeNode} from "../src/raptor/TransferPatternGenerator";
-import {Stop} from "../src/gtfs/GTFS";
+import {TransferPatternGeneratorFactory} from "../src/transfer-pattern/TransferPatternGenerator";
+import {PatternStringGenerator} from "../src/transfer-pattern/PatternStringGenerator";
 
 async function run() {
   console.time("initial load");
@@ -10,12 +9,13 @@ async function run() {
 
   console.time("pre-processing");
   const startHeap = process.memoryUsage().heapUsed;
-  const raptor = RaptorQueryFactory.createTransferPatternGenerator(
+  const raptor = TransferPatternGeneratorFactory.create(
     trips,
     transfers,
     interchange,
     calendars,
-    new Date("2018-12-10")
+    new Date("2018-12-10"),
+    () => new PatternStringGenerator()
   );
 
   const endHeap = process.memoryUsage().heapUsed;
@@ -26,18 +26,12 @@ async function run() {
   console.timeEnd("patterns");
 
   console.time("paths");
-  const paths = results["BHI"].map(leaf => getPath(leaf, []));
+  const paths = Array.from(results["BHIPET"]);
   console.timeEnd("paths");
 
   console.log("Results:");
   console.log(paths);
   console.log(`Memory usage: ${Math.round(((endHeap - startHeap) / 1024 / 1024) * 100) / 100} MB`);
-}
-
-function getPath(node: TreeNode, path: Stop[]): Stop[] {
-  path.unshift(node.label);
-
-  return node.parent ? getPath(node.parent, path) : path;
 }
 
 run().catch(e => console.error(e));
