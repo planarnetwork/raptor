@@ -4,6 +4,9 @@ import {Calendar, Trip} from "./GTFS";
 import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
 
+/**
+ * Returns trips, transfers, interchange time and calendars from a GTFS zip.
+ */
 export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, Interchange, Calendar[]]> {
   const trips: Trip[] = [];
   const transfers = {};
@@ -93,6 +96,9 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
 
 }
 
+/**
+ * Convert a time string to seconds from midnight
+ */
 function getTime(time: string) {
   const a = time.split(":");
 

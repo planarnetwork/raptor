@@ -12,10 +12,6 @@ Variations from the paper implementation:
 - Pickup / set down marker of stop times are obeyed
 - Calendars are checked to ensure services are running on the specified day
 
-## Status
-
-Work in progress.
-
 ## Usage
 
 The algorithm can be run on any GTFS data set via the CLI.
@@ -31,10 +27,12 @@ raptor gb-rail.zip NRW STA 20180515
 Alternatively, it can be used as a library:
 
 ```
-import {Raptor} from "raptor-journey-planner";
+const {loadGTFS, JourneyFactory, RaptorQueryFactory} = require("raptor-journey-planner");
 
-const raptor = new Raptor(trips, transfers, interchange);
-const journeys = raptor.plan("NRW", "STA", 20180515);
+const gtfs = await loadGTFS("gtfs.zip");
+const resultsFactory = new JourneyFactory();
+const query = RaptorQueryFactory.createDepartAfterQuery(...gtfs, factory);
+const journeys = query.plan("NRW", "STA", 20180515, 9 * 60 * 60);
 ```
 
 ## Contributing
