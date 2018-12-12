@@ -7,42 +7,36 @@ import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepos
  * Worker that finds transfer patterns for a given station
  */
 async function worker(): Promise<void> {
+  const date = new Date();
   const [trips, transfers, interchange, calendars] = await loadGTFS("/home/linus/Downloads/gb-rail-latest.zip");
-  let date;
-  let raptor;
 
+  const raptor = TransferPatternGeneratorFactory.create(
+    trips,
+    transfers,
+    interchange,
+    calendars,
+    date,
+    () => new PatternStringGenerator()
+  );
   const repository = new TransferPatternRepository(getDatabase());
 
-  process.on("message", message => {
-    if (message.length > 20) {
-      date = new Date(message);
-      raptor = TransferPatternGeneratorFactory.create(
-        trips,
-        transfers,
-        interchange,
-        calendars,
-        date,
-        () => new PatternStringGenerator()
-      );
-    }
-    else {
-      const results = raptor.create(message, date);
+  process.on("message", stop => {
+    const results = raptor.create(stop, date);
 
-      repository.storeTransferPatterns(results);
-    }
+    repository.storeTransferPatterns(results);
 
-    sendToParent();
+    morePlease();
   });
 
   process.on("SIGUSR2", () => {
     process.exit();
   });
 
-  sendToParent("date");
+  morePlease();
 }
 
-function sendToParent(message: string = "ready") {
-  (process as any).send(message);
+function morePlease() {
+  (process as any).send("ready");
 }
 
 function getDatabase() {
