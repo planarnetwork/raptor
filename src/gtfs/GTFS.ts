@@ -106,3 +106,8 @@ export interface Calendar {
   exclude: DateIndex;
   include: DateIndex;
 }
+
+/**
+ * Calendars indexed by service ID
+ */
+export type CalendarIndex = Record<ServiceID, Calendar>;

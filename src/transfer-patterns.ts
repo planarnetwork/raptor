@@ -5,14 +5,14 @@ import {RaptorQueryFactory} from "./raptor/RaptorQueryFactory";
 
 const numCPUs = require("os").cpus().length;
 
-async function run() {
+async function run(filename: string) {
   const date = new Date();
-  const [trips, transfers, interchange, calendars] = await loadGTFS("/home/linus/Downloads/gb-rail-latest.zip");
+  const [trips, transfers, interchange, calendars] = await loadGTFS(filename);
   const {stops} = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
   const bar = new ProgressBar("  [:current of :total] [:bar] :percent eta :eta  ", { total: stops.length });
 
   for (let i = 0; i < Math.min(numCPUs - 1, stops.length); i++) {
-    const worker = cp.fork(__dirname + "/transfer-pattern-worker");
+    const worker = cp.fork(__dirname + "/transfer-pattern-worker", [filename, date.toISOString()]);
 
     worker.on("message", () => {
       if (stops.length > 0) {
@@ -29,4 +29,9 @@ async function run() {
 
 }
 
-run().catch(e => console.error(e));
+if (process.argv[2]) {
+  run(process.argv[2]).catch(e => console.error(e));
+}
+else {
+  console.log("Please specify a GTFS file.");
+}

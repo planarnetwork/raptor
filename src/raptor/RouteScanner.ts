@@ -1,4 +1,4 @@
-import {Calendar, DateNumber, DayOfWeek, ServiceID, Time, Trip} from "../gtfs/GTFS";
+import {CalendarIndex, DateNumber, DayOfWeek, ServiceID, Time, Trip} from "../gtfs/GTFS";
 
 /**
  * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce scan time.
@@ -7,7 +7,7 @@ export class RouteScanner {
 
   constructor(
     private readonly tripsByRoute: TripsIndexedByRoute,
-    private readonly calendars: CalendarsByServiceID,
+    private readonly calendars: CalendarIndex,
     private routeScanPosition: Record<RouteID, number>
   ) {}
 
@@ -73,7 +73,7 @@ export class RouteScannerFactory {
 
   constructor(
     private readonly tripsByRoute: TripsIndexedByRoute,
-    private readonly calendars: CalendarsByServiceID | false
+    private readonly calendars: CalendarIndex | false
   ) {}
 
   public create(): RouteScanner {
@@ -86,4 +86,3 @@ export class RouteScannerFactory {
 
 export type RouteID = string;
 export type TripsIndexedByRoute = Record<RouteID, Trip[]>;
-export type CalendarsByServiceID = Record<ServiceID, Calendar>;

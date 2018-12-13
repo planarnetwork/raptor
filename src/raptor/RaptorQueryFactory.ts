@@ -1,10 +1,9 @@
-import {Calendar, DateNumber, DayOfWeek, ServiceID, Trip} from "../gtfs/GTFS";
+import {Calendar, CalendarIndex, DateNumber, DayOfWeek, ServiceID, Trip} from "../gtfs/GTFS";
 import {ResultsFactory} from "../results/ResultsFactory";
 import {RaptorRangeQuery} from "./RaptorRangeQuery";
 import {RaptorDepartAfterQuery} from "./RaptorDepartAfterQuery";
-import {indexBy} from "ts-array-utils";
 import {QueueFactory} from "./QueueFactory";
-import {CalendarsByServiceID, RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
+import {RouteScannerFactory, TripsIndexedByRoute} from "./RouteScanner";
 import {getDateNumber, Interchange, RaptorAlgorithm, TransfersByOrigin} from "./RaptorAlgorithm";
 
 /**
@@ -21,7 +20,7 @@ export class RaptorQueryFactory {
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
-    calendars: Calendar[],
+    calendars: CalendarIndex,
     resultsFactory: ResultsFactory<T>,
     date?: Date
   ): RaptorRangeQuery<T> {
@@ -52,7 +51,7 @@ export class RaptorQueryFactory {
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
-    calendars: Calendar[],
+    calendars: CalendarIndex,
     resultsFactory: ResultsFactory<T>,
     date?: Date
   ): RaptorDepartAfterQuery<T> {
@@ -82,7 +81,7 @@ export class RaptorQueryFactory {
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
-    calendars: Calendar[],
+    calendars: CalendarIndex,
     date?: Date
   ) {
 
@@ -92,13 +91,12 @@ export class RaptorQueryFactory {
     const routeStopIndex = {};
     const routePath = {};
     const usefulTransfers = {};
-    const calendarsIndex = calendars.reduce(indexBy(c => c.serviceId), {});
 
     if (date) {
       const dateNumber = getDateNumber(date);
       const dow = date.getDay() as DayOfWeek;
 
-      trips = trips.filter(trip => this.isRunning(calendarsIndex, trip.serviceId, dateNumber, dow));
+      trips = trips.filter(trip => this.isRunning(calendars, trip.serviceId, dateNumber, dow));
     }
 
     trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
@@ -146,7 +144,7 @@ export class RaptorQueryFactory {
       interchange,
       stops: Object.keys(usefulTransfers),
       queueFactory: new QueueFactory(routesAtStop, routeStopIndex),
-      routeScannerFactory: new RouteScannerFactory(tripsByRoute, date ? false : calendarsIndex),
+      routeScannerFactory: new RouteScannerFactory(tripsByRoute, date ? false : calendars),
     };
   }
 
@@ -166,7 +164,7 @@ export class RaptorQueryFactory {
   }
 
   private static isRunning(
-    calendars: CalendarsByServiceID,
+    calendars: CalendarIndex,
     serviceId: ServiceID,
     date: DateNumber,
     dow: DayOfWeek

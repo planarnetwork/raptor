@@ -5,7 +5,7 @@ import {
   RaptorAlgorithm,
   TransfersByOrigin
 } from "../raptor/RaptorAlgorithm";
-import {Calendar, DayOfWeek, Stop, Time, Trip} from "../gtfs/GTFS";
+import {CalendarIndex, DayOfWeek, Stop, Time, Trip} from "../gtfs/GTFS";
 import {RouteScannerFactory} from "../raptor/RouteScanner";
 import {keyValue} from "ts-array-utils";
 import {RaptorQueryFactory} from "../raptor/RaptorQueryFactory";
@@ -69,7 +69,7 @@ export class TransferPatternGeneratorFactory {
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
-    calendars: Calendar[],
+    calendars: CalendarIndex,
     date: Date,
     resultsFactory: TransferPatternResultsFactory<T>
   ): TransferPatternGenerator<T> {

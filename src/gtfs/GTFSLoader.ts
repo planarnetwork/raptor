@@ -1,17 +1,17 @@
 import * as gtfs from "gtfs-stream";
 import * as fs from "fs";
-import {Calendar, Trip} from "./GTFS";
+import {CalendarIndex, Trip} from "./GTFS";
 import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
 
 /**
  * Returns trips, transfers, interchange time and calendars from a GTFS zip.
  */
-export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, Interchange, Calendar[]]> {
+export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, Interchange, CalendarIndex]> {
   const trips: Trip[] = [];
   const transfers = {};
   const interchange = {};
-  const calendars: Calendar[] = [];
+  const calendars: CalendarIndex = {};
   const excludes = {};
   const includes = {};
   const stopTimes = {};
@@ -46,7 +46,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
         exclude: {}
       };
 
-      calendars.push(cal);
+      calendars[row.service_id] = cal;
     },
     calendar_date: row => {
       const index = row.exception_type === "2" ? excludes : includes;
@@ -69,7 +69,20 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
       stopTimes[row.trip_id].push(stopTime);
     },
     transfer: row => {
-      interchange[row.from_stop_id] = parseInt(row.min_transfer_time, 10);
+      if (row.from_stop_id === row.to_stop_id) {
+        interchange[row.from_stop_id] = parseInt(row.min_transfer_time, 10);
+      }
+      else {
+        const t = {
+          origin: row.from_stop_id,
+          destination: row.to_stop_id,
+          duration: parseInt(row.min_transfer_time, 10),
+          startTime: 0,
+          endTime: Number.MAX_SAFE_INTEGER
+        };
+
+        pushNested(t, transfers, row.from_stop_id);
+      }
     },
     route: () => {},
     stop: () => {},
@@ -85,7 +98,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
           t.stopTimes = stopTimes[t.tripId];
         }
 
-        for (const c of calendars) {
+        for (const c of Object.values(calendars)) {
           c.exclude = excludes[c.serviceId] || {};
           c.include = includes[c.serviceId] || {};
         }
