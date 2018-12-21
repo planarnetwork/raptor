@@ -534,7 +534,7 @@ describe("RaptorDepartAfterQuery", () => {
       trips,
       transfers,
       interchange,
-      calendars.concat(calendar),
+      Object.assign({}, calendars, { [calendar.serviceId]: calendar }),
       journeyFactory
     );
     const result = raptor.plan("A", "C", new Date("2018-10-16"), 900);
@@ -583,7 +583,7 @@ describe("RaptorDepartAfterQuery", () => {
       trips,
       transfers,
       interchange,
-      calendars.concat(calendar),
+      Object.assign({}, calendars, { [calendar.serviceId]: calendar }),
       journeyFactory
     );
 
@@ -639,7 +639,7 @@ describe("RaptorDepartAfterQuery", () => {
       trips,
       transfers,
       interchange,
-      calendars.concat(calendar),
+      Object.assign({}, calendars, { [calendar.serviceId]: calendar }),
       journeyFactory
     );
 
@@ -695,7 +695,7 @@ describe("RaptorDepartAfterQuery", () => {
       trips,
       transfers,
       interchange,
-      calendars.concat(calendar),
+      Object.assign({}, calendars, { [calendar.serviceId]: calendar }),
       journeyFactory
     );
 

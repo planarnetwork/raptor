@@ -53,8 +53,8 @@ export function setDefaultTrip(results: Journey[]) {
 
 export const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
 
-export const calendars = [
-  {
+export const calendars = {
+  "1": {
     serviceId: "1",
     startDate: 20180101,
     endDate: 20991231,
@@ -62,4 +62,4 @@ export const calendars = [
     include: {},
     exclude: {}
   }
-];
+};
