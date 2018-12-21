@@ -15,13 +15,13 @@ async function run() {
     interchange,
     calendars,
     new JourneyFactory(),
-    new Date("2018-12-05")
+    new Date()
   );
 
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.plan("PET", "BHI", new Date("2018-12-05"));
+  const results = raptor.plan("BMH", "YRK", new Date());
   console.timeEnd("planning");
 
   console.log("Results:");
