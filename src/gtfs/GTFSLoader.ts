@@ -1,13 +1,13 @@
 import * as gtfs from "gtfs-stream";
-import * as fs from "fs";
 import {CalendarIndex, Trip} from "./GTFS";
 import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
+import {Readable} from "stream";
 
 /**
  * Returns trips, transfers, interchange time and calendars from a GTFS zip.
  */
-export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, Interchange, CalendarIndex]> {
+export function loadGTFS(stream: Readable): Promise<[Trip[], TransfersByOrigin, Interchange, CalendarIndex]> {
   const trips: Trip[] = [];
   const transfers = {};
   const interchange = {};
@@ -90,7 +90,7 @@ export function loadGTFS(filename: string): Promise<[Trip[], TransfersByOrigin, 
   };
 
   return new Promise(resolve => {
-    fs.createReadStream(filename)
+    stream
       .pipe(gtfs())
       .on("data", entity => processor[entity.type](entity.data))
       .on("end", () => {

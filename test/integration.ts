@@ -2,10 +2,12 @@ import {AnyLeg, Journey, Time, TimetableLeg} from "../src/gtfs/GTFS";
 import {RaptorQueryFactory} from "../src/raptor/RaptorQueryFactory";
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {JourneyFactory} from "../src/results/JourneyFactory";
+import * as fs from "fs";
 
 async function run() {
   console.time("initial load");
-  const [trips, transfers, interchange, calendars] = await loadGTFS("/home/linus/Downloads/gb-rail-latest.zip");
+  const stream = fs.createReadStream("/home/linus/Downloads/gb-rail-latest.zip");
+  const [trips, transfers, interchange, calendars] = await loadGTFS(stream);
   console.timeEnd("initial load");
 
   console.time("pre-processing");

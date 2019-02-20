@@ -2,12 +2,14 @@ import {loadGTFS} from "./gtfs/GTFSLoader";
 import {TransferPatternGeneratorFactory} from "./transfer-pattern/TransferPatternGenerator";
 import {PatternStringGenerator} from "./transfer-pattern/PatternStringGenerator";
 import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepository";
+import * as fs from "fs";
 
 /**
  * Worker that finds transfer patterns for a given station
  */
 async function worker(filename: string, date: Date): Promise<void> {
-  const [trips, transfers, interchange, calendars] = await loadGTFS(filename);
+  const stream = fs.createReadStream(filename);
+  const [trips, transfers, interchange, calendars] = await loadGTFS(stream);
 
   const raptor = TransferPatternGeneratorFactory.create(
     trips,
