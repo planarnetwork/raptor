@@ -5,7 +5,7 @@ import {
   RaptorAlgorithm,
   TransfersByOrigin
 } from "../raptor/RaptorAlgorithm";
-import {CalendarIndex, DayOfWeek, Stop, Time, Trip} from "../gtfs/GTFS";
+import {CalendarIndex, DayOfWeek, StopID, Time, Trip} from "../gtfs/GTFS";
 import {RouteScannerFactory} from "../raptor/RouteScanner";
 import {keyValue} from "ts-array-utils";
 import {RaptorQueryFactory} from "../raptor/RaptorQueryFactory";
@@ -17,16 +17,16 @@ export class TransferPatternGenerator<T> {
 
   constructor(
     private readonly raptor: RaptorAlgorithm,
-    private readonly stops: Stop[],
+    private readonly stops: StopID[],
     private readonly routeScannerFactory: RouteScannerFactory,
     private readonly resultFactory: TransferPatternResultsFactory<T>,
-    private readonly departureTimesAtStop: Record<Stop, Time[]>,
+    private readonly departureTimesAtStop: Record<StopID, Time[]>,
   ) {}
 
   /**
    * Generate generate a full day's set of results and store them using the resultsFactory
    */
-  public create(origin: Stop, dateObj: Date): T {
+  public create(origin: StopID, dateObj: Date): T {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});

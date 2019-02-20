@@ -1,4 +1,4 @@
-import {Journey, Stop, StopTime, Time, Transfer, Trip} from "../../src/gtfs/GTFS";
+import {Journey, StopID, StopTime, Time, Transfer, Trip} from "../../src/gtfs/GTFS";
 
 let tripId = 0;
 
@@ -10,7 +10,7 @@ export function t(...stopTimes: StopTime[]): Trip {
   };
 }
 
-export function st(stop: Stop, arrivalTime: Time | null, departureTime: Time | null): StopTime {
+export function st(stop: StopID, arrivalTime: Time | null, departureTime: Time | null): StopTime {
   return {
     stop: stop,
     arrivalTime: arrivalTime || departureTime!,
@@ -37,7 +37,7 @@ export function isTransfer(connection: StopTime[] | Transfer): connection is Tra
   return (connection as Transfer).origin !== undefined;
 }
 
-export function tf(origin: Stop, destination: Stop, duration: Time): Transfer {
+export function tf(origin: StopID, destination: StopID, duration: Time): Transfer {
   return { origin, destination, duration, startTime: 0, endTime: Number.MAX_SAFE_INTEGER };
 }
 

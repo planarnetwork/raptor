@@ -1,4 +1,4 @@
-import {AnyLeg, Journey, Stop} from "../gtfs/GTFS";
+import {AnyLeg, Journey, StopID} from "../gtfs/GTFS";
 import {isTransfer, ResultsFactory} from "./ResultsFactory";
 import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
 
@@ -10,7 +10,7 @@ export class JourneyFactory implements ResultsFactory<Journey> {
   /**
    * Take the best result of each round for the given destination and turn it into a journey.
    */
-  public getResults(kConnections: ConnectionIndex, destination: Stop): Journey[] {
+  public getResults(kConnections: ConnectionIndex, destination: StopID): Journey[] {
     const results: Journey[] = [];
 
     for (const k of Object.keys(kConnections[destination])) {
@@ -23,7 +23,7 @@ export class JourneyFactory implements ResultsFactory<Journey> {
   /**
    * Iterator back through each connection and build up a series of legs to create the journey
    */
-  private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: Stop): AnyLeg[] {
+  private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: StopID): AnyLeg[] {
     const legs: AnyLeg[] = [];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {

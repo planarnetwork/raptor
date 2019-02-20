@@ -1,6 +1,6 @@
 import * as chai from "chai";
 import {GraphGenerator} from "../../../src/transfer-pattern/GraphGenerator";
-import {Stop} from "../../../src/gtfs/GTFS";
+import {StopID} from "../../../src/gtfs/GTFS";
 
 describe("GraphGenerator", () => {
 
@@ -80,7 +80,7 @@ describe("GraphGenerator", () => {
 
 });
 
-function mergePath(path: Stop[], tree: GraphGenerator): void {
+function mergePath(path: StopID[], tree: GraphGenerator): void {
   const kConnections = {};
 
   for (let i = 1; i < path.length; i++) {

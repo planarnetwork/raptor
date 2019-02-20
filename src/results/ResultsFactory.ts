@@ -1,4 +1,4 @@
-import {Stop, Transfer} from "../gtfs/GTFS";
+import {StopID, Transfer} from "../gtfs/GTFS";
 import {Connection, ConnectionIndex} from "../raptor/RaptorAlgorithm";
 
 /**
@@ -6,7 +6,7 @@ import {Connection, ConnectionIndex} from "../raptor/RaptorAlgorithm";
  */
 export interface ResultsFactory<T> {
 
-  getResults(kConnections: ConnectionIndex, destination: Stop): T[];
+  getResults(kConnections: ConnectionIndex, destination: StopID): T[];
 
 }
 

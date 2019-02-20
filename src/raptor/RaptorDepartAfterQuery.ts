@@ -1,5 +1,5 @@
 import {getDateNumber, RaptorAlgorithm} from "./RaptorAlgorithm";
-import {DayOfWeek, Stop, Time} from "../gtfs/GTFS";
+import {DayOfWeek, StopID, Time} from "../gtfs/GTFS";
 import {RouteScannerFactory} from "./RouteScanner";
 import {ResultsFactory} from "../results/ResultsFactory";
 import {keyValue} from "ts-array-utils";
@@ -8,7 +8,7 @@ export class RaptorDepartAfterQuery<T> {
 
   constructor(
     private readonly raptor: RaptorAlgorithm,
-    private readonly stops: Stop[],
+    private readonly stops: StopID[],
     private readonly routeScannerFactory: RouteScannerFactory,
     private readonly resultsFactory: ResultsFactory<T>
   ) {}
@@ -16,7 +16,7 @@ export class RaptorDepartAfterQuery<T> {
   /**
    * Perform a range query on the given date
    */
-  public plan(origin: Stop, destination: Stop, dateObj: Date, departureTime: Time): T[] {
+  public plan(origin: StopID, destination: StopID, dateObj: Date, departureTime: Time): T[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});

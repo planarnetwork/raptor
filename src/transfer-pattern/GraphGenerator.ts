@@ -1,6 +1,6 @@
 import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
 import {isTransfer} from "../results/ResultsFactory";
-import {Stop} from "../gtfs/GTFS";
+import {StopID} from "../gtfs/GTFS";
 import {TransferPatternResults} from "./TransferPatternGenerator";
 
 /**
@@ -39,7 +39,7 @@ export class GraphGenerator implements TransferPatternResults<TransferPatternGra
     return results;
   }
 
-  private getPath(kConnections: ConnectionIndex, k: string, finalDestination: Stop): Path {
+  private getPath(kConnections: ConnectionIndex, k: string, finalDestination: StopID): Path {
     let path = [finalDestination];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
@@ -91,17 +91,17 @@ export class GraphGenerator implements TransferPatternResults<TransferPatternGra
 /**
  * A list of stops representing a journeys path
  */
-export type Path = Stop[];
+export type Path = StopID[];
 
 /**
  * Leaf nodes indexed by their label
  */
-export type TransferPatternGraph = Record<Stop, TreeNode[]>;
+export type TransferPatternGraph = Record<StopID, TreeNode[]>;
 
 /**
  * Graph node that maintains a reference to it's parent node
  */
 export type TreeNode = {
-  label: Stop,
+  label: StopID,
   parent: TreeNode | null
 };

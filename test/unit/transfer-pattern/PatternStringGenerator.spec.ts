@@ -1,6 +1,6 @@
 import * as chai from "chai";
 import {PatternStringGenerator} from "../../../src/transfer-pattern/PatternStringGenerator";
-import {Stop} from "../../../src/gtfs/GTFS";
+import {StopID} from "../../../src/gtfs/GTFS";
 
 describe("PatternStringGenerator", () => {
 
@@ -62,7 +62,7 @@ describe("PatternStringGenerator", () => {
 
 });
 
-function mergePath(path: Stop[], tree: PatternStringGenerator): void {
+function mergePath(path: StopID[], tree: PatternStringGenerator): void {
   const kConnections = {};
 
   for (let i = 1; i < path.length; i++) {

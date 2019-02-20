@@ -1,4 +1,4 @@
-import {DayOfWeek, Stop, StopTime, Time, Transfer, Trip} from "../gtfs/GTFS";
+import {DayOfWeek, StopID, StopTime, Time, Transfer, Trip} from "../gtfs/GTFS";
 import {keyValue} from "ts-array-utils";
 import {QueueFactory} from "./QueueFactory";
 import {RouteID, RouteScanner} from "./RouteScanner";
@@ -13,7 +13,7 @@ export class RaptorAlgorithm {
     private readonly routePath: RoutePaths,
     private readonly transfers: TransfersByOrigin,
     private readonly interchange: Interchange,
-    private readonly stops: Stop[],
+    private readonly stops: StopID[],
     private readonly queueFactory: QueueFactory
   ) { }
 
@@ -23,7 +23,7 @@ export class RaptorAlgorithm {
   public scan(
     routeScanner: RouteScanner,
     bestArrivals: Arrivals,
-    origin: Stop,
+    origin: StopID,
     date: number,
     dow: DayOfWeek,
     time: Time
@@ -88,10 +88,10 @@ export function getDateNumber(date: Date): number {
   return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);
 }
 
-export type RouteStopIndex = Record<RouteID, Record<Stop, number>>;
-export type RoutePaths = Record<RouteID, Stop[]>;
-export type Interchange = Record<Stop, Time>;
-export type TransfersByOrigin = Record<Stop, Transfer[]>;
-export type Arrivals = Record<Stop, Time>;
+export type RouteStopIndex = Record<RouteID, Record<StopID, number>>;
+export type RoutePaths = Record<RouteID, StopID[]>;
+export type Interchange = Record<StopID, Time>;
+export type TransfersByOrigin = Record<StopID, Transfer[]>;
+export type Arrivals = Record<StopID, Time>;
 export type Connection = [Trip, number, number];
-export type ConnectionIndex = Record<Stop, Record<number, Connection | Transfer>>;
+export type ConnectionIndex = Record<StopID, Record<number, Connection | Transfer>>;

@@ -1,4 +1,4 @@
-import {Stop} from "../gtfs/GTFS";
+import {StopID} from "../gtfs/GTFS";
 import {RouteID} from "./RouteScanner";
 import {RouteStopIndex} from "./RaptorAlgorithm";
 
@@ -15,7 +15,7 @@ export class QueueFactory {
   /**
    * Take the marked stops and return an index of any routes that pass through those stops.
    */
-  public getQueue(markedStops: Stop[]): RouteQueue {
+  public getQueue(markedStops: StopID[]): RouteQueue {
     const queue = {};
 
     for (const stop of markedStops) {
@@ -27,10 +27,10 @@ export class QueueFactory {
     return queue;
   }
 
-  private isStopBefore(routeId: RouteID, stopA: Stop, stopB: Stop): boolean {
+  private isStopBefore(routeId: RouteID, stopA: StopID, stopB: StopID): boolean {
     return this.routeStopIndex[routeId][stopA] < this.routeStopIndex[routeId][stopB];
   }
 }
 
-type RouteQueue = Record<RouteID, Stop>;
-type RoutesIndexedByStop = Record<Stop, RouteID[]>;
+type RouteQueue = Record<RouteID, StopID>;
+type RoutesIndexedByStop = Record<StopID, RouteID[]>;

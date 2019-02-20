@@ -1,6 +1,6 @@
 import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
 import {isTransfer} from "../results/ResultsFactory";
-import {Stop} from "../gtfs/GTFS";
+import {StopID} from "../gtfs/GTFS";
 import {Path} from "./GraphGenerator";
 import {TransferPatternResults} from "./TransferPatternGenerator";
 
@@ -40,7 +40,7 @@ export class PatternStringGenerator implements TransferPatternResults<TransferPa
     return this.results;
   }
 
-  private getPath(kConnections: ConnectionIndex, k: string, finalDestination: Stop): Path {
+  private getPath(kConnections: ConnectionIndex, k: string, finalDestination: StopID): Path {
     let path: Path = [];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {

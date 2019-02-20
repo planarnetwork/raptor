@@ -1,7 +1,7 @@
 /**
  * StopID e.g. NRW
  */
-export type Stop = string;
+export type StopID = string;
 
 /**
  * Time in seconds since midnight (note this may be greater than 24 hours).
@@ -17,7 +17,7 @@ export type Duration = number;
  * GTFS stop time
  */
 export interface StopTime {
-  stop: Stop;
+  stop: StopID;
   arrivalTime: Time;
   departureTime: Time;
   pickUp: boolean;
@@ -28,8 +28,8 @@ export interface StopTime {
  * Leg of a journey
  */
 export interface Leg {
-  origin: Stop;
-  destination: Stop;
+  origin: StopID;
+  destination: StopID;
 }
 
 /**
@@ -111,3 +111,21 @@ export interface Calendar {
  * Calendars indexed by service ID
  */
 export type CalendarIndex = Record<ServiceID, Calendar>;
+
+/**
+ * GTFS stop
+ */
+export interface Stop {
+  id: StopID,
+  code: string,
+  name: string,
+  description: string,
+  latitude: number,
+  longitude: number,
+  timezone: string
+}
+
+/**
+ * Stops indexed by ID
+ */
+export type StopIndex = Record<StopID, Stop>;

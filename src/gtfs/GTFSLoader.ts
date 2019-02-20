@@ -1,5 +1,5 @@
 import * as gtfs from "gtfs-stream";
-import {CalendarIndex, Trip} from "./GTFS";
+import { CalendarIndex, StopID, StopIndex, Trip } from "./GTFS";
 import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
 import {Readable} from "stream";
@@ -7,7 +7,7 @@ import {Readable} from "stream";
 /**
  * Returns trips, transfers, interchange time and calendars from a GTFS zip.
  */
-export function loadGTFS(stream: Readable): Promise<[Trip[], TransfersByOrigin, Interchange, CalendarIndex]> {
+export function loadGTFS(stream: Readable): Promise<GTFSData> {
   const trips: Trip[] = [];
   const transfers = {};
   const interchange = {};
@@ -15,6 +15,7 @@ export function loadGTFS(stream: Readable): Promise<[Trip[], TransfersByOrigin, 
   const excludes = {};
   const includes = {};
   const stopTimes = {};
+  const stops = {};
 
   const processor = {
     link: row => {
@@ -84,8 +85,20 @@ export function loadGTFS(stream: Readable): Promise<[Trip[], TransfersByOrigin, 
         pushNested(t, transfers, row.from_stop_id);
       }
     },
+    stop: row => {
+      const stop = {
+        id: row.stop_id,
+        code: row.stop_code,
+        name: row.stop_name,
+        description: row.stop_desc,
+        latitude: Number(row.stop_lat),
+        longitude: Number(row.stop_lon),
+        timezone: row.zone_id
+      };
+
+      setNested(stop, stops, row.stop_id);
+    },
     route: () => {},
-    stop: () => {},
     agency: () => {},
   };
 
@@ -103,7 +116,7 @@ export function loadGTFS(stream: Readable): Promise<[Trip[], TransfersByOrigin, 
           c.include = includes[c.serviceId] || {};
         }
 
-        resolve([trips, transfers, interchange, calendars]);
+        resolve([trips, transfers, interchange, calendars, stops]);
       });
   });
 
@@ -117,3 +130,8 @@ function getTime(time: string) {
 
   return (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
 }
+
+/**
+ * Contents of the GTFS zip file
+ */
+export type GTFSData = [Trip[], TransfersByOrigin, Interchange, CalendarIndex, StopIndex];
