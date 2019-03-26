@@ -13,7 +13,7 @@ export class JourneyFactory implements ResultsFactory<Journey> {
   public getResults(kConnections: ConnectionIndex, destination: StopID): Journey[] {
     const results: Journey[] = [];
 
-    for (const k of Object.keys(kConnections[destination])) {
+    for (const k of Object.keys(kConnections[destination] || {})) {
       results.push({legs: this.getJourneyLegs(kConnections, k, destination)});
     }
 
