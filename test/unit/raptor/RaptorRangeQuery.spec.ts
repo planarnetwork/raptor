@@ -86,16 +86,16 @@ describe("RaptorRangeQuery", () => {
 
     chai.expect(result).to.deep.equal([
       j([
+        st("A", null, 1359),
+        st("C", 1501, null)
+      ]),
+      j([
         st("A", null, 1400),
         st("B", 1430, null)
       ],
       [
         st("B", null, 1430),
         st("C", 1500, null)
-      ]),
-      j([
-        st("A", null, 1359),
-        st("C", 1501, null)
       ]),
       j([
         st("A", null, 1400),

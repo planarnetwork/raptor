@@ -145,7 +145,7 @@ export class RaptorQueryFactory {
     const departureTimesAtStop = {};
 
     for (const stop in departureTimeIndex) {
-      departureTimesAtStop[stop] = Object.values(departureTimeIndex[stop]).sort((a, b) => b - a);
+      departureTimesAtStop[stop] = Object.values(departureTimeIndex[stop]).sort((a, b) => a - b);
     }
 
     return {

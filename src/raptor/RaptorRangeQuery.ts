@@ -21,12 +21,10 @@ export class RaptorRangeQuery<T> {
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const times = this.departureTimesAtStop[origin];
 
-    const journeys = times.flatMap(time => {
+    return times.flatMap(time => {
       const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
 
       return this.resultsFactory.getResults(kConnections, destination);
     });
-
-    return journeys.reverse();
   }
 }
