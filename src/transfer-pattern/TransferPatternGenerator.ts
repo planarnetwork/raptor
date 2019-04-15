@@ -6,8 +6,6 @@ import {
   TransfersByOrigin
 } from "../raptor/RaptorAlgorithm";
 import {CalendarIndex, DayOfWeek, StopID, Time, Trip} from "../gtfs/GTFS";
-import {RouteScannerFactory} from "../raptor/RouteScanner";
-import {keyValue} from "ts-array-utils";
 import {RaptorQueryFactory} from "../raptor/RaptorQueryFactory";
 
 /**
@@ -17,8 +15,6 @@ export class TransferPatternGenerator<T> {
 
   constructor(
     private readonly raptor: RaptorAlgorithm,
-    private readonly stops: StopID[],
-    private readonly routeScannerFactory: RouteScannerFactory,
     private readonly resultFactory: TransferPatternResultsFactory<T>,
     private readonly departureTimesAtStop: Record<StopID, Time[]>,
   ) {}
@@ -29,12 +25,10 @@ export class TransferPatternGenerator<T> {
   public create(origin: StopID, dateObj: Date): T {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const bestArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
-    const routeScanner = this.routeScannerFactory.create();
     const results = this.resultFactory();
 
-    for (const time of this.departureTimesAtStop[origin]) {
-      const kConnections = this.raptor.scan(routeScanner, bestArrivals, origin, date, dayOfWeek, time);
+    for (const time of this.departureTimesAtStop[origin] || []) {
+      const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
 
       results.add(kConnections);
     }
@@ -85,9 +79,15 @@ export class TransferPatternGeneratorFactory {
     } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
 
     return new TransferPatternGenerator(
-      new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
-      stops,
-      routeScannerFactory,
+      new RaptorAlgorithm(
+        routeStopIndex,
+        routePath,
+        usefulTransfers,
+        interchange,
+        stops,
+        queueFactory,
+        routeScannerFactory
+      ),
       resultsFactory,
       departureTimesAtStop
     );

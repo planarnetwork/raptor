@@ -14,14 +14,14 @@ export class JourneyFactory implements ResultsFactory<Journey> {
     const results: Journey[] = [];
 
     for (const k of Object.keys(kConnections[destination] || {})) {
-      results.push({legs: this.getJourneyLegs(kConnections, k, destination)});
+      results.push({ legs: this.getJourneyLegs(kConnections, k, destination) });
     }
 
     return results;
   }
 
   /**
-   * Iterator back through each connection and build up a series of legs to create the journey
+   * Iterate back through each connection and build up a series of legs to create the journey
    */
   private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: StopID): AnyLeg[] {
     const legs: AnyLeg[] = [];

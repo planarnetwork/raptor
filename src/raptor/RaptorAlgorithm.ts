@@ -1,7 +1,6 @@
 import {DayOfWeek, StopID, StopTime, Time, Transfer, Trip} from "../gtfs/GTFS";
-import {keyValue} from "ts-array-utils";
 import {QueueFactory} from "./QueueFactory";
-import {RouteID, RouteScanner} from "./RouteScanner";
+import {RouteID, RouteScannerFactory} from "./RouteScanner";
 
 /**
  * Implementation of the Raptor journey planning algorithm
@@ -14,25 +13,16 @@ export class RaptorAlgorithm {
     private readonly transfers: TransfersByOrigin,
     private readonly interchange: Interchange,
     private readonly stops: StopID[],
-    private readonly queueFactory: QueueFactory
+    private readonly queueFactory: QueueFactory,
+    private readonly routeScannerFactory: RouteScannerFactory
   ) { }
 
   /**
    * Perform a scan of the routes at a given time and return the resulting kConnections index
    */
-  public scan(
-    routeScanner: RouteScanner,
-    bestArrivals: Arrivals,
-    origin: StopID,
-    date: number,
-    dow: DayOfWeek,
-    time: Time
-  ): ConnectionIndex {
-
-    bestArrivals[origin] = time;
-
-    const kArrivals = [Object.assign({}, bestArrivals)];
-    const kConnections = this.stops.reduce(keyValue(s => [s, {}]), {});
+  public scan(origin: StopID, date: number, dow: DayOfWeek, time: Time): ConnectionIndex {
+    const routeScanner = this.routeScannerFactory.create();
+    const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origin, time);
 
     for (let k = 1, markedStops = [origin]; markedStops.length > 0; k++) {
       const queue = this.queueFactory.getQueue(markedStops);
@@ -51,7 +41,7 @@ export class RaptorAlgorithm {
 
           if (stops && stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
-            kConnections[stopPi][k] = [trip, boardingPoint, pi];
+            kConnections[stopPi][k] = [trip!, boardingPoint, pi];
           }
           else if (previousPiArrival && (!stops || previousPiArrival < stops[pi].arrivalTime + interchange)) {
             trip = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
@@ -80,6 +70,23 @@ export class RaptorAlgorithm {
     return kConnections;
   }
 
+  private createIndexes(origin: StopID, time: Time): [Arrivals, ArrivalsByNumChanges, ConnectionIndex] {
+    const bestArrivals = {};
+    const kArrivals = [{}];
+    const kConnections = {};
+
+    for (const stop of this.stops) {
+      bestArrivals[stop] = Number.MAX_SAFE_INTEGER;
+      kArrivals[0][stop] = Number.MAX_SAFE_INTEGER;
+      kConnections[stop] = {};
+    }
+
+    bestArrivals[origin] = time;
+    kArrivals[0][origin] = time;
+
+    return [bestArrivals, kArrivals, kConnections];
+  }
+
 }
 
 export function getDateNumber(date: Date): number {
@@ -95,3 +102,4 @@ export type TransfersByOrigin = Record<StopID, Transfer[]>;
 export type Arrivals = Record<StopID, Time>;
 export type Connection = [Trip, number, number];
 export type ConnectionIndex = Record<StopID, Record<number, Connection | Transfer>>;
+export type ArrivalsByNumChanges = Record<number, Arrivals>;

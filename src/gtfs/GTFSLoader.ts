@@ -1,5 +1,5 @@
 import * as gtfs from "gtfs-stream";
-import { CalendarIndex, StopID, StopIndex, Trip } from "./GTFS";
+import { CalendarIndex, StopIndex, Trip } from "./GTFS";
 import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
 import {Readable} from "stream";

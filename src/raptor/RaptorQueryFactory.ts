@@ -1,4 +1,4 @@
-import {Calendar, CalendarIndex, DateNumber, DayOfWeek, ServiceID, Trip} from "../gtfs/GTFS";
+import {CalendarIndex, DateNumber, DayOfWeek, ServiceID, Trip} from "../gtfs/GTFS";
 import {ResultsFactory} from "../results/ResultsFactory";
 import {RaptorRangeQuery} from "./RaptorRangeQuery";
 import {RaptorDepartAfterQuery} from "./RaptorDepartAfterQuery";
@@ -36,9 +36,15 @@ export class RaptorQueryFactory {
     } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
 
     return new RaptorRangeQuery(
-      new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
-      stops,
-      routeScannerFactory,
+      new RaptorAlgorithm(
+        routeStopIndex,
+        routePath,
+        usefulTransfers,
+        interchange,
+        stops,
+        queueFactory,
+        routeScannerFactory
+      ),
       departureTimesAtStop,
       resultsFactory
     );
@@ -66,9 +72,15 @@ export class RaptorQueryFactory {
     } = RaptorQueryFactory.create(trips, transfers, interchange, calendars, date);
 
     return new RaptorDepartAfterQuery(
-      new RaptorAlgorithm(routeStopIndex, routePath, usefulTransfers, interchange, stops, queueFactory),
-      stops,
-      routeScannerFactory,
+      new RaptorAlgorithm(
+        routeStopIndex,
+        routePath,
+        usefulTransfers,
+        interchange,
+        stops,
+        queueFactory,
+        routeScannerFactory
+      ),
       resultsFactory
     );
   }

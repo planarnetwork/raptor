@@ -10,13 +10,14 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
+  const date = new Date("2019-06-05");
   const startHeap = process.memoryUsage().heapUsed;
   const raptor = TransferPatternGeneratorFactory.create(
     trips,
     transfers,
     interchange,
     calendars,
-    new Date("2018-12-10"),
+    date,
     () => new PatternStringGenerator()
   );
 
@@ -24,7 +25,7 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("patterns");
-  const results = raptor.create("PET", new Date("2018-12-05"));
+  const results = raptor.create("PET", date);
   console.timeEnd("patterns");
 
   console.time("paths");

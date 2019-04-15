@@ -49,4 +49,63 @@ describe("RaptorRangeQuery", () => {
     ]);
   });
 
+  /**
+   * Unfortunately it is not possible to share the bestArrivals index or the state of the route scanner between
+   * departure times in a range query.
+   *
+   * Consider a journey:
+   *
+   * A -> B -> C, departing at 1400, arriving at 1500
+   *
+   * There may be an earlier journey with no changes
+   *
+   * A -> C, departing at 1359 that arrives at 1501
+   *
+   * That is rejected because it does not improve the earliest arrival time at C
+   */
+  it("does not share bestArrivals or routeScanner", () => {
+    const trips = [
+      t(
+        st("A", null, 1359),
+        st("C", 1501, null)
+      ),
+      t(
+        st("A", null, 1400),
+        st("B", 1430, null)
+      ),
+      t(
+        st("B", null, 1430),
+        st("C", 1500, null)
+      )
+    ];
+
+    const raptor = RaptorQueryFactory.createRangeQuery(trips, {}, {}, calendars, journeyFactory);
+    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+
+    setDefaultTrip(result);
+
+    chai.expect(result).to.deep.equal([
+      j([
+        st("A", null, 1400),
+        st("B", 1430, null)
+      ],
+      [
+        st("B", null, 1430),
+        st("C", 1500, null)
+      ]),
+      j([
+        st("A", null, 1359),
+        st("C", 1501, null)
+      ]),
+      j([
+        st("A", null, 1400),
+        st("B", 1430, null)
+      ],
+      [
+        st("B", null, 1430),
+        st("C", 1500, null)
+      ]),
+    ]);
+  });
+
 });

@@ -16,8 +16,7 @@ async function run() {
     transfers,
     interchange,
     calendars,
-    new JourneyFactory(),
-    new Date()
+    new JourneyFactory()
   );
 
   console.timeEnd("pre-processing");

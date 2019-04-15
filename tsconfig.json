@@ -2,16 +2,14 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "module": "commonjs",
-    "target": "es2017",
+    "target": "esnext",
     "sourceMap": false,
     "experimentalDecorators": true,
     "noImplicitAny": false,
     "strict": true,
     "declaration": true,
     "lib": [
-      "es2017.object",
-      "es2015",
-      "es2017",
+      "esnext",
       "dom"
     ]
   },
