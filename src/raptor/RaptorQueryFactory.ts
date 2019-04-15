@@ -45,6 +45,7 @@ export class RaptorQueryFactory {
         queueFactory,
         routeScannerFactory
       ),
+      stops,
       departureTimesAtStop,
       resultsFactory
     );
@@ -81,6 +82,7 @@ export class RaptorQueryFactory {
         queueFactory,
         routeScannerFactory
       ),
+      stops,
       resultsFactory
     );
   }

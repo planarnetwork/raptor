@@ -7,6 +7,7 @@ import {
 } from "../raptor/RaptorAlgorithm";
 import {CalendarIndex, DayOfWeek, StopID, Time, Trip} from "../gtfs/GTFS";
 import {RaptorQueryFactory} from "../raptor/RaptorQueryFactory";
+import { keyValue } from "ts-array-utils";
 
 /**
  * Uses the Raptor algorithm to perform full day range queries and send the results to the resultFactory.
@@ -15,6 +16,7 @@ export class TransferPatternGenerator<T> {
 
   constructor(
     private readonly raptor: RaptorAlgorithm,
+    private readonly stops: StopID[],
     private readonly resultFactory: TransferPatternResultsFactory<T>,
     private readonly departureTimesAtStop: Record<StopID, Time[]>,
   ) {}
@@ -27,8 +29,12 @@ export class TransferPatternGenerator<T> {
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const results = this.resultFactory();
 
+    let previousArrivals = this.stops.reduce(keyValue(s => [s, Number.MAX_SAFE_INTEGER]), {});
+
     for (const time of this.departureTimesAtStop[origin] || []) {
-      const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
+      const { kConnections, kArrivals } = this.raptor.scan(previousArrivals, origin, date, dayOfWeek, time);
+
+      previousArrivals = Object.assign(previousArrivals, kArrivals[1]);
 
       results.add(kConnections);
     }
@@ -88,6 +94,7 @@ export class TransferPatternGeneratorFactory {
         queueFactory,
         routeScannerFactory
       ),
+      stops,
       resultsFactory,
       departureTimesAtStop
     );
