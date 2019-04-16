@@ -22,7 +22,7 @@ export class RaptorRangeQuery<T> {
     const times = this.departureTimesAtStop[origin];
 
     return times.flatMap(time => {
-      const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
+      const kConnections = this.raptor.scan(origin, destination, date, dayOfWeek, time);
 
       return this.resultsFactory.getResults(kConnections, destination);
     });

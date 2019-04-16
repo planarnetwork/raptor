@@ -15,7 +15,7 @@ export class RaptorDepartAfterQuery<T> {
   public plan(origin: StopID, destination: StopID, dateObj: Date, departureTime: Time): T[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const kConnections = this.raptor.scan(origin, date, dayOfWeek, departureTime);
+    const kConnections = this.raptor.scan(origin, destination, date, dayOfWeek, departureTime);
 
     return this.resultsFactory.getResults(kConnections, destination);
   }

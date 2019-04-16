@@ -20,12 +20,53 @@ export class RaptorAlgorithm {
   /**
    * Perform a scan of the routes at a given time and return the resulting kConnections index
    */
-  public scan(origin: StopID, date: number, dow: DayOfWeek, time: Time): ConnectionIndex {
-    const routeScanner = this.routeScannerFactory.create();
-    const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origin, time);
+  public scan(
+    origin: StopID,
+    destination: StopID,
+    startDate: number,
+    startDow: DayOfWeek,
+    time: Time
+  ): ConnectionIndex {
 
-    for (let k = 1, markedStops = [origin]; markedStops.length > 0; k++) {
+    const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origin, time);
+    let queue = [origin];
+
+    for (let i = 0, k = 0; i < 2; i++) {
+      const date = startDate + i;
+      const dow = (startDow + i) % 7 as DayOfWeek;
+
+      k = this.scanDay(k, queue, bestArrivals, kArrivals, kConnections, date, dow);
+
+      if (kConnections[destination]) {
+        return kConnections;
+      }
+
+      for (const stop in bestArrivals) {
+        bestArrivals[stop] = bestArrivals[stop] - 86400;
+      }
+
+      queue = Object.keys(kConnections);
+    }
+
+    return {};
+  }
+
+  private scanDay(
+    k: number,
+    markedStops: StopID[],
+    bestArrivals: Arrivals,
+    kArrivals: ArrivalsByNumChanges,
+    kConnections: ConnectionIndex,
+    date: number,
+    dow: DayOfWeek
+  ): number {
+
+    const routeScanner = this.routeScannerFactory.create();
+
+    while (markedStops.length > 0) {
       const queue = this.queueFactory.getQueue(markedStops);
+
+      k++;
       kArrivals[k] = {};
 
       // examine routes
@@ -42,8 +83,7 @@ export class RaptorAlgorithm {
           if (stops && stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
             kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
             kConnections[stopPi][k] = [trip!, boardingPoint, pi];
-          }
-          else if (previousPiArrival && (!stops || previousPiArrival < stops[pi].arrivalTime + interchange)) {
+          } else if (previousPiArrival && (!stops || previousPiArrival < stops[pi].arrivalTime + interchange)) {
             trip = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
             stops = trip && trip.stopTimes;
             boardingPoint = pi;
@@ -67,7 +107,7 @@ export class RaptorAlgorithm {
       markedStops = Object.keys(kArrivals[k]);
     }
 
-    return kConnections;
+    return k;
   }
 
   private createIndexes(origin: StopID, time: Time): [Arrivals, ArrivalsByNumChanges, ConnectionIndex] {
