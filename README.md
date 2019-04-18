@@ -16,6 +16,7 @@ Variations from the paper implementation:
 
 There are many types of query available:
  - DepartAfterQuery - find the first results that depart after a specific time
+ - GroupStationDepartAfterQuery - find results from multiple origin and destinations
  - RangeQuery - find results departing between a time range
  - TransferPatternQuery - finds transfer patterns for a stop on a given date 
  

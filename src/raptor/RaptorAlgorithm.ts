@@ -20,11 +20,11 @@ export class RaptorAlgorithm {
   /**
    * Perform a plan of the routes at a given time and return the resulting kConnections index
    */
-  public scan(origin: StopID, date: number, dow: DayOfWeek, time: Time): ConnectionIndex {
+  public scan(origins: StopID[], date: number, dow: DayOfWeek, time: Time): ConnectionIndex {
     const routeScanner = this.routeScannerFactory.create();
-    const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origin, time);
+    const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origins, time);
 
-    for (let k = 1, markedStops = [origin]; markedStops.length > 0; k++) {
+    for (let k = 1, markedStops = origins; markedStops.length > 0; k++) {
       const queue = this.queueFactory.getQueue(markedStops);
       kArrivals[k] = {};
 
@@ -70,7 +70,7 @@ export class RaptorAlgorithm {
     return kConnections;
   }
 
-  private createIndexes(origin: StopID, time: Time): [Arrivals, ArrivalsByNumChanges, ConnectionIndex] {
+  private createIndexes(origins: StopID[], time: Time): [Arrivals, ArrivalsByNumChanges, ConnectionIndex] {
     const bestArrivals = {};
     const kArrivals = [{}];
     const kConnections = {};
@@ -81,8 +81,10 @@ export class RaptorAlgorithm {
       kConnections[stop] = {};
     }
 
-    bestArrivals[origin] = time;
-    kArrivals[0][origin] = time;
+    for (const origin of origins) {
+      bestArrivals[origin] = time;
+      kArrivals[0][origin] = time;
+    }
 
     return [bestArrivals, kArrivals, kConnections];
   }

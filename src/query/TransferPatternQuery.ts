@@ -24,7 +24,7 @@ export class TransferPatternQuery<T> {
     let time = 1;
 
     while (time < this.ONE_DAY) {
-      const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
+      const kConnections = this.raptor.scan([origin], date, dayOfWeek, time);
 
       results.add(kConnections);
 

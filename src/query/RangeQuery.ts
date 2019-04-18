@@ -35,7 +35,7 @@ export class RangeQuery {
     const results: Journey[] = [];
 
     while (time < endTime) {
-      const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
+      const kConnections = this.raptor.scan([origin], date, dayOfWeek, time);
       const newResults = this.resultsFactory.getResults(kConnections, destination);
 
       results.push(...newResults);

@@ -22,7 +22,7 @@ export class DepartAfterQuery {
   public plan(origin: StopID, destination: StopID, dateObj: Date, departureTime: Time): Journey[] {
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const kConnections = this.raptor.scan(origin, date, dayOfWeek, departureTime);
+    const kConnections = this.raptor.scan([origin], date, dayOfWeek, departureTime);
 
     return this.resultsFactory.getResults(kConnections, destination);
   }

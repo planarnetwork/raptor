@@ -5,6 +5,7 @@ export * from "./query/DateUtil";
 export * from "./query/DepartAfterQuery";
 export * from "./query/RangeQuery";
 export * from "./query/TransferPatternQuery";
+export * from "./query/GroupStationDepartAfterQuery";
 export * from "./raptor/QueueFactory";
 export * from "./raptor/RaptorAlgorithm";
 export * from "./raptor/RaptorAlgorithmFactory";

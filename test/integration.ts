@@ -2,9 +2,9 @@ import { Journey } from "../src/results/Journey";
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "fs";
-import { RangeQuery } from "../src/query/RangeQuery";
 import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
 import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFilter";
+import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 async function run() {
   console.time("initial load");
@@ -20,7 +20,7 @@ async function run() {
     calendars
   );
 
-  const query = new RangeQuery(
+  const query = new GroupStationDepartAfterQuery(
     raptor,
     new JourneyFactory(),
     [new MultipleCriteriaFilter()]
@@ -29,7 +29,8 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = query.plan("BMH", "YRK", new Date(), 14 * 60 * 60, 18 * 60 * 60);
+  const results = query.plan(["BHM", "BMO", "BSW", "BHI"], ["MCO", "MAN", "MCV", "EXD"], new Date(), 14 * 60 * 60);
+  // const results = query.plan("BMH", "YRK", new Date(), 14 * 60 * 60, 18 * 60 * 60);
   console.timeEnd("planning");
 
   console.log("Results:");
