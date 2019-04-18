@@ -1,13 +1,15 @@
 import * as gtfs from "gtfs-stream";
-import { CalendarIndex, StopIndex, Trip } from "./GTFS";
+import {CalendarIndex, StopIndex, Trip} from "./GTFS";
 import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
 import {Readable} from "stream";
+import {TimeParser} from "./TimeParser";
 
 /**
  * Returns trips, transfers, interchange time and calendars from a GTFS zip.
  */
 export function loadGTFS(stream: Readable): Promise<GTFSData> {
+  const timeParser = new TimeParser();
   const trips: Trip[] = [];
   const transfers = {};
   const interchange = {};
@@ -23,14 +25,14 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
         origin: row.from_stop_id,
         destination: row.to_stop_id,
         duration: parseInt(row.duration, 10),
-        startTime: getTime(row.start_time),
-        endTime: getTime(row.end_time)
+        startTime: timeParser.getTime(row.start_time),
+        endTime: timeParser.getTime(row.end_time)
       };
 
       pushNested(t, transfers, row.from_stop_id);
     },
     calendar: row => {
-      const cal = {
+      calendars[row.service_id] = {
         serviceId: row.service_id,
         startDate: parseInt(row.start_date, 10),
         endDate: parseInt(row.end_date, 10),
@@ -46,8 +48,6 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
         include: {},
         exclude: {}
       };
-
-      calendars[row.service_id] = cal;
     },
     calendar_date: row => {
       const index = row.exception_type === "2" ? excludes : includes;
@@ -60,8 +60,8 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
     stop_time: row => {
       const stopTime = {
         stop: row.stop_id,
-        departureTime: getTime(row.departure_time),
-        arrivalTime: getTime(row.departure_time),
+        departureTime: timeParser.getTime(row.departure_time),
+        arrivalTime: timeParser.getTime(row.departure_time),
         pickUp: row.pickup_type === "0",
         dropOff: row.drop_off_type === "0"
       };
@@ -120,15 +120,6 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
       });
   });
 
-}
-
-/**
- * Convert a time string to seconds from midnight
- */
-function getTime(time: string) {
-  const a = time.split(":");
-
-  return (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
 }
 
 /**
