@@ -20,7 +20,7 @@ export class QueueFactory {
 
     for (const stop of markedStops) {
       for (const routeId of this.routesAtStop[stop]) {
-        queue[routeId] = queue[routeId] && this.isStopBefore(routeId, queue[routeId], stop) ? queue[routeId] : stop;
+        queue[routeId] = (queue[routeId] && this.isStopBefore(routeId, queue[routeId], stop)) ? queue[routeId] : stop;
       }
     }
 

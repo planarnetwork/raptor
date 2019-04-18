@@ -1,8 +1,9 @@
 import {loadGTFS} from "./gtfs/GTFSLoader";
-import {TransferPatternGeneratorFactory} from "./transfer-pattern/TransferPatternGenerator";
-import {PatternStringGenerator} from "./transfer-pattern/PatternStringGenerator";
+import {StringResults} from "./transfer-pattern/results/StringResults";
 import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepository";
 import * as fs from "fs";
+import { RaptorAlgorithmFactory } from "./raptor/RaptorAlgorithmFactory";
+import { TransferPatternQuery } from "./query/TransferPatternQuery";
 
 /**
  * Worker that finds transfer patterns for a given station
@@ -10,19 +11,13 @@ import * as fs from "fs";
 async function worker(filename: string, date: Date): Promise<void> {
   const stream = fs.createReadStream(filename);
   const [trips, transfers, interchange, calendars] = await loadGTFS(stream);
+  const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars, date);
 
-  const raptor = TransferPatternGeneratorFactory.create(
-    trips,
-    transfers,
-    interchange,
-    calendars,
-    date,
-    () => new PatternStringGenerator()
-  );
+  const query = new TransferPatternQuery(raptor, () => new StringResults());
   const repository = new TransferPatternRepository(getDatabase());
 
   process.on("message", stop => {
-    const results = raptor.create(stop, date);
+    const results = query.plan(stop, date);
 
     repository.storeTransferPatterns(results);
 

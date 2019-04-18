@@ -1,6 +1,6 @@
-import {DayOfWeek, StopID, StopTime, Time, Transfer, Trip} from "../gtfs/GTFS";
-import {QueueFactory} from "./QueueFactory";
-import {RouteID, RouteScannerFactory} from "./RouteScanner";
+import { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import { QueueFactory } from "./QueueFactory";
+import { RouteID, RouteScannerFactory } from "./RouteScanner";
 
 /**
  * Implementation of the Raptor journey planning algorithm
@@ -18,7 +18,7 @@ export class RaptorAlgorithm {
   ) { }
 
   /**
-   * Perform a scan of the routes at a given time and return the resulting kConnections index
+   * Perform a plan of the routes at a given time and return the resulting kConnections index
    */
   public scan(origin: StopID, date: number, dow: DayOfWeek, time: Time): ConnectionIndex {
     const routeScanner = this.routeScannerFactory.create();
@@ -87,12 +87,6 @@ export class RaptorAlgorithm {
     return [bestArrivals, kArrivals, kConnections];
   }
 
-}
-
-export function getDateNumber(date: Date): number {
-  const str = date.toISOString();
-
-  return parseInt(str.slice(0, 4) + str.slice(5, 7) + str.slice(8, 10), 10);
 }
 
 export type RouteStopIndex = Record<RouteID, Record<StopID, number>>;

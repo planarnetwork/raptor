@@ -1,7 +1,7 @@
 import {CalendarIndex, DateNumber, DayOfWeek, ServiceID, Time, Trip} from "../gtfs/GTFS";
 
 /**
- * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce scan time.
+ * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce plan time.
  */
 export class RouteScanner {
 

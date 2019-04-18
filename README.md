@@ -9,32 +9,28 @@ A near direct implementation of the [Round bAsed Public Transit Optimized Router
 It does not contain the multi-threading or multi-criteria (mcRaptor) variants but does contain the range query (rRaptor) algorithm.
 
 Variations from the paper implementation:
-- Taking a footpath counts towards the number of changes (journey legs)
-- Interchange time at each station is applied
-- Pickup / set down marker of stop times are obeyed
-- Calendars are checked to ensure services are running on the specified day
+ - Taking a footpath counts towards the number of changes (journey legs)
+ - Interchange time at each station is applied
+ - Pickup / set down marker of stop times are obeyed
+ - Calendars are checked to ensure services are running on the specified day
 
+There are many types of query available:
+ - DepartAfterQuery - find the first results that depart after a specific time
+ - RangeQuery - find results departing between a time range
+ - TransferPatternQuery - finds transfer patterns for a stop on a given date 
+ 
 ## Usage
 
-The algorithm can be run on any GTFS data set via the CLI.
+Node +10 is required. 
 
 ```
-sudo npm install -g raptor-journey-planner
-raptor gtfs.zip stopA stopB yyyyMMdd
-
-# e.g
-raptor gb-rail.zip NRW STA 20180515
-```
-
-Alternatively, it can be used as a library:
-
-```
-const {loadGTFS, JourneyFactory, RaptorQueryFactory} = require("raptor-journey-planner");
+const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, DepartAfterQuery} = require("raptor-journey-planner");
 
 const gtfs = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(gtfs);
 const resultsFactory = new JourneyFactory();
-const query = RaptorQueryFactory.createDepartAfterQuery(...gtfs, factory);
-const journeys = query.plan("NRW", "STA", 20180515, 9 * 60 * 60);
+const query = new DepartAfterQuery(raptor, resultsFactory);
+const journeys = query.plan("NRW", "STA", new Date(), 9 * 60 * 60);
 ```
 
 ## Contributing

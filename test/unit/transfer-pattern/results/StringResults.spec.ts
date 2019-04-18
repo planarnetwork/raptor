@@ -1,11 +1,11 @@
 import * as chai from "chai";
-import {PatternStringGenerator} from "../../../src/transfer-pattern/PatternStringGenerator";
-import {StopID} from "../../../src/gtfs/GTFS";
+import {StringResults} from "../../../../src/transfer-pattern/results/StringResults";
+import {StopID} from "../../../../src/gtfs/GTFS";
 
-describe("PatternStringGenerator", () => {
+describe("StringResults", () => {
 
   it("Omits direct connections", () => {
-    const tree = new PatternStringGenerator();
+    const tree = new StringResults();
 
     const expected = {
       "AC": new Set(["B"])
@@ -17,7 +17,7 @@ describe("PatternStringGenerator", () => {
   });
 
   it("Merges duplicate paths", () => {
-    const tree = new PatternStringGenerator();
+    const tree = new StringResults();
 
     const expected = {
       "AC": new Set(["B"]),
@@ -31,7 +31,7 @@ describe("PatternStringGenerator", () => {
   });
 
   it("Orders results", () => {
-    const tree = new PatternStringGenerator();
+    const tree = new StringResults();
 
     const expected = {
       "AC": new Set(["B"]),
@@ -47,7 +47,7 @@ describe("PatternStringGenerator", () => {
   });
 
   it("Adds different paths", () => {
-    const tree = new PatternStringGenerator();
+    const tree = new StringResults();
     const expected = {
       "AC": new Set(["B"]),
       "AB": new Set(["C"]),
@@ -62,7 +62,7 @@ describe("PatternStringGenerator", () => {
 
 });
 
-function mergePath(path: StopID[], tree: PatternStringGenerator): void {
+function mergePath(path: StopID[], tree: StringResults): void {
   const kConnections = {};
 
   for (let i = 1; i < path.length; i++) {

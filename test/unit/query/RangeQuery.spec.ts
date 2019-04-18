@@ -1,9 +1,10 @@
-import {calendars, j, setDefaultTrip, st, t} from "../util";
-import {RaptorQueryFactory} from "../../../src/raptor/RaptorQueryFactory";
+import { calendars, j, setDefaultTrip, st, t } from "../util";
 import * as chai from "chai";
-import {JourneyFactory} from "../../../src/results/JourneyFactory";
+import { JourneyFactory } from "../../../src/results/JourneyFactory";
+import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
+import { RangeQuery } from "../../../src/query/RangeQuery";
 
-describe("RaptorRangeQuery", () => {
+describe("RangeQuery", () => {
   const journeyFactory = new JourneyFactory();
 
   it("performs profile queries", () => {
@@ -25,8 +26,9 @@ describe("RaptorRangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorQueryFactory.createRangeQuery(trips, {}, {}, calendars, journeyFactory);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const query = new RangeQuery(raptor, journeyFactory);
+    const result = query.plan("A", "C", new Date("2018-10-16"));
 
     setDefaultTrip(result);
 
@@ -79,8 +81,9 @@ describe("RaptorRangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorQueryFactory.createRangeQuery(trips, {}, {}, calendars, journeyFactory);
-    const result = raptor.plan("A", "C", new Date("2018-10-16"));
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const query = new RangeQuery(raptor, journeyFactory);
+    const result = query.plan("A", "C", new Date("2018-10-16"));
 
     setDefaultTrip(result);
 

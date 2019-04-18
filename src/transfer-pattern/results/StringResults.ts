@@ -1,14 +1,14 @@
-import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
-import {isTransfer} from "../results/ResultsFactory";
-import {StopID} from "../gtfs/GTFS";
-import {Path} from "./GraphGenerator";
-import {TransferPatternResults} from "./TransferPatternGenerator";
+import { ConnectionIndex } from "../../raptor/RaptorAlgorithm";
+import { isTransfer } from "../../results/ResultsFactory";
+import { StopID } from "../../gtfs/GTFS";
+import { Path } from "./GraphResults";
+import { TransferPatternResults } from "./TransferPatternResults";
 
 /**
  * Store the kConnection results as an index where the key is the journey origin and destination and the value is a Set
  * of change points.
  */
-export class PatternStringGenerator implements TransferPatternResults<TransferPatternIndex> {
+export class StringResults implements TransferPatternResults<TransferPatternIndex> {
   private results: TransferPatternIndex = {};
 
   /**

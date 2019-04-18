@@ -1,8 +1,9 @@
-import {AnyLeg, Journey, Time, TimetableLeg} from "../src/gtfs/GTFS";
-import {RaptorQueryFactory} from "../src/raptor/RaptorQueryFactory";
-import {loadGTFS} from "../src/gtfs/GTFSLoader";
-import {JourneyFactory} from "../src/results/JourneyFactory";
+import { Journey } from "../src/results/Journey";
+import { loadGTFS } from "../src/gtfs/GTFSLoader";
+import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "fs";
+import { getArrivalTime, getDepartureTime, RangeQuery } from "../src/query/RangeQuery";
+import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
 
 async function run() {
   console.time("initial load");
@@ -11,18 +12,19 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorQueryFactory.createRangeQuery(
+  const raptor = RaptorAlgorithmFactory.create(
     trips,
     transfers,
     interchange,
-    calendars,
-    new JourneyFactory()
+    calendars
   );
+
+  const query = new RangeQuery(raptor, new JourneyFactory());
 
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = raptor.plan("BMH", "YRK", new Date());
+  const results = query.plan("BMH", "YRK", new Date(), 14 * 60 * 60, 18 * 60 * 60);
   console.timeEnd("planning");
 
   console.log("Results:");
@@ -37,42 +39,6 @@ function journeyToString(j: Journey) {
   return toTime(departure) + ", " +
     toTime(arrival) + ", " +
     [j.legs[0].origin, ...j.legs.map(l => l.destination)].join("-");
-}
-
-function isTimetableLeg(connection: AnyLeg): connection is TimetableLeg {
-  return (connection as TimetableLeg).stopTimes !== undefined;
-}
-
-function getDepartureTime(legs: AnyLeg[]): Time {
-  let transferDuration = 0;
-
-  for (const leg of legs) {
-    if (!isTimetableLeg(leg)) {
-      transferDuration += leg.duration;
-    }
-    else {
-      return leg.stopTimes[0].departureTime - transferDuration;
-    }
-  }
-
-  return 0;
-}
-
-function getArrivalTime(legs: AnyLeg[]): Time {
-  let transferDuration = 0;
-
-  for (let i = legs.length - 1; i >= 0; i--) {
-    const leg = legs[i];
-
-    if (!isTimetableLeg(leg)) {
-      transferDuration += leg.duration;
-    }
-    else {
-      return leg.stopTimes[leg.stopTimes.length - 1].arrivalTime + transferDuration;
-    }
-  }
-
-  return 0;
 }
 
 function toTime(time: number) {

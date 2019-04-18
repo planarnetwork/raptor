@@ -1,8 +1,8 @@
-import {TransferPatternIndex} from "./PatternStringGenerator";
+import {TransferPatternIndex} from "./results/StringResults";
 import {Pool} from "mysql";
 
 /**
- * Access to the transfer_patterns and last_transfer_pattern_scan tables
+ * Access to the transfer_patterns table in a mysql compatible database
  */
 export class TransferPatternRepository {
 
@@ -30,5 +30,19 @@ export class TransferPatternRepository {
         console.error(err);
       }
     }
+  }
+
+  /**
+   * Create the transfer pattern table if it does not already exist
+   */
+  public async initTables(): Promise<void> {
+    await this.db.query(`
+      CREATE TABLE transfer_patterns (
+        journey char(6) NOT NULL,
+        pattern varchar(255) NOT NULL,
+        PRIMARY KEY (journey,pattern)
+      ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+     `
+    );
   }
 }

@@ -1,11 +1,11 @@
 import * as chai from "chai";
-import {GraphGenerator} from "../../../src/transfer-pattern/GraphGenerator";
-import {StopID} from "../../../src/gtfs/GTFS";
+import {GraphResults} from "../../../../src/transfer-pattern/results/GraphResults";
+import {StopID} from "../../../../src/gtfs/GTFS";
 
-describe("GraphGenerator", () => {
+describe("GraphResults", () => {
 
   it("Merges a path into an empty tree", () => {
-    const tree = new GraphGenerator();
+    const tree = new GraphResults();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -22,7 +22,7 @@ describe("GraphGenerator", () => {
   });
 
   it("Merges duplicate paths", () => {
-    const tree = new GraphGenerator();
+    const tree = new GraphResults();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -40,7 +40,7 @@ describe("GraphGenerator", () => {
   });
 
   it("Appends to existing paths", () => {
-    const tree = new GraphGenerator();
+    const tree = new GraphResults();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -58,7 +58,7 @@ describe("GraphGenerator", () => {
   });
 
   it("Appends different paths", () => {
-    const tree = new GraphGenerator();
+    const tree = new GraphResults();
     const A = { label: "A", parent: null };
     const B = { label: "B", parent: A };
     const C = { label: "C", parent: B };
@@ -80,7 +80,7 @@ describe("GraphGenerator", () => {
 
 });
 
-function mergePath(path: StopID[], tree: GraphGenerator): void {
+function mergePath(path: StopID[], tree: GraphResults): void {
   const kConnections = {};
 
   for (let i = 1; i < path.length; i++) {

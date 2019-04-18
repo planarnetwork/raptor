@@ -1,7 +1,8 @@
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
-import {TransferPatternGeneratorFactory} from "../src/transfer-pattern/TransferPatternGenerator";
-import {PatternStringGenerator} from "../src/transfer-pattern/PatternStringGenerator";
+import {StringResults} from "../src/transfer-pattern/results/StringResults";
 import * as fs from "fs";
+import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
+import { TransferPatternQuery } from "../src/query/TransferPatternQuery";
 
 async function run() {
   console.time("initial load");
@@ -12,20 +13,21 @@ async function run() {
   console.time("pre-processing");
   const date = new Date("2019-06-05");
   const startHeap = process.memoryUsage().heapUsed;
-  const raptor = TransferPatternGeneratorFactory.create(
+  const raptor = RaptorAlgorithmFactory.create(
     trips,
     transfers,
     interchange,
     calendars,
-    date,
-    () => new PatternStringGenerator()
+    date
   );
+
+  const query = new TransferPatternQuery(raptor, () => new StringResults());
 
   const endHeap = process.memoryUsage().heapUsed;
   console.timeEnd("pre-processing");
 
   console.time("patterns");
-  const results = raptor.create("PET", date);
+  const results = query.plan("PET", date);
   console.timeEnd("patterns");
 
   console.time("paths");

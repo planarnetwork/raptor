@@ -1,6 +1,7 @@
-import {AnyLeg, Journey, StopID} from "../gtfs/GTFS";
-import {isTransfer, ResultsFactory} from "./ResultsFactory";
-import {ConnectionIndex} from "../raptor/RaptorAlgorithm";
+import { StopID } from "../gtfs/GTFS";
+import { isTransfer, ResultsFactory } from "./ResultsFactory";
+import { ConnectionIndex } from "../raptor/RaptorAlgorithm";
+import { AnyLeg, Journey } from "./Journey";
 
 /**
  * Extracts journeys from the kConnections index.
@@ -21,7 +22,7 @@ export class JourneyFactory implements ResultsFactory<Journey> {
   }
 
   /**
-   * Iterate back through each connection and build up a series of legs to create the journey
+   * Iterate back through each connection and build up a series of legs to plan the journey
    */
   private getJourneyLegs(kConnections: ConnectionIndex, k: string, finalDestination: StopID): AnyLeg[] {
     const legs: AnyLeg[] = [];

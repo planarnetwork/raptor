@@ -1,4 +1,5 @@
-import {Journey, StopID, StopTime, Time, Transfer, Trip} from "../../src/gtfs/GTFS";
+import { StopID, StopTime, Time, Transfer, Trip } from "../../src/gtfs/GTFS";
+import { Journey } from "../../src/results/Journey";
 
 let tripId = 0;
 

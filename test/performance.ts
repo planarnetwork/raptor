@@ -1,8 +1,9 @@
-import {RaptorQueryFactory} from "../src/raptor/RaptorQueryFactory";
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {product} from "ts-array-utils";
 import {JourneyFactory} from "../src/results/JourneyFactory";
 import * as fs from "fs";
+import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
+import { DepartAfterQuery } from "../src/query/DepartAfterQuery";
 
 const queries = [
   [["MRF", "LVC", "LVJ", "LIV", "NRW", "BHM"], ["WWW"]],
@@ -28,8 +29,8 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const resultsFactory = new JourneyFactory();
-  const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, transfers, interchange, calendars, resultsFactory);
+  const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
+  const query = new DepartAfterQuery(raptor, new JourneyFactory());
   console.timeEnd("pre-processing");
 
   console.time("planning");
@@ -40,7 +41,7 @@ async function run() {
     for (const [origins, destinations] of queries) {
       for (const [origin, destination] of product(origins, destinations)) {
         console.time(origin + destination);
-        const results = raptor.plan(origin, destination, date, 36000);
+        const results = query.plan(origin, destination, date, 36000);
         console.timeEnd(origin + destination);
 
         if (results.length === 0) {
