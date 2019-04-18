@@ -16,13 +16,11 @@ export class RaptorRangeQuery<T> {
   /**
    * Perform a range query on the given date
    */
-  public plan(origin: StopID, destination: StopID, dateObj: Date): T[] {
-    const date = getDateNumber(dateObj);
-    const dayOfWeek = dateObj.getDay() as DayOfWeek;
+  public plan(origin: StopID, destination: StopID, date: Date): T[] {
     const times = this.departureTimesAtStop[origin];
 
     return times.flatMap(time => {
-      const kConnections = this.raptor.scan(origin, destination, date, dayOfWeek, time);
+      const kConnections = this.raptor.scan(origin, destination, date, time);
 
       return this.resultsFactory.getResults(kConnections, destination);
     });

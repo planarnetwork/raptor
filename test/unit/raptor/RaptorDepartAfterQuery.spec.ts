@@ -831,4 +831,48 @@ describe("RaptorDepartAfterQuery", () => {
     ]);
   });
 
+  it("returns over night trains", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1030),
+        st("C", 1200, null)
+      ),
+      t(
+        st("C", null, 1030),
+        st("D", 1100, null)
+      )
+    ];
+
+    const raptor = RaptorQueryFactory.createDepartAfterQuery(trips, {}, {}, calendars, journeyFactory);
+    const result = raptor.plan("A", "D", new Date("2018-10-16"), 900);
+
+    setDefaultTrip(result);
+
+    const change = j([
+      st("A", null, 1000),
+      st("B", 1030, 1030),
+      st("C", 1200, null)
+    ], [
+      st("C", null, 1030),
+      st("D", 1100, null)
+    ]);
+
+    chai.expect(result).to.deep.equal([
+      change
+    ]);
+  });
+
+  it("finds services only running on the next day", () => {
+
+  });
+
+  it("finds services that start next month", () => {
+
+  });
+
+  it("joins connections where the origin at day 2 was not in the last k round", () => {
+
+  });
+
 });

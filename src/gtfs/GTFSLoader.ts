@@ -126,9 +126,9 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
  * Convert a time string to seconds from midnight
  */
 function getTime(time: string) {
-  const a = time.split(":");
+  const [hh, mm, ss] = time.split(":");
 
-  return (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
+  return (+hh) * 60 * 60 + (+mm) * 60 + (+ss);
 }
 
 /**

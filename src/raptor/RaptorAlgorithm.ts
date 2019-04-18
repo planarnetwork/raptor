@@ -23,29 +23,41 @@ export class RaptorAlgorithm {
   public scan(
     origin: StopID,
     destination: StopID,
-    startDate: number,
-    startDow: DayOfWeek,
+    dateObj: Date,
     time: Time
   ): ConnectionIndex {
 
     const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origin, time);
+
     let queue = [origin];
 
-    for (let i = 0, k = 0; i < 2; i++) {
-      const date = startDate + i;
-      const dow = (startDow + i) % 7 as DayOfWeek;
+    /*
+
+    WHEN MOVING TO THE NEXT DAY WE TAKE ALL THE STOPS WE HAVE MADE A CONNECTION TO. UNFORTUNATELY THOSE STOPS
+    MIGHT HAVE BEEN ARRIVED AT AFTER 1, 2, N NUMBER OF CHANGES. THE RESULTS ALGORITHM ASSUMES EACH CONNECTION LINKS TO
+    K - 1
+
+     */
+
+    for (let i = 0, k = 0; i < 2; i++, dateObj.setDate(dateObj.getDate() + 1)) {
+      const date = getDateNumber(dateObj);
+      const dow = dateObj.getDay() as DayOfWeek;
 
       k = this.scanDay(k, queue, bestArrivals, kArrivals, kConnections, date, dow);
 
-      if (kConnections[destination]) {
+      if (Object.keys(kConnections[destination]).length > 0) {
         return kConnections;
       }
 
+      queue = [];
+
       for (const stop in bestArrivals) {
         bestArrivals[stop] = bestArrivals[stop] - 86400;
-      }
 
-      queue = Object.keys(kConnections);
+        if (Object.keys(kConnections[stop]).length > 0) {
+          queue.push(stop);
+        }
+      }
     }
 
     return {};
@@ -117,7 +129,6 @@ export class RaptorAlgorithm {
 
     for (const stop of this.stops) {
       bestArrivals[stop] = Number.MAX_SAFE_INTEGER;
-      kArrivals[0][stop] = Number.MAX_SAFE_INTEGER;
       kConnections[stop] = {};
     }
 

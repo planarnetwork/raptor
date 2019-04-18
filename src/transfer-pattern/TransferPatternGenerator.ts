@@ -22,13 +22,11 @@ export class TransferPatternGenerator<T> {
   /**
    * Generate generate a full day's set of results and store them using the resultsFactory
    */
-  public create(origin: StopID, dateObj: Date): T {
-    const date = getDateNumber(dateObj);
-    const dayOfWeek = dateObj.getDay() as DayOfWeek;
+  public create(origin: StopID, date: Date): T {
     const results = this.resultFactory();
 
     for (const time of this.departureTimesAtStop[origin] || []) {
-      const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
+      const kConnections = this.raptor.scan(origin, origin, date, time);
 
       results.add(kConnections);
     }
