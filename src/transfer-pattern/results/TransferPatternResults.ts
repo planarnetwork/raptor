@@ -1,4 +1,5 @@
 import { ConnectionIndex } from "../../raptor/RaptorAlgorithm";
+import { StopID } from "../../gtfs/GTFS";
 
 /**
  * Create the results factory
@@ -15,3 +16,8 @@ export interface TransferPatternResults<T> {
   finalize(): T;
 
 }
+
+/**
+ * A list of stops representing a journeys path
+ */
+export type Path = StopID[];

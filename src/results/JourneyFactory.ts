@@ -1,4 +1,4 @@
-import { StopID } from "../gtfs/GTFS";
+import { StopID, Time, TimetableLeg } from "../gtfs/GTFS";
 import { isTransfer, ResultsFactory } from "./ResultsFactory";
 import { ConnectionIndex } from "../raptor/RaptorAlgorithm";
 import { AnyLeg, Journey } from "./Journey";
@@ -6,7 +6,7 @@ import { AnyLeg, Journey } from "./Journey";
 /**
  * Extracts journeys from the kConnections index.
  */
-export class JourneyFactory implements ResultsFactory<Journey> {
+export class JourneyFactory implements ResultsFactory {
 
   /**
    * Take the best result of each round for the given destination and turn it into a journey.
@@ -15,7 +15,11 @@ export class JourneyFactory implements ResultsFactory<Journey> {
     const results: Journey[] = [];
 
     for (const k of Object.keys(kConnections[destination] || {})) {
-      results.push({ legs: this.getJourneyLegs(kConnections, k, destination) });
+      const legs = this.getJourneyLegs(kConnections, k, destination);
+      const departureTime = this.getDepartureTime(legs);
+      const arrivalTime = this.getArrivalTime(legs);
+
+      results.push({ legs, departureTime, arrivalTime });
     }
 
     return results;
@@ -48,4 +52,39 @@ export class JourneyFactory implements ResultsFactory<Journey> {
     return legs.reverse();
   }
 
+  private getDepartureTime(legs: AnyLeg[]): Time {
+    let transferDuration = 0;
+
+    for (const leg of legs) {
+      if (!this.isTimetableLeg(leg)) {
+        transferDuration += leg.duration;
+      }
+      else {
+        return leg.stopTimes[0].departureTime - transferDuration;
+      }
+    }
+
+    return 0;
+  }
+
+  private getArrivalTime(legs: AnyLeg[]): Time {
+    let transferDuration = 0;
+
+    for (let i = legs.length - 1; i >= 0; i--) {
+      const leg = legs[i];
+
+      if (!this.isTimetableLeg(leg)) {
+        transferDuration += leg.duration;
+      }
+      else {
+        return leg.stopTimes[leg.stopTimes.length - 1].arrivalTime + transferDuration;
+      }
+    }
+
+    return 0;
+  }
+
+  private isTimetableLeg(connection: AnyLeg): connection is TimetableLeg {
+    return (connection as TimetableLeg).stopTimes !== undefined;
+  }
 }

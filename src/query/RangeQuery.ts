@@ -1,26 +1,26 @@
 import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
 import { ResultsFactory } from "../results/ResultsFactory";
-import { DayOfWeek, StopID, Time, TimetableLeg } from "../gtfs/GTFS";
+import { DayOfWeek, StopID } from "../gtfs/GTFS";
 import { getDateNumber } from "./DateUtil";
-import { AnyLeg, Journey } from "../results/Journey";
+import { Journey } from "../results/Journey";
+import { JourneyFilter } from "../results/filter/JourneyFilter";
 
 /**
  * Use the Raptor algorithm to generate a full day of results.
  */
-export class RangeQuery<T extends Journey> {
+export class RangeQuery {
 
   private readonly ONE_DAY = 24 * 60 * 60;
 
   constructor(
     private readonly raptor: RaptorAlgorithm,
-    private readonly resultsFactory: ResultsFactory<T>
+    private readonly resultsFactory: ResultsFactory,
+    private readonly filters: JourneyFilter[] = []
   ) {}
 
   /**
    * Perform a query at midnight, and then continue to search one minute after the earliest departure of each set of
    * results.
-   *
-   * TODO filter
    */
   public plan(
     origin: StopID,
@@ -28,11 +28,11 @@ export class RangeQuery<T extends Journey> {
     dateObj: Date,
     time: number = 1,
     endTime: number = this.ONE_DAY
-  ): T[] {
+  ): Journey[] {
 
     const date = getDateNumber(dateObj);
     const dayOfWeek = dateObj.getDay() as DayOfWeek;
-    const results: T[] = [];
+    const results: Journey[] = [];
 
     while (time < endTime) {
       const kConnections = this.raptor.scan(origin, date, dayOfWeek, time);
@@ -44,47 +44,10 @@ export class RangeQuery<T extends Journey> {
         break;
       }
 
-      time = Math.min(...newResults.map(j => getDepartureTime(j.legs))) + 1;
+      time = Math.min(...newResults.map(j => j.departureTime)) + 1;
     }
 
-    return results;
+    return this.filters.reduce((rs, filter) => filter.apply(rs), results);
   }
 
-}
-
-// TODO, these need a home
-export function isTimetableLeg(connection: AnyLeg): connection is TimetableLeg {
-  return (connection as TimetableLeg).stopTimes !== undefined;
-}
-
-export function getDepartureTime(legs: AnyLeg[]): Time {
-  let transferDuration = 0;
-
-  for (const leg of legs) {
-    if (!isTimetableLeg(leg)) {
-      transferDuration += leg.duration;
-    }
-    else {
-      return leg.stopTimes[0].departureTime - transferDuration;
-    }
-  }
-
-  return 0;
-}
-
-export function getArrivalTime(legs: AnyLeg[]): Time {
-  let transferDuration = 0;
-
-  for (let i = legs.length - 1; i >= 0; i--) {
-    const leg = legs[i];
-
-    if (!isTimetableLeg(leg)) {
-      transferDuration += leg.duration;
-    }
-    else {
-      return leg.stopTimes[leg.stopTimes.length - 1].arrivalTime + transferDuration;
-    }
-  }
-
-  return 0;
 }

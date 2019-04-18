@@ -1,5 +1,5 @@
 import { StopID, StopTime, Time, Transfer, Trip } from "../../src/gtfs/GTFS";
-import { Journey } from "../../src/results/Journey";
+import { AnyLeg, Journey } from "../../src/results/Journey";
 
 let tripId = 0;
 
@@ -25,6 +25,8 @@ const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [] };
 
 export function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
   return {
+    departureTime: getDepartureTime(legStopTimes),
+    arrivalTime: getArrivalTime(legStopTimes),
     legs: legStopTimes.map(stopTimes => isTransfer(stopTimes) ? stopTimes : ({
       stopTimes,
       origin: stopTimes[0].stop,
@@ -32,6 +34,38 @@ export function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
       trip: defaultTrip
     }))
   };
+}
+
+function getDepartureTime(legs: (StopTime[] | Transfer)[]): Time {
+  let transferDuration = 0;
+
+  for (const leg of legs) {
+    if (isTransfer(leg)) {
+      transferDuration += leg.duration;
+    }
+    else {
+      return leg[0].departureTime - transferDuration;
+    }
+  }
+
+  return 0;
+}
+
+function getArrivalTime(legs: (StopTime[] | Transfer)[]): Time {
+  let transferDuration = 0;
+
+  for (let i = legs.length - 1; i >= 0; i--) {
+    const leg = legs[i];
+
+    if (isTransfer(leg)) {
+      transferDuration += leg.duration;
+    }
+    else {
+      return leg[leg.length - 1].arrivalTime + transferDuration;
+    }
+  }
+
+  return 0;
 }
 
 export function isTransfer(connection: StopTime[] | Transfer): connection is Transfer {

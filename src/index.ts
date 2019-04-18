@@ -12,6 +12,8 @@ export * from "./raptor/RouteScanner";
 export * from "./results/Journey";
 export * from "./results/JourneyFactory";
 export * from "./results/ResultsFactory";
+export * from "./results/filter/MultipleCriteriaFilter";
+export * from "./results/filter/JourneyFilter";
 export * from "./transfer-pattern/results/GraphResults";
 export * from "./transfer-pattern/results/StringResults";
 export * from "./transfer-pattern/TransferPatternRepository";

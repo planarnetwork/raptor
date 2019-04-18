@@ -2,8 +2,9 @@ import { Journey } from "../src/results/Journey";
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "fs";
-import { getArrivalTime, getDepartureTime, RangeQuery } from "../src/query/RangeQuery";
+import { RangeQuery } from "../src/query/RangeQuery";
 import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
+import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFilter";
 
 async function run() {
   console.time("initial load");
@@ -19,7 +20,11 @@ async function run() {
     calendars
   );
 
-  const query = new RangeQuery(raptor, new JourneyFactory());
+  const query = new RangeQuery(
+    raptor,
+    new JourneyFactory(),
+    [new MultipleCriteriaFilter()]
+  );
 
   console.timeEnd("pre-processing");
 
@@ -33,11 +38,8 @@ async function run() {
 }
 
 function journeyToString(j: Journey) {
-  const departure = getDepartureTime(j.legs);
-  const arrival = getArrivalTime(j.legs);
-
-  return toTime(departure) + ", " +
-    toTime(arrival) + ", " +
+  return toTime(j.departureTime) + ", " +
+    toTime(j.arrivalTime) + ", " +
     [j.legs[0].origin, ...j.legs.map(l => l.destination)].join("-");
 }
 

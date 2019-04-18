@@ -1,8 +1,7 @@
 import { ConnectionIndex } from "../../raptor/RaptorAlgorithm";
 import { isTransfer } from "../../results/ResultsFactory";
 import { StopID } from "../../gtfs/GTFS";
-import { Path } from "./GraphResults";
-import { TransferPatternResults } from "./TransferPatternResults";
+import { Path, TransferPatternResults } from "./TransferPatternResults";
 
 /**
  * Store the kConnection results as an index where the key is the journey origin and destination and the value is a Set

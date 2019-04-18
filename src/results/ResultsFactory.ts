@@ -1,12 +1,13 @@
 import {StopID, Transfer} from "../gtfs/GTFS";
 import {Connection, ConnectionIndex} from "../raptor/RaptorAlgorithm";
+import { Journey } from "./Journey";
 
 /**
  * Create results from the kConnections index
  */
-export interface ResultsFactory<T> {
+export interface ResultsFactory {
 
-  getResults(kConnections: ConnectionIndex, destination: StopID): T[];
+  getResults(kConnections: ConnectionIndex, destination: StopID): Journey[];
 
 }
 

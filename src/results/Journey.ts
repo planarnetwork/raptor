@@ -1,4 +1,4 @@
-import { TimetableLeg, Transfer } from "../gtfs/GTFS";
+import { Time, TimetableLeg, Transfer } from "../gtfs/GTFS";
 
 /**
  * A leg
@@ -10,4 +10,6 @@ export type AnyLeg = Transfer | TimetableLeg;
  */
 export interface Journey {
   legs: AnyLeg[];
+  departureTime: Time,
+  arrivalTime: Time
 }
