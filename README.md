@@ -94,7 +94,8 @@ const gtfs = await loadGTFS("gtfs.zip");
 const raptor = RaptorAlgorithmFactory.create(gtfs);
 const resultsFactory = new JourneyFactory();
 const filter = new MultipleCriteriaFilter();
-const query = new RangeQuery(raptor, resultsFactory, [filter]);
+const maxSearchDays = 3;
+const query = new RangeQuery(raptor, resultsFactory, maxSearchDays, [filter]);
 const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
 ```
 

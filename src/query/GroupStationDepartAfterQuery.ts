@@ -46,6 +46,7 @@ export class GroupStationDepartAfterQuery {
 
       origins = this.getFoundStations(kConnections);
       startDate.setDate(startDate.getDate() + 1);
+      time = 1;
     }
 
     return [];
