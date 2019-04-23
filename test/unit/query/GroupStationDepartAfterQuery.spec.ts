@@ -24,7 +24,7 @@ describe("GroupStationDepartAfterQuery", () => {
     ];
 
     const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, filters);
+    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
     const result = query.plan(["A"], ["C", "D"], new Date("2019-04-18"), 900);
 
     setDefaultTrip(result);
@@ -58,7 +58,7 @@ describe("GroupStationDepartAfterQuery", () => {
     ];
 
     const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, filters);
+    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
     const result = query.plan(["A", "B"], ["C", "D"], new Date("2019-04-18"), 900);
 
     setDefaultTrip(result);

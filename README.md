@@ -8,21 +8,28 @@ A near direct implementation of the [Round bAsed Public Transit Optimized Router
 
 It does not contain the multi-threading or multi-criteria (mcRaptor) variants but does contain the range query (rRaptor) algorithm.
 
-Variations from the paper implementation:
- - Taking a footpath counts towards the number of changes (journey legs)
+Additional features not in the paper implementation:
+ - Calendars are checked to ensure services are running on the specified day
+ - Multi-day journeys
+ - The origin and destination may be a set of stops
  - Interchange time at each station is applied
  - Pickup / set down marker of stop times are obeyed
- - Calendars are checked to ensure services are running on the specified day
-
-There are many types of query available:
- - DepartAfterQuery - find the first results that depart after a specific time
- - GroupStationDepartAfterQuery - find results from multiple origin and destinations
- - RangeQuery - find results departing between a time range
- - TransferPatternQuery - finds transfer patterns for a stop on a given date 
+ - Multi-criteria journey filtering
+ - Taking a footpath counts towards the number of changes (journey legs)
  
 ## Usage
 
-Node +10 is required. 
+It will work with any well formed GTFS data set.
+ 
+Node +11 is required for all examples.
+
+```
+npm install --save raptor-journey-planner
+``` 
+
+### Depart After Query
+
+Find the first results that depart after a specific time
 
 ```
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, DepartAfterQuery} = require("raptor-journey-planner");
@@ -32,6 +39,63 @@ const raptor = RaptorAlgorithmFactory.create(gtfs);
 const resultsFactory = new JourneyFactory();
 const query = new DepartAfterQuery(raptor, resultsFactory);
 const journeys = query.plan("NRW", "STA", new Date(), 9 * 60 * 60);
+```
+
+### Group Station Depart After Query
+
+Find results from multiple origin and destinations
+
+```
+const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, GroupStationDepartAfterQuery} = require("raptor-journey-planner");
+
+const gtfs = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(gtfs);
+const resultsFactory = new JourneyFactory();
+const query = new GroupStationDepartAfterQuery(raptor, resultsFactory);
+const journeys = query.plan(["NRW"], ["LST", "EUS"], new Date(), 9 * 60 * 60);
+```
+
+### Range Query
+
+Find results departing between a time range
+
+```
+const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery} = require("raptor-journey-planner");
+
+const gtfs = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(gtfs);
+const resultsFactory = new JourneyFactory();
+const query = new RangeQuery(raptor, resultsFactory);
+const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
+```
+
+### Transfer Pattern Query
+
+Finds transfer patterns for a stop on a given date
+
+```
+const {loadGTFS, StringResults, RaptorAlgorithmFactory, TransferPatternQuery} = require("raptor-journey-planner");
+
+const gtfs = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(gtfs);
+const resultsFactory = () => new StringResults();
+const query = new TransferPatternQuery(raptor, resultsFactory);
+const journeys = query.plan("NRW", new Date());
+```
+
+### Filters
+
+By default the multi-criteria filter will keep journeys as long as there are no subsequent journeys that arrive sooner and have the same or less changes.
+
+```
+const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery, MultipleCriteriaFilter} = require("raptor-journey-planner");
+
+const gtfs = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(gtfs);
+const resultsFactory = new JourneyFactory();
+const filter = new MultipleCriteriaFilter();
+const query = new RangeQuery(raptor, resultsFactory, [filter]);
+const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
 ```
 
 ## Contributing

@@ -23,13 +23,14 @@ async function run() {
   const query = new GroupStationDepartAfterQuery(
     raptor,
     new JourneyFactory(),
+    3,
     [new MultipleCriteriaFilter()]
   );
 
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = query.plan(["BHM", "BMO", "BSW", "BHI"], ["MCO", "MAN", "MCV", "EXD"], new Date(), 14 * 60 * 60);
+  const results = query.plan(["BHM", "BMO", "BSW", "BHI"], ["MCO", "MAN", "MCV", "EXD"], new Date(), 23 * 60 * 60);
   // const results = query.plan("BMH", "YRK", new Date(), 14 * 60 * 60, 18 * 60 * 60);
   console.timeEnd("planning");
 

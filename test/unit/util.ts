@@ -96,5 +96,13 @@ export const calendars = {
     days: allDays,
     include: {},
     exclude: {}
+  },
+  "2": {
+    serviceId: "2",
+    startDate: 20190101,
+    endDate: 20991231,
+    days: allDays,
+    include: {},
+    exclude: {}
   }
 };
