@@ -20,11 +20,11 @@ export class RaptorAlgorithm {
   /**
    * Perform a plan of the routes at a given time and return the resulting kConnections index
    */
-  public scan(origins: StopID[], date: number, dow: DayOfWeek, time: Time): ConnectionIndex {
+  public scan(origins: StopTimes, date: number, dow: DayOfWeek): [ConnectionIndex, Arrivals] {
     const routeScanner = this.routeScannerFactory.create();
-    const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origins, time);
+    const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origins);
 
-    for (let k = 1, markedStops = origins; markedStops.length > 0; k++) {
+    for (let k = 1, markedStops = Object.keys(origins); markedStops.length > 0; k++) {
       const queue = this.queueFactory.getQueue(markedStops);
       kArrivals[k] = {};
 
@@ -67,23 +67,18 @@ export class RaptorAlgorithm {
       markedStops = Object.keys(kArrivals[k]);
     }
 
-    return kConnections;
+    return [kConnections, bestArrivals];
   }
 
-  private createIndexes(origins: StopID[], time: Time): [Arrivals, ArrivalsByNumChanges, ConnectionIndex] {
+  private createIndexes(origins: StopTimes): [Arrivals, ArrivalsByNumChanges, ConnectionIndex] {
     const bestArrivals = {};
     const kArrivals = [{}];
     const kConnections = {};
 
     for (const stop of this.stops) {
-      bestArrivals[stop] = Number.MAX_SAFE_INTEGER;
-      kArrivals[0][stop] = Number.MAX_SAFE_INTEGER;
+      bestArrivals[stop] = origins[stop] || Number.MAX_SAFE_INTEGER;
+      kArrivals[0][stop] = origins[stop] || Number.MAX_SAFE_INTEGER;
       kConnections[stop] = {};
-    }
-
-    for (const origin of origins) {
-      bestArrivals[origin] = time;
-      kArrivals[0][origin] = time;
     }
 
     return [bestArrivals, kArrivals, kConnections];
@@ -99,3 +94,4 @@ export type Arrivals = Record<StopID, Time>;
 export type Connection = [Trip, number, number];
 export type ConnectionIndex = Record<StopID, Record<number, Connection | Transfer>>;
 export type ArrivalsByNumChanges = Record<number, Arrivals>;
+export type StopTimes = Record<StopID, Time>;

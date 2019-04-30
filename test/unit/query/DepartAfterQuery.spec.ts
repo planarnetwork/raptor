@@ -987,4 +987,32 @@ describe("DepartAfterQuery", () => {
     chai.expect(result).to.deep.equal(expected);
   });
 
+  it("does not return overnight journeys that cannot be made", () => {
+    const trips = [
+      t(
+        st("A", null, 86000),
+        st("B", 86400, 86400),
+        st("C", 86400 + 3600 + 3600, null)
+      ),
+      t(
+        st("C", null, 3600),
+        st("D", 3635, 3635),
+        st("E", 3700, null)
+      ),
+      t(
+        st("C", null, 3600 + 3600),
+        st("D", 3635 + 3600, 3635 + 3600),
+        st("E", 3700 + 3600, null)
+      )
+    ];
+
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const query = new DepartAfterQuery(raptor, journeyFactory, 2);
+    const result = query.plan("A", "E", new Date("2018-12-31"), 50000);
+
+    setDefaultTrip(result);
+
+    chai.expect(result[0].arrivalTime).to.equal(86400 + 3700 + 3600);
+  });
+
 });

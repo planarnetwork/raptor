@@ -1,7 +1,6 @@
 import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
 import { ResultsFactory } from "../results/ResultsFactory";
-import { DayOfWeek, StopID } from "../gtfs/GTFS";
-import { getDateNumber } from "./DateUtil";
+import { StopID } from "../gtfs/GTFS";
 import { Journey } from "../results/Journey";
 import { JourneyFilter } from "../results/filter/JourneyFilter";
 import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery";

@@ -1,6 +1,6 @@
 {
   "name": "raptor-journey-planner",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Implementation of the Round bAsed Public Transit Optimized Router (Raptor) journey planning algorithm.",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -36,14 +36,14 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.5",
-    "@types/mysql": "^2.15.5",
-    "@types/node": "^11.13.5",
+    "@types/mysql": "^2.15.6",
+    "@types/node": "^11.13.8",
     "@types/progress": "^2.0.3",
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
     "ts-node": "^8.1.0",
     "tslint": "^5.16.0",
-    "typescript": "^3.4.4"
+    "typescript": "^3.4.5"
   },
   "dependencies": {
     "gtfs-stream": "^1.1.2",
