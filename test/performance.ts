@@ -1,9 +1,8 @@
-import {loadGTFS} from "../src/gtfs/GTFSLoader";
-import {product} from "ts-array-utils";
-import {JourneyFactory} from "../src/results/JourneyFactory";
+import { loadGTFS } from "../src/gtfs/GTFSLoader";
+import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "fs";
 import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
-import { DepartAfterQuery } from "../src/query/DepartAfterQuery";
+import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 const queries = [
   [["MRF", "LVC", "LVJ", "LIV", "NRW", "BHM"], ["WWW"]],
@@ -30,30 +29,24 @@ async function run() {
 
   console.time("pre-processing");
   const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
-  const query = new DepartAfterQuery(raptor, new JourneyFactory());
+  const query = new GroupStationDepartAfterQuery(raptor, new JourneyFactory());
   console.timeEnd("pre-processing");
 
-  console.time("planning");
   const date = new Date();
   let numResults = 0;
 
-  for (let i = 0; i < 1; i++) {
+  console.time("Planning");
+
+  for (let i = 0; i < 3; i++) {
     for (const [origins, destinations] of queries) {
-      for (const [origin, destination] of product(origins, destinations)) {
-        console.time(origin + destination);
-        const results = query.plan(origin, destination, date, 36000);
-        console.timeEnd(origin + destination);
 
-        if (results.length === 0) {
-          console.log("No results between " + origin + " and " + destination);
-        }
+      const results = query.plan(origins, destinations, date, 22 * 60 * 60);
 
-        numResults += results.length;
-      }
+      numResults += results.length;
     }
   }
 
-  console.timeEnd("planning");
+  console.timeEnd("Planning");
   console.log("Num journeys: " + numResults);
   console.log(`Memory usage: ${Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100} MB`);
 }
