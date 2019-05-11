@@ -34,8 +34,8 @@ Find the first results that depart after a specific time
 ```
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, DepartAfterQuery} = require("raptor-journey-planner");
 
-const gtfs = await loadGTFS("gtfs.zip");
-const raptor = RaptorAlgorithmFactory.create(gtfs);
+const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const query = new DepartAfterQuery(raptor, resultsFactory);
 const journeys = query.plan("NRW", "STA", new Date(), 9 * 60 * 60);
@@ -48,8 +48,8 @@ Find results from multiple origin and destinations
 ```
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, GroupStationDepartAfterQuery} = require("raptor-journey-planner");
 
-const gtfs = await loadGTFS("gtfs.zip");
-const raptor = RaptorAlgorithmFactory.create(gtfs);
+const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const query = new GroupStationDepartAfterQuery(raptor, resultsFactory);
 const journeys = query.plan(["NRW"], ["LST", "EUS"], new Date(), 9 * 60 * 60);
@@ -62,8 +62,8 @@ Find results departing between a time range
 ```
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery} = require("raptor-journey-planner");
 
-const gtfs = await loadGTFS("gtfs.zip");
-const raptor = RaptorAlgorithmFactory.create(gtfs);
+const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const query = new RangeQuery(raptor, resultsFactory);
 const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
@@ -76,8 +76,8 @@ Finds transfer patterns for a stop on a given date
 ```
 const {loadGTFS, StringResults, RaptorAlgorithmFactory, TransferPatternQuery} = require("raptor-journey-planner");
 
-const gtfs = await loadGTFS("gtfs.zip");
-const raptor = RaptorAlgorithmFactory.create(gtfs);
+const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = () => new StringResults();
 const query = new TransferPatternQuery(raptor, resultsFactory);
 const journeys = query.plan("NRW", new Date());
@@ -90,8 +90,8 @@ By default the multi-criteria filter will keep journeys as long as there are no 
 ```
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery, MultipleCriteriaFilter} = require("raptor-journey-planner");
 
-const gtfs = await loadGTFS("gtfs.zip");
-const raptor = RaptorAlgorithmFactory.create(gtfs);
+const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const filter = new MultipleCriteriaFilter();
 const maxSearchDays = 3;
