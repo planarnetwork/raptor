@@ -101,7 +101,7 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
 
   return new Promise(resolve => {
     stream
-      .pipe(gtfs())
+      .pipe(gtfs({ raw: true }))
       .on("data", entity => processor[entity.type] && processor[entity.type](entity.data))
       .on("end", () => {
         for (const t of trips) {
