@@ -105,7 +105,7 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
       .on("data", entity => processor[entity.type] && processor[entity.type](entity.data))
       .on("end", () => {
         for (const t of trips) {
-          t.stopTimes = stopTimes[t.tripId].sort((a, b) => a.arrivalTime - b.arrivalTime);
+          t.stopTimes = stopTimes[t.tripId];
         }
 
         for (const c of Object.values(calendars)) {
