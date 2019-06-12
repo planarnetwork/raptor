@@ -1,6 +1,6 @@
 import { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
 import { QueueFactory } from "./QueueFactory";
-import { RouteID, RouteScannerFactory } from "./RouteScanner";
+import { RouteID, RouteScanner, RouteScannerFactory } from "./RouteScanner";
 
 /**
  * Implementation of the Raptor journey planning algorithm
@@ -25,46 +25,68 @@ export class RaptorAlgorithm {
     const [bestArrivals, kArrivals, kConnections] = this.createIndexes(origins);
 
     for (let k = 1, markedStops = Object.keys(origins); markedStops.length > 0; k++) {
-      const queue = this.queueFactory.getQueue(markedStops);
       kArrivals[k] = {};
 
-      // examine routes
-      for (const [routeId, stopP] of queue) {
-        const boardingPoint = this.routeStopIndex[routeId][stopP];
-        const previousArrival = kArrivals[k - 1][stopP];
-        const trip = routeScanner.getTrip(routeId, date, dow, boardingPoint, previousArrival);
-        const stops = trip && trip.stopTimes;
-
-        if (trip && stops) {
-          for (let pi = boardingPoint + 1; pi < this.routePath[routeId].length; pi++) {
-            const stopPi = this.routePath[routeId][pi];
-            const interchange = this.interchange[stopPi];
-
-            if (stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
-              kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
-              kConnections[stopPi][k] = [trip!, boardingPoint, pi];
-            }
-          }
-        }
-      }
-
-      // examine transfers
-      for (const stopP of markedStops) {
-        for (const transfer of this.transfers[stopP]) {
-          const stopPi = transfer.destination;
-          const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
-
-          if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
-            kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
-            kConnections[stopPi][k] = transfer;
-          }
-        }
-      }
+      this.scanRoutes(routeScanner, date, dow, k,  markedStops, kArrivals, bestArrivals, kConnections);
+      this.scanFootpaths(k,  markedStops, kArrivals, bestArrivals, kConnections);
 
       markedStops = Object.keys(kArrivals[k]);
     }
 
     return [kConnections, bestArrivals];
+  }
+
+  private scanRoutes(
+    routeScanner: RouteScanner,
+    date: number,
+    dow: DayOfWeek,
+    k: number,
+    markedStops: StopID[],
+    kArrivals: ArrivalsByNumChanges,
+    bestArrivals: Arrivals,
+    kConnections: ConnectionIndex
+  ): void {
+    const queue = this.queueFactory.getQueue(markedStops);
+
+    for (const [routeId, stopP] of queue) {
+      const boardingPoint = this.routeStopIndex[routeId][stopP];
+      const previousArrival = kArrivals[k - 1][stopP];
+      const trip = routeScanner.getTrip(routeId, date, dow, boardingPoint, previousArrival);
+      const stops = trip && trip.stopTimes;
+
+      if (trip && stops) {
+        for (let pi = boardingPoint + 1; pi < this.routePath[routeId].length; pi++) {
+          const stopPi = this.routePath[routeId][pi];
+          const interchange = this.interchange[stopPi];
+
+          if (stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
+            kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
+            kConnections[stopPi][k] = [trip!, boardingPoint, pi];
+          }
+        }
+      }
+    }
+  }
+
+  private scanFootpaths(
+    k: number,
+    markedStops: StopID[],
+    kArrivals: ArrivalsByNumChanges,
+    bestArrivals: Arrivals,
+    kConnections: ConnectionIndex
+  ): void {
+
+    for (const stopP of markedStops) {
+      for (const transfer of this.transfers[stopP]) {
+        const stopPi = transfer.destination;
+        const arrival = kArrivals[k - 1][stopP] + transfer.duration + this.interchange[stopPi];
+
+        if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < bestArrivals[stopPi]) {
+          kArrivals[k][stopPi] = bestArrivals[stopPi] = arrival;
+          kConnections[stopPi][k] = transfer;
+        }
+      }
+    }
   }
 
   private createIndexes(origins: StopTimes): [Arrivals, ArrivalsByNumChanges, ConnectionIndex] {
