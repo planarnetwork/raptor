@@ -16,11 +16,11 @@ export class QueueFactory {
    * Take the marked stops and return an index of any routes that pass through those stops.
    */
   public getQueue(markedStops: StopID[]): RouteQueue {
-    const queue = {};
+    const queue: RouteQueue = [];
 
     for (const stop of markedStops) {
       for (const routeId of this.routesAtStop[stop]) {
-        queue[routeId] = (queue[routeId] && this.isStopBefore(routeId, queue[routeId], stop)) ? queue[routeId] : stop;
+        queue.push([routeId, stop]);
       }
     }
 
@@ -32,5 +32,5 @@ export class QueueFactory {
   }
 }
 
-type RouteQueue = Record<RouteID, StopID>;
+type RouteQueue = [RouteID, StopID][];
 type RoutesIndexedByStop = Record<StopID, RouteID[]>;

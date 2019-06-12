@@ -29,24 +29,21 @@ export class RaptorAlgorithm {
       kArrivals[k] = {};
 
       // examine routes
-      for (const [routeId, stopP] of Object.entries(queue)) {
-        let boardingPoint = -1;
-        let stops: StopTime[] | undefined = undefined;
-        let trip: Trip | undefined = undefined;
+      for (const [routeId, stopP] of queue) {
+        const boardingPoint = this.routeStopIndex[routeId][stopP];
+        const previousArrival = kArrivals[k - 1][stopP];
+        const trip = routeScanner.getTrip(routeId, date, dow, boardingPoint, previousArrival);
+        const stops = trip && trip.stopTimes;
 
-        for (let pi = this.routeStopIndex[routeId][stopP]; pi < this.routePath[routeId].length; pi++) {
-          const stopPi = this.routePath[routeId][pi];
-          const interchange = this.interchange[stopPi];
-          const previousPiArrival = kArrivals[k - 1][stopPi];
+        if (trip && stops) {
+          for (let pi = boardingPoint + 1; pi < this.routePath[routeId].length; pi++) {
+            const stopPi = this.routePath[routeId][pi];
+            const interchange = this.interchange[stopPi];
 
-          if (stops && stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
-            kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
-            kConnections[stopPi][k] = [trip!, boardingPoint, pi];
-          }
-          else if (previousPiArrival && (!stops || previousPiArrival < stops[pi].arrivalTime + interchange)) {
-            trip = routeScanner.getTrip(routeId, date, dow, pi, previousPiArrival);
-            stops = trip && trip.stopTimes;
-            boardingPoint = pi;
+            if (stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
+              kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
+              kConnections[stopPi][k] = [trip!, boardingPoint, pi];
+            }
           }
         }
       }
