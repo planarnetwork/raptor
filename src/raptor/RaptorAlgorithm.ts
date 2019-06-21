@@ -1,4 +1,4 @@
-import { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import { DayOfWeek, StopID, Time, Transfer, Trip } from "../gtfs/GTFS";
 import { QueueFactory } from "./QueueFactory";
 import { RouteID, RouteScanner, RouteScannerFactory } from "./RouteScanner";
 
@@ -46,22 +46,20 @@ export class RaptorAlgorithm {
     bestArrivals: Arrivals,
     kConnections: ConnectionIndex
   ): void {
-    const queue = this.queueFactory.getQueue(markedStops);
 
-    for (const [routeId, stopP] of queue) {
+    for (const [routeId, stopP] of this.queueFactory.getQueue(markedStops)) {
       const boardingPoint = this.routeStopIndex[routeId][stopP];
       const previousArrival = kArrivals[k - 1][stopP];
       const trip = routeScanner.getTrip(routeId, date, dow, boardingPoint, previousArrival);
-      const stops = trip && trip.stopTimes;
 
-      if (trip && stops) {
+      if (trip) {
         for (let pi = boardingPoint + 1; pi < this.routePath[routeId].length; pi++) {
           const stopPi = this.routePath[routeId][pi];
           const interchange = this.interchange[stopPi];
 
-          if (stops[pi].dropOff && stops[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
-            kArrivals[k][stopPi] = bestArrivals[stopPi] = stops[pi].arrivalTime + interchange;
-            kConnections[stopPi][k] = [trip!, boardingPoint, pi];
+          if (trip.stopTimes[pi].dropOff && trip.stopTimes[pi].arrivalTime + interchange < bestArrivals[stopPi]) {
+            kArrivals[k][stopPi] = bestArrivals[stopPi] = trip.stopTimes[pi].arrivalTime + interchange;
+            kConnections[stopPi][k] = [trip, boardingPoint, pi];
           }
         }
       }
