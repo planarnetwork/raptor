@@ -1,6 +1,6 @@
 import { StopID, Time, TimetableLeg } from "../gtfs/GTFS";
 import { isTransfer, ResultsFactory } from "./ResultsFactory";
-import { ConnectionIndex } from "../raptor/RaptorAlgorithm";
+import { ConnectionIndex } from "../raptor/ScanResults";
 import { AnyLeg, Journey } from "./Journey";
 
 /**

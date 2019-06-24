@@ -1,4 +1,4 @@
-import { ConnectionIndex } from "../../raptor/RaptorAlgorithm";
+import { ConnectionIndex } from "../../raptor/ScanResults";
 import { isTransfer } from "../../results/ResultsFactory";
 import { StopID } from "../../gtfs/GTFS";
 import { Path, TransferPatternResults } from "./TransferPatternResults";

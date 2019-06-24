@@ -3,6 +3,7 @@ import { Interchange, RaptorAlgorithm, TransfersByOrigin } from "./RaptorAlgorit
 import { QueueFactory } from "./QueueFactory";
 import { RouteScannerFactory, TripsIndexedByRoute } from "./RouteScanner";
 import { getDateNumber } from "../query/DateUtil";
+import { ScanResultsFactory } from "./ScanResultsFactory";
 
 /**
  * Prepares GTFS data for the raptor algorithm
@@ -69,7 +70,7 @@ export class RaptorAlgorithmFactory {
       routePath,
       usefulTransfers,
       interchange,
-      Object.keys(usefulTransfers),
+      new ScanResultsFactory(Object.keys(usefulTransfers)),
       new QueueFactory(routesAtStop, routeStopIndex),
       new RouteScannerFactory(tripsByRoute),
     );

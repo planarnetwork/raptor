@@ -19,3 +19,4 @@ export * from "./transfer-pattern/results/GraphResults";
 export * from "./transfer-pattern/results/StringResults";
 export * from "./transfer-pattern/TransferPatternRepository";
 export * from "./transfer-pattern/results/TransferPatternResults";
+export { Connection } from "./raptor/ScanResults";

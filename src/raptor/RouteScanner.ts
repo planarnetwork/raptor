@@ -1,25 +1,21 @@
-import { DateNumber, DayOfWeek, Time, Trip } from "../gtfs/GTFS";
+import { DayOfWeek, Time, Trip } from "../gtfs/GTFS";
 
 /**
  * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce plan time.
  */
 export class RouteScanner {
+  private readonly routeScanPosition: Record<RouteID, number> = {};
 
   constructor(
     private readonly tripsByRoute: TripsIndexedByRoute,
-    private readonly routeScanPosition: Record<RouteID, number>
+    private readonly date: number,
+    private readonly dow: DayOfWeek,
   ) {}
 
   /**
    * Return the earliest trip stop times possible on the given route
    */
-  public getTrip(
-    routeId: RouteID,
-    date: DateNumber,
-    dow: DayOfWeek,
-    stopIndex: number,
-    time: Time
-  ): Trip | undefined {
+  public getTrip(routeId: RouteID, stopIndex: number, time: Time): Trip | undefined {
 
     if (!this.routeScanPosition.hasOwnProperty(routeId)) {
       this.routeScanPosition[routeId] = this.tripsByRoute[routeId].length - 1;
@@ -36,7 +32,7 @@ export class RouteScanner {
         break;
       }
       // if it is reachable and the service is running that day, update the last valid trip found
-      else if (trip.service.runsOn(date, dow)) {
+      else if (trip.service.runsOn(this.date, this.dow)) {
         lastFound = trip;
       }
 
@@ -63,8 +59,8 @@ export class RouteScannerFactory {
     private readonly tripsByRoute: TripsIndexedByRoute
   ) {}
 
-  public create(): RouteScanner {
-    return new RouteScanner(this.tripsByRoute, {});
+  public create(date: number, dow: DayOfWeek): RouteScanner {
+    return new RouteScanner(this.tripsByRoute, date, dow);
   }
 
 }

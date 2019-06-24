@@ -1,4 +1,4 @@
-import { ConnectionIndex } from "../../raptor/RaptorAlgorithm";
+import { ConnectionIndex } from "../../raptor/ScanResults";
 import { StopID } from "../../gtfs/GTFS";
 
 /**
