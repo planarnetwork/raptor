@@ -1,4 +1,4 @@
-import {CalendarIndex, DateNumber, DayOfWeek, ServiceID, Time, Trip} from "../gtfs/GTFS";
+import { DateNumber, DayOfWeek, Time, Trip } from "../gtfs/GTFS";
 
 /**
  * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce plan time.
@@ -7,8 +7,7 @@ export class RouteScanner {
 
   constructor(
     private readonly tripsByRoute: TripsIndexedByRoute,
-    private readonly calendars: CalendarIndex,
-    private routeScanPosition: Record<RouteID, number>
+    private readonly routeScanPosition: Record<RouteID, number>
   ) {}
 
   /**
@@ -37,7 +36,7 @@ export class RouteScanner {
         break;
       }
       // if it is reachable and the service is running that day, update the last valid trip found
-      else if (this.serviceIsRunning(trip.serviceId, date, dow)) {
+      else if (trip.service.runsOn(date, dow)) {
         lastFound = trip;
       }
 
@@ -53,24 +52,6 @@ export class RouteScanner {
     return lastFound;
   }
 
-  protected serviceIsRunning(serviceId: ServiceID, date: DateNumber, dow: DayOfWeek): boolean {
-    return !this.calendars[serviceId].exclude[date] && (this.calendars[serviceId].include[date] || (
-      this.calendars[serviceId].startDate <= date &&
-      this.calendars[serviceId].endDate >= date &&
-      this.calendars[serviceId].days[dow]
-    ));
-  }
-}
-
-/**
- * Remove the check to see if a service is running on a particular day
- */
-class RouteScannerNoFilter extends RouteScanner {
-
-  protected serviceIsRunning(): boolean {
-    return true;
-  }
-
 }
 
 /**
@@ -79,14 +60,11 @@ class RouteScannerNoFilter extends RouteScanner {
 export class RouteScannerFactory {
 
   constructor(
-    private readonly tripsByRoute: TripsIndexedByRoute,
-    private readonly calendars: CalendarIndex | false
+    private readonly tripsByRoute: TripsIndexedByRoute
   ) {}
 
   public create(): RouteScanner {
-    return this.calendars
-      ? new RouteScanner(this.tripsByRoute, this.calendars, {})
-      : new RouteScannerNoFilter(this.tripsByRoute, {}, {});
+    return new RouteScanner(this.tripsByRoute, {});
   }
 
 }

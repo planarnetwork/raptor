@@ -22,7 +22,6 @@ export class RaptorAlgorithmFactory {
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
-    calendars: CalendarIndex,
     date?: Date
   ): RaptorAlgorithm {
 
@@ -36,7 +35,7 @@ export class RaptorAlgorithmFactory {
       const dateNumber = getDateNumber(date);
       const dow = date.getDay() as DayOfWeek;
 
-      trips = trips.filter(trip => this.isRunning(calendars, trip.serviceId, dateNumber, dow));
+      trips = trips.filter(trip => trip.service.runsOn(dateNumber, dow));
     }
 
     trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
@@ -72,7 +71,7 @@ export class RaptorAlgorithmFactory {
       interchange,
       Object.keys(usefulTransfers),
       new QueueFactory(routesAtStop, routeStopIndex),
-      new RouteScannerFactory(tripsByRoute, date ? false : calendars),
+      new RouteScannerFactory(tripsByRoute),
     );
   }
 
@@ -89,19 +88,5 @@ export class RaptorAlgorithmFactory {
     }
 
     return routeId;
-  }
-
-  private static isRunning(
-    calendars: CalendarIndex,
-    serviceId: ServiceID,
-    date: DateNumber,
-    dow: DayOfWeek
-  ): boolean {
-
-    return !calendars[serviceId].exclude[date] && (calendars[serviceId].include[date] || (
-      calendars[serviceId].startDate <= date &&
-      calendars[serviceId].endDate >= date &&
-      calendars[serviceId].days[dow]
-    ));
   }
 }

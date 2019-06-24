@@ -7,7 +7,7 @@ import { TransferPatternQuery } from "../src/query/TransferPatternQuery";
 async function run() {
   console.time("initial load");
   const stream = fs.createReadStream("/home/linus/Downloads/gb-rail-latest.zip");
-  const [trips, transfers, interchange, calendars] = await loadGTFS(stream);
+  const [trips, transfers, interchange] = await loadGTFS(stream);
   console.timeEnd("initial load");
 
   console.time("pre-processing");
@@ -17,7 +17,6 @@ async function run() {
     trips,
     transfers,
     interchange,
-    calendars,
     date
   );
 

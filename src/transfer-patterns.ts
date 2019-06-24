@@ -8,7 +8,7 @@ const numCPUs = require("os").cpus().length;
 async function run(filename: string) {
   const date = new Date();
   const stream = fs.createReadStream(filename);
-  const [trips, transfers, interchange, calendars, stopIndex] = await loadGTFS(stream);
+  const [trips, transfers, interchange, stopIndex] = await loadGTFS(stream);
   const stops = Object.keys(stopIndex);
   const bar = new ProgressBar("  [:current of :total] [:bar] :percent eta :eta  ", { total: stops.length });
 

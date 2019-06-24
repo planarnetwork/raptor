@@ -1,8 +1,9 @@
 import * as chai from "chai";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
-import { allDays, calendars, j, setDefaultTrip, st, t, tf } from "../util";
+import { allDays, j, services, setDefaultTrip, st, t, tf } from "../util";
 import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
 import { DepartAfterQuery } from "../../../src/query/DepartAfterQuery";
+import { Service } from "../../../src/gtfs/Service";
 
 describe("DepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();
@@ -16,7 +17,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -45,7 +46,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -74,7 +75,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -105,7 +106,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory, 1);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -127,7 +128,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -177,7 +178,7 @@ describe("DepartAfterQuery", () => {
       ),
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -222,7 +223,7 @@ describe("DepartAfterQuery", () => {
       ),
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -265,7 +266,7 @@ describe("DepartAfterQuery", () => {
       ),
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -303,7 +304,7 @@ describe("DepartAfterQuery", () => {
       ]
     };
 
-    const raptor = RaptorAlgorithmFactory.create(trips, transfers, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -342,7 +343,7 @@ describe("DepartAfterQuery", () => {
       ]
     };
 
-    const raptor = RaptorAlgorithmFactory.create(trips, transfers, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "D", new Date("2018-10-16"), 900);
 
@@ -376,7 +377,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -407,7 +408,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -444,7 +445,7 @@ describe("DepartAfterQuery", () => {
     const transfers = {};
     const interchange = { B: 10 };
 
-    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange);
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -498,7 +499,7 @@ describe("DepartAfterQuery", () => {
 
     const interchange = { B: 10, C: 10 };
 
-    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange);
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "D", new Date("2018-10-16"), 900);
 
@@ -527,7 +528,12 @@ describe("DepartAfterQuery", () => {
       st("C", 1100, null)
     );
 
-    trip.serviceId = "2";
+    trip.service = new Service(
+      20181001,
+      20181015,
+      allDays,
+      {}
+    );
 
     const trips = [
       t(
@@ -543,14 +549,7 @@ describe("DepartAfterQuery", () => {
 
     const transfers = {};
     const interchange = {};
-    const calendar = { serviceId: "2", startDate: 20181001, endDate: 20181015, days: allDays, include: {}, exclude: {}};
-
-    const raptor = RaptorAlgorithmFactory.create(
-      trips,
-      transfers,
-      interchange,
-      Object.assign({}, calendars, { [calendar.serviceId]: calendar })
-    );
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange);
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -575,7 +574,14 @@ describe("DepartAfterQuery", () => {
       st("C", 1100, null)
     );
 
-    trip.serviceId = "2";
+    const days = Object.assign({}, allDays, { 1: false });
+
+    trip.service = new Service(
+      20181001,
+      20991231,
+      days,
+      {}
+    );
 
     const trips = [
       t(
@@ -591,15 +597,7 @@ describe("DepartAfterQuery", () => {
 
     const transfers = {};
     const interchange = {};
-    const days = Object.assign({}, allDays, { 1: false });
-    const calendar = { serviceId: "2", startDate: 20181001, endDate: 20991231, days: days, include: {}, exclude: {} };
-
-    const raptor = RaptorAlgorithmFactory.create(
-      trips,
-      transfers,
-      interchange,
-      Object.assign({}, calendars, { [calendar.serviceId]: calendar })
-    );
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange);
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-22"), 900);
 
@@ -624,7 +622,12 @@ describe("DepartAfterQuery", () => {
       st("C", 1100, null)
     );
 
-    trip.serviceId = "2";
+    trip.service = new Service(
+      20991231,
+      20991231,
+      allDays,
+      { 20181022: true }
+    );
 
     const trips = [
       t(
@@ -640,21 +643,7 @@ describe("DepartAfterQuery", () => {
 
     const transfers = {};
     const interchange = {};
-    const calendar = {
-      serviceId: "2",
-      startDate: 20991231,
-      endDate: 20991231,
-      days: allDays,
-      include: { 20181022: true },
-      exclude: {}
-    };
-
-    const raptor = RaptorAlgorithmFactory.create(
-      trips,
-      transfers,
-      interchange,
-      Object.assign({}, calendars, { [calendar.serviceId]: calendar })
-    );
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange);
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-22"), 900);
 
@@ -679,7 +668,12 @@ describe("DepartAfterQuery", () => {
       st("C", 1100, null)
     );
 
-    trip.serviceId = "2";
+    trip.service = new Service(
+      20181001,
+      20991231,
+      allDays,
+      { 20181022: false }
+    );
 
     const trips = [
       t(
@@ -695,21 +689,7 @@ describe("DepartAfterQuery", () => {
 
     const transfers = {};
     const interchange = {};
-    const calendar = {
-      serviceId: "2",
-      startDate: 20181001,
-      endDate: 20991231,
-      days: allDays,
-      include: {},
-      exclude: { 20181022: true }
-    };
-
-    const raptor = RaptorAlgorithmFactory.create(
-      trips,
-      transfers,
-      interchange,
-      Object.assign({}, calendars, { [calendar.serviceId]: calendar })
-    );
+    const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange);
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-22"), 900);
 
@@ -757,7 +737,7 @@ describe("DepartAfterQuery", () => {
       ),
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"), 900);
 
@@ -824,7 +804,7 @@ describe("DepartAfterQuery", () => {
       ),
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -859,7 +839,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory, 2);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -890,7 +870,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory, 2);
     const result = query.plan("A", "E", new Date("2018-10-16"), 900);
 
@@ -913,9 +893,9 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    trips[1].serviceId = "2";
+    trips[1].service = services["2"];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory, 2);
     const result = query.plan("A", "E", new Date("2018-12-31"), 900);
 
@@ -945,7 +925,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory, 2);
     const result = query.plan("A", "E", new Date("2019-04-23"), 900);
 
@@ -1006,7 +986,7 @@ describe("DepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new DepartAfterQuery(raptor, journeyFactory, 2);
     const result = query.plan("A", "E", new Date("2018-12-31"), 50000);
 

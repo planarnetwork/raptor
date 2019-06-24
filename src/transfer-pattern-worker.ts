@@ -10,8 +10,8 @@ import { TransferPatternQuery } from "./query/TransferPatternQuery";
  */
 async function worker(filename: string, date: Date): Promise<void> {
   const stream = fs.createReadStream(filename);
-  const [trips, transfers, interchange, calendars] = await loadGTFS(stream);
-  const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars, date);
+  const [trips, transfers, interchange] = await loadGTFS(stream);
+  const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, date);
 
   const query = new TransferPatternQuery(raptor, () => new StringResults());
   const repository = new TransferPatternRepository(getDatabase());

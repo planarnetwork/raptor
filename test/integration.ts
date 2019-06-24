@@ -9,15 +9,14 @@ import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAft
 async function run() {
   console.time("initial load");
   const stream = fs.createReadStream("/home/linus/Downloads/gb-rail-latest.zip");
-  const [trips, transfers, interchange, calendars] = await loadGTFS(stream);
+  const [trips, transfers, interchange] = await loadGTFS(stream);
   console.timeEnd("initial load");
 
   console.time("pre-processing");
   const raptor = RaptorAlgorithmFactory.create(
     trips,
     transfers,
-    interchange,
-    calendars
+    interchange
   );
 
   const query = new GroupStationDepartAfterQuery(

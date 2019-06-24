@@ -1,6 +1,8 @@
 /**
  * StopID e.g. NRW
  */
+import { Service } from "./Service";
+
 export type StopID = string;
 
 /**
@@ -66,6 +68,7 @@ export interface Trip {
   tripId: TripID;
   stopTimes: StopTime[];
   serviceId: ServiceID;
+  service: Service;
 }
 
 /**

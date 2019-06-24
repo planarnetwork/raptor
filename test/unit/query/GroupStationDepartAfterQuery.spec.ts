@@ -1,5 +1,5 @@
 import * as chai from "chai";
-import { calendars, j, setDefaultTrip, st, t } from "../util";
+import { j, setDefaultTrip, st, t } from "../util";
 import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { MultipleCriteriaFilter } from "../../../src/results/filter/MultipleCriteriaFilter";
@@ -23,7 +23,7 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
     const result = query.plan(["A"], ["C", "D"], new Date("2019-04-18"), 900);
 
@@ -57,7 +57,7 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
     const result = query.plan(["A", "B"], ["C", "D"], new Date("2019-04-18"), 900);
 

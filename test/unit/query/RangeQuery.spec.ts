@@ -1,4 +1,4 @@
-import { calendars, j, setDefaultTrip, st, t } from "../util";
+import { j, setDefaultTrip, st, t } from "../util";
 import * as chai from "chai";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
@@ -26,7 +26,7 @@ describe("RangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new RangeQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"));
 
@@ -81,7 +81,7 @@ describe("RangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, calendars);
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
     const query = new RangeQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"));
 

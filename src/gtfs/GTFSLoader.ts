@@ -4,6 +4,7 @@ import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
 import {Readable} from "stream";
 import {TimeParser} from "./TimeParser";
+import { Service } from "./Service";
 
 /**
  * Returns trips, transfers, interchange time and calendars from a GTFS zip.
@@ -14,8 +15,7 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
   const transfers = {};
   const interchange = {};
   const calendars: CalendarIndex = {};
-  const excludes = {};
-  const includes = {};
+  const dates = {};
   const stopTimes = {};
   const stops = {};
 
@@ -50,12 +50,10 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
       };
     },
     calendar_date: row => {
-      const index = row.exception_type === "2" ? excludes : includes;
-
-      setNested(true, index, row.service_id, row.date);
+      setNested(row.exception_type === "1", dates, row.service_id, row.date);
     },
     trip: row => {
-      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [] });
+      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [], service: {} as any });
     },
     stop_time: row => {
       const stopTime = {
@@ -104,16 +102,18 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
       .pipe(gtfs({ raw: true }))
       .on("data", entity => processor[entity.type] && processor[entity.type](entity.data))
       .on("end", () => {
-        for (const t of trips) {
-          t.stopTimes = stopTimes[t.tripId];
-        }
+        const services = {};
 
         for (const c of Object.values(calendars)) {
-          c.exclude = excludes[c.serviceId] || {};
-          c.include = includes[c.serviceId] || {};
+          services[c.serviceId] = new Service(c.startDate, c.endDate, c.days, dates[c.serviceId] || {});
         }
 
-        resolve([trips, transfers, interchange, calendars, stops]);
+        for (const t of trips) {
+          t.stopTimes = stopTimes[t.tripId];
+          t.service = services[t.serviceId];
+        }
+
+        resolve([trips, transfers, interchange, stops]);
       });
   });
 
@@ -122,4 +122,4 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
 /**
  * Contents of the GTFS zip file
  */
-export type GTFSData = [Trip[], TransfersByOrigin, Interchange, CalendarIndex, StopIndex];
+export type GTFSData = [Trip[], TransfersByOrigin, Interchange, StopIndex];

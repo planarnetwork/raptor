@@ -1,5 +1,23 @@
 import { StopID, StopTime, Time, Transfer, Trip } from "../../src/gtfs/GTFS";
 import { AnyLeg, Journey } from "../../src/results/Journey";
+import { Service } from "../../src/gtfs/Service";
+
+export const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
+
+export const services = {
+  "1": new Service(
+    20180101,
+    20991231,
+    allDays,
+    {}
+  ),
+  "2": new Service(
+    20190101,
+    20991231,
+    allDays,
+    {}
+  )
+};
 
 let tripId = 0;
 
@@ -7,7 +25,8 @@ export function t(...stopTimes: StopTime[]): Trip {
   return {
     tripId: "trip" + tripId++,
     stopTimes: stopTimes,
-    serviceId: "1"
+    serviceId: "1",
+    service: services["1"]
   };
 }
 
@@ -21,7 +40,7 @@ export function st(stop: StopID, arrivalTime: Time | null, departureTime: Time |
   };
 }
 
-const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [] };
+const defaultTrip = { tripId: "1", serviceId: "1", stopTimes: [], service: services["1"] };
 
 export function j(...legStopTimes: (StopTime[] | Transfer)[]): Journey {
   return {
@@ -85,24 +104,3 @@ export function setDefaultTrip(results: Journey[]) {
     }
   }
 }
-
-export const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
-
-export const calendars = {
-  "1": {
-    serviceId: "1",
-    startDate: 20180101,
-    endDate: 20991231,
-    days: allDays,
-    include: {},
-    exclude: {}
-  },
-  "2": {
-    serviceId: "2",
-    startDate: 20190101,
-    endDate: 20991231,
-    days: allDays,
-    include: {},
-    exclude: {}
-  }
-};
