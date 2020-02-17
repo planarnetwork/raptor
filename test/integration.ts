@@ -7,8 +7,10 @@ import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFi
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 async function run() {
+  const filename = process.argv[2] || "/home/linus/Downloads/gb-rail-latest.zip";
+  console.log("Loading " + filename);
   console.time("initial load");
-  const stream = fs.createReadStream("/home/linus/Downloads/gb-rail-latest.zip");
+  const stream = fs.createReadStream(filename);
   const [trips, transfers, interchange] = await loadGTFS(stream);
   console.timeEnd("initial load");
 
@@ -29,7 +31,9 @@ async function run() {
   console.timeEnd("pre-processing");
 
   console.time("planning");
-  const results = query.plan(["BHM", "BMO", "BSW", "BHI"], ["MCO", "MAN", "MCV", "EXD"], new Date(), 23 * 60 * 60);
+  const origins = process.argv[3] ? [process.argv[3]] : ["BHM", "BMO", "BSW", "BHI"];
+  const destinations = process.argv[4] ? [process.argv[4]] : ["MCO", "MAN", "MCV", "EXD"];
+  const results = query.plan(origins, destinations, new Date(), 10 * 60 * 60);
   // const results = query.plan("BMH", "YRK", new Date(), 14 * 60 * 60, 18 * 60 * 60);
   console.timeEnd("planning");
 
