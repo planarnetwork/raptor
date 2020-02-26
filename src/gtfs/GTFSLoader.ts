@@ -60,8 +60,8 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
         stop: row.stop_id,
         departureTime: timeParser.getTime(row.departure_time),
         arrivalTime: timeParser.getTime(row.arrival_time),
-        pickUp: row.pickup_type === "0",
-        dropOff: row.drop_off_type === "0"
+        pickUp: row.pickup_type === "0" || row.pickup_type === undefined,
+        dropOff: row.drop_off_type === "0" || row.drop_off_type === undefined
       };
 
       pushNested(stopTime, stopTimes, row.trip_id);
