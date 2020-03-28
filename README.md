@@ -32,9 +32,10 @@ npm install --save raptor-journey-planner
 Find the first results that depart after a specific time
 
 ```
+const fs = require("FS");
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, DepartAfterQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const [trips, transfers, interchange, calendars] = await loadGTFS(fs.createReadStream("gtfs.zip"));
 const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const query = new DepartAfterQuery(raptor, resultsFactory);
