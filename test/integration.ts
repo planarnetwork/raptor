@@ -30,13 +30,17 @@ async function run() {
 
   console.timeEnd("pre-processing");
 
-  console.time("planning");
+  for (let i = 0; i < 15; i++) {
+    console.time("planning");
+    const o = process.argv[3] ? [process.argv[3]] : ["BHM", "BMO", "BSW", "BHI"];
+    const d = process.argv[4] ? [process.argv[4]] : ["MCO", "MAN", "MCV", "EXD"];
+    query.plan(o, d, new Date(), 10 * 60 * 60);
+    console.timeEnd("planning");
+  }
+
   const origins = process.argv[3] ? [process.argv[3]] : ["BHM", "BMO", "BSW", "BHI"];
   const destinations = process.argv[4] ? [process.argv[4]] : ["MCO", "MAN", "MCV", "EXD"];
   const results = query.plan(origins, destinations, new Date(), 10 * 60 * 60);
-  // const results = query.plan("BMH", "YRK", new Date(), 14 * 60 * 60, 18 * 60 * 60);
-  console.timeEnd("planning");
-
   console.log("Results:");
   results.map(journeyToString).forEach(s => console.log(s));
   console.log(`Memory usage: ${Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100} MB`);

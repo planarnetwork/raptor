@@ -65,7 +65,7 @@ export class RaptorAlgorithm {
 
   private scanTransfers(results: ScanResults, markedStops: StopID[]): void {
     for (const stopP of markedStops) {
-      for (const transfer of this.transfers[stopP]) {
+      for (const transfer of this.transfers[stopP] || []) {
         const stopPi = transfer.destination;
         const arrival = results.previousArrival(stopP) + transfer.duration + this.interchange[stopPi];
 

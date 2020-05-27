@@ -16,10 +16,10 @@ async function worker(filename: string, date: Date): Promise<void> {
   const query = new TransferPatternQuery(raptor, () => new StringResults());
   const repository = new TransferPatternRepository(getDatabase());
 
-  process.on("message", stop => {
+  process.on("message", async stop => {
     const results = query.plan(stop, date);
 
-    repository.storeTransferPatterns(results);
+    await repository.storeTransferPatterns(results);
 
     morePlease();
   });
@@ -37,11 +37,12 @@ function morePlease() {
 
 function getDatabase() {
   return require("mysql2/promise").createPool({
-    host: process.env.DATABASE_HOSTNAME || "localhost",
+    // host: process.env.DATABASE_HOSTNAME || "localhost",
+    socketPath: "/run/mysqld/mysqld.sock",
     user: process.env.DATABASE_USERNAME || "root",
     password: process.env.DATABASE_PASSWORD || "",
-    database: process.env.OJP_DATABASE_NAME || "raptor",
-    connectionLimit: 5,
+    database: process.env.OJP_DATABASE_NAME || "ojp",
+    connectionLimit: 3,
   });
 }
 

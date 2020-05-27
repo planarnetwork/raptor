@@ -1,18 +1,17 @@
 import * as cp  from "child_process";
 import * as ProgressBar from "progress";
-import {loadGTFS} from "./gtfs/GTFSLoader";
+import * as gtfs from "gtfs-stream";
 import * as fs from "fs";
+import {StopID} from "./gtfs/GTFS";
 
 const numCPUs = require("os").cpus().length;
 
 async function run(filename: string) {
-  const date = new Date();
-  const stream = fs.createReadStream(filename);
-  const [trips, transfers, interchange, stopIndex] = await loadGTFS(stream);
-  const stops = Object.keys(stopIndex);
+  const date = new Date("2020-05-29");
+  const stops = await getStops(filename);
   const bar = new ProgressBar("  [:current of :total] [:bar] :percent eta :eta  ", { total: stops.length });
 
-  for (let i = 0; i < Math.min(numCPUs - 1, stops.length); i++) {
+  for (let i = 0; i < Math.min(numCPUs - 2, stops.length); i++) {
     const worker = cp.fork(__dirname + "/transfer-pattern-worker", [filename, date.toISOString()]);
 
     worker.on("message", () => {
@@ -28,6 +27,21 @@ async function run(filename: string) {
 
   }
 
+}
+
+async function getStops(filename: string): Promise<StopID[]> {
+  return new Promise((resolve, reject) => {
+    const stops = [] as StopID[];
+
+    fs.createReadStream(filename)
+        .pipe(gtfs({ raw: true }))
+        .on("data", entity => entity.type === "stop"
+            && entity.data.stop_timezone === "Europe/London"
+            && stops.push(entity.data.stop_id)
+        )
+        .on("error", e => reject(e))
+        .on("end", () => resolve(stops));
+  });
 }
 
 if (process.argv[2]) {

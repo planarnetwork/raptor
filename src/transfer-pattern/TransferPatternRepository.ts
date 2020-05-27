@@ -23,13 +23,23 @@ export class TransferPatternRepository {
     }
 
     if (journeys.length > 0) {
-      try {
-        await this.db.query("INSERT IGNORE INTO transfer_patterns VALUES ?", [journeys]);
+      await this.retryQuery("INSERT IGNORE INTO transfer_patterns VALUES ?", [journeys]);
+    }
+  }
+
+  private async retryQuery(sql: string, data: any[], numRetries: number = 3) {
+    try {
+      await this.db.query(sql, data);
+    }
+    catch (err) {
+      if (numRetries > 0) {
+        await this.retryQuery(sql, data, numRetries - 1);
       }
-      catch (err) {
+      else {
         console.error(err);
       }
     }
+
   }
 
   /**
@@ -37,7 +47,7 @@ export class TransferPatternRepository {
    */
   public async initTables(): Promise<void> {
     await this.db.query(`
-      CREATE TABLE transfer_patterns (
+      CREATE TABLE IF NOT EXISTS transfer_patterns (
         journey char(6) NOT NULL,
         pattern varchar(255) NOT NULL,
         PRIMARY KEY (journey,pattern)
