@@ -13,7 +13,7 @@ async function worker(filename: string, date: Date): Promise<void> {
   const [trips, transfers, interchange] = await loadGTFS(stream);
   const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, date);
 
-  const query = new TransferPatternQuery(raptor, () => new StringResults());
+  const query = new TransferPatternQuery(raptor, () => new StringResults(interchange));
   const repository = new TransferPatternRepository(getDatabase());
 
   process.on("message", async stop => {

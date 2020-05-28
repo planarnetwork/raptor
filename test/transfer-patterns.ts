@@ -20,7 +20,7 @@ async function run() {
     date
   );
 
-  const query = new TransferPatternQuery(raptor, () => new StringResults());
+  const query = new TransferPatternQuery(raptor, () => new StringResults(interchange));
 
   const endHeap = process.memoryUsage().heapUsed;
   console.timeEnd("pre-processing");

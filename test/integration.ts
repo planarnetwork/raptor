@@ -30,13 +30,13 @@ async function run() {
 
   console.timeEnd("pre-processing");
 
-  for (let i = 0; i < 15; i++) {
-    console.time("planning");
-    const o = process.argv[3] ? [process.argv[3]] : ["BHM", "BMO", "BSW", "BHI"];
-    const d = process.argv[4] ? [process.argv[4]] : ["MCO", "MAN", "MCV", "EXD"];
-    query.plan(o, d, new Date(), 10 * 60 * 60);
-    console.timeEnd("planning");
-  }
+  // for (let i = 0; i < 15; i++) {
+  //   console.time("planning");
+  //   const o = process.argv[3] ? [process.argv[3]] : ["BHM", "BMO", "BSW", "BHI"];
+  //   const d = process.argv[4] ? [process.argv[4]] : ["MCO", "MAN", "MCV", "EXD"];
+  //   query.plan(o, d, new Date(), 10 * 60 * 60);
+  //   console.timeEnd("planning");
+  // }
 
   const origins = process.argv[3] ? [process.argv[3]] : ["BHM", "BMO", "BSW", "BHI"];
   const destinations = process.argv[4] ? [process.argv[4]] : ["MCO", "MAN", "MCV", "EXD"];

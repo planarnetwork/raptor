@@ -4,22 +4,11 @@ import {StopID} from "../../../../src/gtfs/GTFS";
 
 describe("StringResults", () => {
 
-  it("Omits direct connections", () => {
-    const tree = new StringResults();
-
-    const expected = {
-      "AC": new Set(["B"])
-    };
-
-    mergePath(["A", "B", "C"], tree);
-
-    chai.expect(tree.finalize()).to.deep.equal(expected);
-  });
-
   it("Merges duplicate paths", () => {
-    const tree = new StringResults();
+    const tree = new StringResults({});
 
     const expected = {
+      "AB": new Set([""]),
       "AC": new Set(["B"]),
       "AD": new Set(["B,C"])
     };
@@ -31,12 +20,13 @@ describe("StringResults", () => {
   });
 
   it("Orders results", () => {
-    const tree = new StringResults();
+    const tree = new StringResults({});
 
     const expected = {
       "AC": new Set(["B"]),
-      "BC": new Set(["D"]),
+      "BC": new Set(["", "D"]),
       "CE": new Set(["B"]),
+      "CD": new Set([""]),
     };
 
     mergePath(["C", "B", "A"], tree);
@@ -47,10 +37,10 @@ describe("StringResults", () => {
   });
 
   it("Adds different paths", () => {
-    const tree = new StringResults();
+    const tree = new StringResults({});
     const expected = {
-      "AC": new Set(["B"]),
-      "AB": new Set(["C"]),
+      "AC": new Set(["", "B"]),
+      "AB": new Set(["", "C"]),
       "AD": new Set(["B,C", "C,B"])
     };
 
