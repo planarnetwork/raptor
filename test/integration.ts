@@ -38,9 +38,9 @@ async function run() {
   //   console.timeEnd("planning");
   // }
 
-  const origins = process.argv[3] ? [process.argv[3]] : ["BHM", "BMO", "BSW", "BHI"];
-  const destinations = process.argv[4] ? [process.argv[4]] : ["MCO", "MAN", "MCV", "EXD"];
-  const results = query.plan(origins, destinations, new Date(), 10 * 60 * 60);
+  const origins = process.argv[3] ? [process.argv[3]] : ["NUN"];
+  const destinations = process.argv[4] ? [process.argv[4]] : ["LIV"];
+  const results = query.plan(origins, destinations, new Date("2020-06-12"), 7.5 * 60 * 60);
   console.log("Results:");
   results.map(journeyToString).forEach(s => console.log(s));
   console.log(`Memory usage: ${Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100} MB`);

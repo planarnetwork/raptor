@@ -56,8 +56,12 @@ export class RaptorAlgorithm {
           results.setTrip(trip, boardingPoint, pi, i);
         }
         else if (previousArrival && (!trip || previousArrival < trip.stopTimes[pi].arrivalTime + i)) {
-          trip = routeScanner.getTrip(routeId, pi, previousArrival);
-          boardingPoint = pi;
+          const newTrip = routeScanner.getTrip(routeId, pi, previousArrival);
+
+          if (newTrip) {
+            trip = newTrip;
+            boardingPoint = pi;
+          }
         }
       }
     }

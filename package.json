@@ -1,6 +1,6 @@
 {
   "name": "raptor-journey-planner",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Implementation of the Round bAsed Public Transit Optimized Router (Raptor) journey planning algorithm.",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -11,7 +11,7 @@
     "prepublishOnly": "rm -rf ./dist/ && tsc -p ./ --outDir dist/",
     "lint-raw": "tslint --project tsconfig.json",
     "lint": "npm run lint-raw -- -t stylish",
-    "int": "NODE_OPTIONS=$NODE_DEBUG_OPTION ts-node ./test/integration.ts",
+    "int": "ts-node ./test/integration.ts",
     "perf": "ts-node ./test/performance.ts",
     "patterns": "NODE_OPTIONS='--max-old-space-size=6000' ts-node ./src/transfer-patterns.ts",
     "test-patterns": "ts-node ./test/transfer-patterns.ts"
@@ -34,20 +34,20 @@
   },
   "homepage": "https://github.com/planarnetwork/raptor#readme",
   "devDependencies": {
-    "@types/chai": "^4.1.7",
+    "@types/chai": "^4.2.11",
     "@types/mocha": "^5.2.7",
-    "@types/mysql": "^2.15.6",
-    "@types/node": "^11.13.13",
+    "@types/mysql": "^2.15.13",
+    "@types/node": "^11.15.14",
     "@types/progress": "^2.0.3",
     "chai": "^4.2.0",
-    "mocha": "^6.1.4",
-    "ts-node": "^8.3.0",
-    "tslint": "^5.18.0",
-    "typescript": "^3.5.2"
+    "mocha": "^6.2.3",
+    "ts-node": "^8.10.2",
+    "tslint": "^5.20.1",
+    "typescript": "^3.9.5"
   },
   "dependencies": {
     "gtfs-stream": "^2.1.0",
-    "mysql2": "^1.6.5",
+    "mysql2": "^1.7.0",
     "progress": "^2.0.3",
     "ts-array-utils": "^0.5.0"
   }
