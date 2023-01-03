@@ -40,7 +40,7 @@
     "@types/node": "^11.15.14",
     "@types/progress": "^2.0.3",
     "chai": "^4.2.0",
-    "mocha": "^6.2.3",
+    "mocha": "^10.2.0",
     "ts-node": "^8.10.2",
     "tslint": "^5.20.1",
     "typescript": "^3.9.5"
