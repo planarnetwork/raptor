@@ -1,6 +1,6 @@
 {
   "name": "raptor-journey-planner",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "Implementation of the Round bAsed Public Transit Optimized Router (Raptor) journey planning algorithm.",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
