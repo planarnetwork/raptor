@@ -40,7 +40,7 @@ export class GraphResults implements TransferPatternResults<TransferPatternGraph
   }
 
   private getPath(kConnections: ConnectionIndex, k: string, finalDestination: StopID): Path {
-    let path = [finalDestination];
+    const path = [finalDestination];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];

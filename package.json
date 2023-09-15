@@ -9,8 +9,7 @@
     "gtest": "mocha --require ts-node/register 'test/**/*.spec.ts' --grep",
     "watch-test": "mocha -w --require ts-node/register 'test/**/*.spec.ts'",
     "prepublishOnly": "rm -rf ./dist/ && tsc -p ./ --outDir dist/",
-    "lint-raw": "tslint --project tsconfig.json",
-    "lint": "npm run lint-raw -- -t stylish",
+    "lint": "eslint --ext .ts src/ test/",
     "int": "ts-node ./test/integration.ts",
     "perf": "ts-node ./test/performance.ts",
     "patterns": "NODE_OPTIONS='--max-old-space-size=6000' ts-node ./src/transfer-patterns.ts",
@@ -34,20 +33,22 @@
   },
   "homepage": "https://github.com/planarnetwork/raptor#readme",
   "devDependencies": {
-    "@types/chai": "^4.2.11",
-    "@types/mocha": "^5.2.7",
-    "@types/mysql": "^2.15.13",
-    "@types/node": "^11.15.14",
-    "@types/progress": "^2.0.3",
-    "chai": "^4.2.0",
+    "@types/chai": "^4.3.6",
+    "@types/mocha": "^10.0.1",
+    "@types/mysql": "^2.15.21",
+    "@types/node": "^14.14.31",
+    "@types/progress": "^2.0.5",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "chai": "^4.3.8",
+    "eslint": "^8.49.0",
     "mocha": "^10.2.0",
-    "ts-node": "^8.10.2",
-    "tslint": "^5.20.1",
-    "typescript": "^3.9.5"
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
-    "gtfs-stream": "^2.1.0",
-    "mysql2": "^1.7.0",
+    "gtfs-stream": "^2.2.0",
+    "mysql2": "^3.6.1",
     "progress": "^2.0.3",
     "ts-array-utils": "^0.5.0"
   }

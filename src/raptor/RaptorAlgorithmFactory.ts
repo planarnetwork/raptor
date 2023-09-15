@@ -1,4 +1,4 @@
-import { CalendarIndex, DateNumber, DayOfWeek, ServiceID, Trip } from "../gtfs/GTFS";
+import { DayOfWeek, Trip } from "../gtfs/GTFS";
 import { Interchange, RaptorAlgorithm, TransfersByOrigin } from "./RaptorAlgorithm";
 import { QueueFactory } from "./QueueFactory";
 import { RouteScannerFactory, TripsIndexedByRoute } from "./RouteScanner";

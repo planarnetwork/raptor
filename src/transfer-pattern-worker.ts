@@ -4,6 +4,7 @@ import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepos
 import * as fs from "fs";
 import { RaptorAlgorithmFactory } from "./raptor/RaptorAlgorithmFactory";
 import { TransferPatternQuery } from "./query/TransferPatternQuery";
+import * as mysql from "mysql2/promise";
 
 /**
  * Worker that finds transfer patterns for a given station
@@ -32,11 +33,11 @@ async function worker(filename: string, date: Date): Promise<void> {
 }
 
 function morePlease() {
-  (process as any).send("ready");
+  process.send!("ready");
 }
 
 function getDatabase() {
-  return require("mysql2/promise").createPool({
+  return mysql.createPool({
     // host: process.env.DATABASE_HOSTNAME || "localhost",
     socketPath: "/run/mysqld/mysqld.sock",
     user: process.env.DATABASE_USERNAME || "root",

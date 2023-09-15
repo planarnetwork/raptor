@@ -1,5 +1,5 @@
 import {TransferPatternIndex} from "./results/StringResults";
-import {Pool} from "mysql";
+import {Pool} from "mysql2/promise";
 
 /**
  * Access to the transfer_patterns table in a mysql compatible database
@@ -14,7 +14,7 @@ export class TransferPatternRepository {
    * Store every transfer pattern in the tree
    */
   public async storeTransferPatterns(patterns: TransferPatternIndex): Promise<void> {
-    const journeys: object[] = [];
+    const journeys: unknown[] = [];
 
     for (const journey in patterns) {
       for (const pattern of patterns[journey]) {
@@ -27,7 +27,7 @@ export class TransferPatternRepository {
     }
   }
 
-  private async retryQuery(sql: string, data: any[], numRetries: number = 3) {
+  private async retryQuery(sql: string, data: unknown[], numRetries: number = 3) {
     try {
       await this.db.query(sql, data);
     }

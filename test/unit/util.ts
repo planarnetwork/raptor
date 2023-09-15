@@ -1,5 +1,5 @@
-import { StopID, StopTime, Time, Transfer, Trip } from "../../src/gtfs/GTFS";
-import { AnyLeg, Journey } from "../../src/results/Journey";
+import { StopID, StopTime, Time, TimetableLeg, Transfer, Trip } from "../../src/gtfs/GTFS";
+import { Journey } from "../../src/results/Journey";
 import { Service } from "../../src/gtfs/Service";
 
 export const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
@@ -97,7 +97,7 @@ export function tf(origin: StopID, destination: StopID, duration: Time): Transfe
 
 export function setDefaultTrip(results: Journey[]) {
   for (const trip of results) {
-    for (const leg of trip.legs as any[]) {
+    for (const leg of trip.legs as TimetableLeg[]) {
       if (leg.trip) {
         leg.trip = defaultTrip;
       }

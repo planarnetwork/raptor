@@ -2,7 +2,7 @@
 
 Raptor Journey Planner
 =========================
-[![Travis](https://img.shields.io/travis/planarnetwork/raptor.svg?style=flat-square)](https://travis-ci.org/planarnetwork/raptor) ![npm](https://img.shields.io/npm/v/raptor-journey-planner.svg?style=flat-square) ![David](https://img.shields.io/david/planarnetwork/raptor.svg?style=flat-square)
+![npm](https://img.shields.io/npm/v/raptor-journey-planner.svg?style=flat-square)
 
 A near direct implementation of the [Round bAsed Public Transit Optimized Router (Raptor)](https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf) journey planning algorithm as described in the paper. 
 
@@ -19,9 +19,9 @@ Additional features not in the paper implementation:
  
 ## Usage
 
-It will work with any well formed GTFS data set.
+It will work with any well-formed GTFS data set.
  
-Node +11 is required for all examples.
+Node +14 is required for all examples.
 
 ```
 npm install --save raptor-journey-planner
@@ -32,7 +32,7 @@ npm install --save raptor-journey-planner
 Find the first results that depart after a specific time
 
 ```
-const fs = require("FS");
+const fs = require("fs");
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, DepartAfterQuery} = require("raptor-journey-planner");
 
 const [trips, transfers, interchange, calendars] = await loadGTFS(fs.createReadStream("gtfs.zip"));
@@ -47,9 +47,10 @@ const journeys = query.plan("NRW", "STA", new Date(), 9 * 60 * 60);
 Find results from multiple origin and destinations
 
 ```
+const fs = require("fs");
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, GroupStationDepartAfterQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const [trips, transfers, interchange, calendars] = await loadGTFS(fs.createReadStream("gtfs.zip"));
 const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const query = new GroupStationDepartAfterQuery(raptor, resultsFactory);
@@ -61,9 +62,10 @@ const journeys = query.plan(["NRW"], ["LST", "EUS"], new Date(), 9 * 60 * 60);
 Find results departing between a time range
 
 ```
+const fs = require("fs");
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const [trips, transfers, interchange, calendars] = await loadGTFS(fs.createReadStream("gtfs.zip"));
 const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const query = new RangeQuery(raptor, resultsFactory);
@@ -75,9 +77,10 @@ const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60)
 Finds transfer patterns for a stop on a given date
 
 ```
+const fs = require("fs");
 const {loadGTFS, StringResults, RaptorAlgorithmFactory, TransferPatternQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const [trips, transfers, interchange, calendars] = await loadGTFS(fs.createReadStream("gtfs.zip"));
 const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = () => new StringResults();
 const query = new TransferPatternQuery(raptor, resultsFactory);
@@ -89,9 +92,10 @@ const journeys = query.plan("NRW", new Date());
 By default the multi-criteria filter will keep journeys as long as there are no subsequent journeys that arrive sooner and have the same or less changes.
 
 ```
+const fs = require("fs");
 const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery, MultipleCriteriaFilter} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, calendars] = await loadGTFS("gtfs.zip");
+const [trips, transfers, interchange, calendars] = await loadGTFS(fs.createReadStream("gtfs.zip"));
 const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, calendars);
 const resultsFactory = new JourneyFactory();
 const filter = new MultipleCriteriaFilter();

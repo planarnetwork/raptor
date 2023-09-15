@@ -53,7 +53,7 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
       setNested(row.exception_type === "1", dates, row.service_id, row.date);
     },
     trip: row => {
-      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [], service: {} as any });
+      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [], service: {} as Service });
     },
     stop_time: row => {
       const stopTime = {

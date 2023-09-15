@@ -3,8 +3,9 @@ import * as ProgressBar from "progress";
 import * as gtfs from "gtfs-stream";
 import * as fs from "fs";
 import {StopID} from "./gtfs/GTFS";
+import * as os from "os";
 
-const numCPUs = require("os").cpus().length;
+const numCPUs = os.cpus().length;
 
 async function run(filename: string, dateString: string) {
   const date = new Date(dateString);
@@ -18,7 +19,7 @@ async function run(filename: string, dateString: string) {
       if (stops.length > 0) {
         bar.tick();
 
-        worker.send(stops.pop());
+        worker.send(stops.pop()!);
       }
       else {
         worker.kill("SIGUSR2");

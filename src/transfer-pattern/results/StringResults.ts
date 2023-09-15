@@ -48,7 +48,7 @@ export class StringResults {
   }
 
   private getPath(kConnections: ConnectionIndex, k: string, finalDestination: StopID): [Path, Time] {
-    let path: Path = [];
+    const path: Path = [];
     let departureTime = Number.MAX_SAFE_INTEGER;
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {

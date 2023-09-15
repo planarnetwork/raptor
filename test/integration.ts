@@ -40,7 +40,7 @@ async function run() {
 
   const origins = process.argv[3] ? [process.argv[3]] : ["NUN"];
   const destinations = process.argv[4] ? [process.argv[4]] : ["LIV"];
-  const results = query.plan(origins, destinations, new Date("2020-06-12"), 7.5 * 60 * 60);
+  const results = query.plan(origins, destinations, new Date(), 7.5 * 60 * 60);
   console.log("Results:");
   results.map(journeyToString).forEach(s => console.log(s));
   console.log(`Memory usage: ${Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100} MB`);
@@ -53,9 +53,9 @@ function journeyToString(j: Journey) {
 }
 
 function toTime(time: number) {
-  let hours: any   = Math.floor(time / 3600);
-  let minutes: any = Math.floor((time - (hours * 3600)) / 60);
-  let seconds: any = time - (hours * 3600) - (minutes * 60);
+  let hours: number | string   = Math.floor(time / 3600);
+  let minutes: number | string = Math.floor((time - (hours * 3600)) / 60);
+  let seconds: number | string = time - (hours * 3600) - (minutes * 60);
 
   if (hours   < 10) { hours   = "0" + hours; }
   if (minutes < 10) { minutes = "0" + minutes; }
