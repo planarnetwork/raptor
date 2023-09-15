@@ -21,7 +21,7 @@ Additional features not in the paper implementation:
 
 It will work with any well-formed GTFS data set.
  
-Node +14 is required for all examples.
+Node +16 is required for all examples.
 
 ```
 npm install --save raptor-journey-planner
