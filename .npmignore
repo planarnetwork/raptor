@@ -4,4 +4,6 @@ npm-debug.log
 src/
 test/
 tsconfig.json
-.travis.yml
+.github
+*.zip
+
