@@ -17,7 +17,7 @@ async function worker(filename: string, date: Date): Promise<void> {
   const query = new TransferPatternQuery(raptor, () => new StringResults(interchange));
   const repository = new TransferPatternRepository(getDatabase());
 
-  process.on("message", async stop => {
+  process.on("message", async (stop: string) => {
     const results = query.plan(stop, date);
 
     await repository.storeTransferPatterns(results);
@@ -38,8 +38,8 @@ function morePlease() {
 
 function getDatabase() {
   return mysql.createPool({
-    // host: process.env.DATABASE_HOSTNAME || "localhost",
-    socketPath: "/run/mysqld/mysqld.sock",
+    host: process.env.DATABASE_HOSTNAME || "localhost",
+    port: parseInt(process.env.DATABASE_PORT || "3306"),
     user: process.env.DATABASE_USERNAME || "root",
     password: process.env.DATABASE_PASSWORD || "",
     database: process.env.OJP_DATABASE_NAME || "ojp",

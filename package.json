@@ -33,23 +33,23 @@
   },
   "homepage": "https://github.com/planarnetwork/raptor#readme",
   "devDependencies": {
-    "@types/chai": "^4.3.6",
-    "@types/mocha": "^10.0.1",
-    "@types/mysql": "^2.15.21",
-    "@types/node": "^14.14.31",
-    "@types/progress": "^2.0.5",
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
-    "@typescript-eslint/parser": "^6.7.0",
-    "chai": "^4.3.8",
-    "eslint": "^8.49.0",
-    "mocha": "^10.2.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "@types/chai": "5.2.2",
+    "@types/mocha": "10.0.10",
+    "@types/mysql": "2.15.27",
+    "@types/node": "24.6.1",
+    "@types/progress": "2.0.7",
+    "@typescript-eslint/eslint-plugin": "8.45.0",
+    "@typescript-eslint/parser": "8.45.0",
+    "chai": "6.2.0",
+    "eslint": "8.57.0",
+    "mocha": "11.7.3",
+    "ts-node": "10.9.1",
+    "typescript": "5.9.3"
   },
   "dependencies": {
-    "gtfs-stream": "^2.2.0",
-    "mysql2": "^3.6.1",
-    "progress": "^2.0.3",
-    "ts-array-utils": "^0.5.0"
+    "gtfs-stream": "2.2.0",
+    "mysql2": "3.15.1",
+    "progress": "2.0.3",
+    "ts-array-utils": "1.0.5"
   }
 }
