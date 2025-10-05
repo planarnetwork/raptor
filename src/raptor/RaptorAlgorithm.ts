@@ -51,11 +51,12 @@ export class RaptorAlgorithm {
 
       for (let pi = this.routeStopIndex[routeId][stopP]; pi < routePathLength; pi++) {
         const stopPi = routePath[pi];
-        const i = this.interchange[stopPi];
         const previousArrival = results.previousArrival(stopPi);
 
         if (trip) {
+          const i = this.interchange[stopPi];
           const stopTime = trip.stopTimes[pi];
+  
           if (stopTime.dropOff && stopTime.arrivalTime + i < results.bestArrival(stopPi)) {
             results.setTrip(trip, boardingPoint, pi, i);
           }
