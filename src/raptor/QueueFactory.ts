@@ -16,7 +16,7 @@ export class QueueFactory {
    * Take the marked stops and return an index of any routes that pass through those stops.
    */
   public getQueue(markedStops: StopID[]): RouteQueue {
-    const queue = {};
+    const queue = Object.create(null);
 
     for (const stop of markedStops) {
       for (const routeId of this.routesAtStop[stop] || []) {

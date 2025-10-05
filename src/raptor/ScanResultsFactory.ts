@@ -9,15 +9,15 @@ export class ScanResultsFactory {
   ) {}
 
   public create(origins: StopTimes): ScanResults {
-    const bestArrivals = {};
-    const kArrivals = [{}];
-    const kConnections = {};
-
-    for (const stop of this.stops) {
-      bestArrivals[stop] = origins[stop] || Number.MAX_SAFE_INTEGER;
-      kArrivals[0][stop] = origins[stop] || Number.MAX_SAFE_INTEGER;
-      kConnections[stop] = {};
-    }
+    const bestArrivals = Object.fromEntries(
+      this.stops.map(stop => [stop, origins[stop] || Number.MAX_SAFE_INTEGER])
+    );
+    const kArrivals = [Object.fromEntries(
+      this.stops.map(stop => [stop, origins[stop] || Number.MAX_SAFE_INTEGER])
+    )];
+    const kConnections = Object.fromEntries(
+      this.stops.map(stop => [stop, Object.create(null)])
+    );
 
     return new ScanResults(bestArrivals, kArrivals, kConnections);
   }

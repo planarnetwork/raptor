@@ -46,9 +46,11 @@ export class RaptorAlgorithm {
 
       let boardingPoint = -1;
       let trip: Trip | undefined = undefined;
+      const routePath = this.routePath[routeId];
+      const routePathLength = routePath.length;
 
-      for (let pi = this.routeStopIndex[routeId][stopP]; pi < this.routePath[routeId].length; pi++) {
-        const stopPi = this.routePath[routeId][pi];
+      for (let pi = this.routeStopIndex[routeId][stopP]; pi < routePathLength; pi++) {
+        const stopPi = routePath[pi];
         const i = this.interchange[stopPi];
         const previousArrival = results.previousArrival(stopPi);
 
