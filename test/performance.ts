@@ -63,7 +63,7 @@ const queries = [
 
 async function run() {
   console.time("initial load");
-  const stream = fs.createReadStream("/home/linus/Downloads/gb-rail-latest.zip");
+  const stream = fs.createReadStream("gtfs.zip");
   const [trips, transfers, interchange] = await loadGTFS(stream);
   console.timeEnd("initial load");
 
