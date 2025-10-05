@@ -22,13 +22,15 @@ export class RouteScanner {
     }
 
     let lastFound;
+    const routeTrips = this.tripsByRoute[routeId];
 
     // iterate backwards through the trips on the route, starting where we last found a trip
     for (let i = this.routeScanPosition[routeId]; i >= 0; i--) {
-      const trip = this.tripsByRoute[routeId][i];
+      const trip = routeTrips[i];
+      const stopTime = trip.stopTimes[stopIndex];
 
       // if the trip is unreachable, exit the loop
-      if (trip.stopTimes[stopIndex].departureTime < time) {
+      if (stopTime.departureTime < time) {
         break;
       }
       // if it is reachable and the service is running that day, update the last valid trip found
