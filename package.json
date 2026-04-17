@@ -47,7 +47,7 @@
     "typescript": "5.9.3"
   },
   "dependencies": {
-    "gtfs-stream": "2.2.0",
+    "gtfs-stream": "3.0.0",
     "mysql2": "3.15.1",
     "progress": "2.0.3",
     "ts-array-utils": "1.0.5"
