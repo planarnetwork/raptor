@@ -1,8 +1,8 @@
-import { DayOfWeek, StopID, Time, Transfer, Trip } from "../gtfs/GTFS";
-import { QueueFactory } from "./QueueFactory";
-import { RouteID, RouteScanner, RouteScannerFactory } from "./RouteScanner";
-import { Arrivals, ConnectionIndex, ScanResults } from "./ScanResults";
-import { ScanResultsFactory } from "./ScanResultsFactory";
+import type { DayOfWeek, StopID, Time, Transfer, Trip } from "../gtfs/GTFS";
+import type { QueueFactory } from "./QueueFactory";
+import type { RouteID, RouteScanner, RouteScannerFactory } from "./RouteScanner";
+import type { Arrivals, ConnectionIndex, ScanResults } from "./ScanResults";
+import type { ScanResultsFactory } from "./ScanResultsFactory";
 
 /**
  * Implementation of the Raptor journey planning algorithm
@@ -45,7 +45,7 @@ export class RaptorAlgorithm {
     for (const [routeId, stopP] of Object.entries(queue)) {
 
       let boardingPoint = -1;
-      let trip: Trip | undefined = undefined;
+      let trip: Trip | undefined;
       const routePath = this.routePath[routeId];
       const routePathLength = routePath.length;
 

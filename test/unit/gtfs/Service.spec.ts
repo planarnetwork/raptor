@@ -1,4 +1,4 @@
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import { allDays } from "../util";
 import { Service } from "../../../src/gtfs/Service";
 
@@ -14,7 +14,7 @@ describe("Service", () => {
 
     const result = service.runsOn(20180930, 1);
 
-    chai.expect(result).to.equal(false);
+    expect(result).toBe(false);
   });
 
   it("checks the end date", () => {
@@ -27,7 +27,7 @@ describe("Service", () => {
 
     const result = service.runsOn(20181016, 1);
 
-    chai.expect(result).to.equal(false);
+    expect(result).toBe(false);
   });
 
   it("checks dates within range", () => {
@@ -40,7 +40,7 @@ describe("Service", () => {
 
     const result = service.runsOn(20181010, 1);
 
-    chai.expect(result).to.equal(true);
+    expect(result).toBe(true);
   });
 
   it("checks the day of the week", () => {
@@ -53,7 +53,7 @@ describe("Service", () => {
     );
     const result = service.runsOn(20181016, 1);
 
-    chai.expect(result).to.equal(false);
+    expect(result).toBe(false);
   });
 
   it("checks include days", () => {
@@ -66,7 +66,7 @@ describe("Service", () => {
 
     const result = service.runsOn(20181022, 1);
 
-    chai.expect(result).to.equal(true);
+    expect(result).toBe(true);
   });
 
   it("checks exclude days", () => {
@@ -79,7 +79,7 @@ describe("Service", () => {
 
     const result = service.runsOn(20181022, 1);
 
-    chai.expect(result).to.equal(false);
+    expect(result).toBe(false);
   });
 
 });

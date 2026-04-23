@@ -1,6 +1,6 @@
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import {GraphResults} from "../../../../src/transfer-pattern/results/GraphResults";
-import {StopID} from "../../../../src/gtfs/GTFS";
+import type {StopID} from "../../../../src/gtfs/GTFS";
 
 describe("GraphResults", () => {
 
@@ -18,7 +18,7 @@ describe("GraphResults", () => {
 
     mergePath(["A", "B", "C"], tree);
 
-    chai.expect(tree.finalize()).to.deep.equal(expected);
+    expect(tree.finalize()).toEqual(expected);
   });
 
   it("Merges duplicate paths", () => {
@@ -36,7 +36,7 @@ describe("GraphResults", () => {
     mergePath(["A", "B", "C"], tree);
     mergePath(["A", "B"], tree);
 
-    chai.expect(tree.finalize()).to.deep.equal(expected);
+    expect(tree.finalize()).toEqual(expected);
   });
 
   it("Appends to existing paths", () => {
@@ -54,7 +54,7 @@ describe("GraphResults", () => {
     mergePath(["A", "B"], tree);
     mergePath(["A", "B", "C"], tree);
 
-    chai.expect(tree.finalize()).to.deep.equal(expected);
+    expect(tree.finalize()).toEqual(expected);
   });
 
   it("Appends different paths", () => {
@@ -75,7 +75,7 @@ describe("GraphResults", () => {
     mergePath(["A", "B", "C", "D"], tree);
     mergePath(["A", "B", "D"], tree);
 
-    chai.expect(tree.finalize()).to.deep.equal(expected);
+    expect(tree.finalize()).toEqual(expected);
   });
 
 });

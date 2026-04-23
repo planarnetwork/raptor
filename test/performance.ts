@@ -1,6 +1,6 @@
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
@@ -78,14 +78,14 @@ async function run() {
 
   for (let i = 0; i < 3; i++) {
     for (const [origins, destinations] of queries) {
-      const key = origins.join() + ":" + destinations.join();
+      const key = `${origins.join()}:${destinations.join()}`;
 
       console.time(key);
       const results = query.plan(origins, destinations, date, 36000);
       console.timeEnd(key);
 
       if (results.length === 0) {
-        console.log("No results between " + key);
+        console.log(`No results between ${key}`);
       }
 
       numResults += results.length;
@@ -93,7 +93,7 @@ async function run() {
   }
 
   console.timeEnd("planning");
-  console.log("Num journeys: " + numResults);
+  console.log(`Num journeys: ${numResults}`);
   console.log(`Memory usage: ${Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100} MB`);
 }
 

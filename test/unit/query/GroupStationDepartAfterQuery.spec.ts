@@ -1,4 +1,4 @@
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import { j, setDefaultTrip, st, t } from "../util";
 import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
@@ -29,7 +29,7 @@ describe("GroupStationDepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("A", null, 1000),
         st("B", 1030, 1035),
@@ -63,7 +63,7 @@ describe("GroupStationDepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("B", 1030, 1035),
         st("C", 1100, null)

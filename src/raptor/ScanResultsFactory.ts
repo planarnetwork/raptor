@@ -1,5 +1,5 @@
-import { StopID } from "../gtfs/GTFS";
-import { StopTimes } from "./RaptorAlgorithm";
+import type { StopID } from "../gtfs/GTFS";
+import type { StopTimes } from "./RaptorAlgorithm";
 import { ScanResults } from "./ScanResults";
 
 export class ScanResultsFactory {

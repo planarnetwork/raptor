@@ -1,4 +1,4 @@
-import { StopID, Time, Transfer, Trip } from "../gtfs/GTFS";
+import type { StopID, Time, Transfer, Trip } from "../gtfs/GTFS";
 
 export class ScanResults {
   private k = 0;

@@ -1,4 +1,4 @@
-import { DateIndex, DateNumber, DayOfWeek } from "./GTFS";
+import type { DateIndex, DateNumber, DayOfWeek } from "./GTFS";
 
 export class Service {
 
@@ -11,7 +11,7 @@ export class Service {
 
   public runsOn(date: number, dow: DayOfWeek): boolean {
     return this.dates[date] || (
-      !this.dates.hasOwnProperty(date) &&
+      !Object.hasOwn(this.dates, date) &&
       this.startDate <= date &&
       this.endDate >= date &&
       this.days[dow]

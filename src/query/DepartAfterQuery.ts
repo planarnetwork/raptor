@@ -1,7 +1,7 @@
-import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
-import { StopID, Time } from "../gtfs/GTFS";
-import { ResultsFactory } from "../results/ResultsFactory";
-import { Journey } from "../results/Journey";
+import type { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
+import type { StopID, Time } from "../gtfs/GTFS";
+import type { ResultsFactory } from "../results/ResultsFactory";
+import type { Journey } from "../results/Journey";
 import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery";
 
 /**
@@ -13,10 +13,7 @@ export class DepartAfterQuery {
 
   private readonly groupQuery: GroupStationDepartAfterQuery;
 
-  constructor(
-    private readonly raptor: RaptorAlgorithm,
-    private readonly resultsFactory: ResultsFactory,
-    private readonly maxSearchDays: number = 3
+  constructor(readonly raptor: RaptorAlgorithm,readonly resultsFactory: ResultsFactory,readonly maxSearchDays: number = 3
   ) {
     this.groupQuery = new GroupStationDepartAfterQuery(raptor, resultsFactory, maxSearchDays);
   }

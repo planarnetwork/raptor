@@ -1,14 +1,14 @@
-import { Journey } from "../src/results/Journey";
+import type { Journey } from "../src/results/Journey";
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
 import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFilter";
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 async function run() {
   const filename = process.argv[2] || "/home/linus/Downloads/gb-rail-latest.zip";
-  console.log("Loading " + filename);
+  console.log(`Loading ${filename}`);
   console.time("initial load");
   const stream = fs.createReadStream(filename);
   const [trips, transfers, interchange] = await loadGTFS(stream);
@@ -42,7 +42,9 @@ async function run() {
   const destinations = process.argv[4] ? [process.argv[4]] : ["LIV"];
   const results = query.plan(origins, destinations, new Date(), 7.5 * 60 * 60);
   console.log("Results:");
-  results.map(journeyToString).forEach(s => console.log(s));
+  for (const s of results.map(journeyToString)) {
+    console.log(s);
+  }
   console.log(`Memory usage: ${Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100} MB`);
 }
 
@@ -57,11 +59,11 @@ function toTime(time: number) {
   let minutes: number | string = Math.floor((time - (hours * 3600)) / 60);
   let seconds: number | string = time - (hours * 3600) - (minutes * 60);
 
-  if (hours   < 10) { hours   = "0" + hours; }
-  if (minutes < 10) { minutes = "0" + minutes; }
-  if (seconds < 10) { seconds = "0" + seconds; }
+  if (hours   < 10) { hours   = `0${hours}`; }
+  if (minutes < 10) { minutes = `0${minutes}`; }
+  if (seconds < 10) { seconds = `0${seconds}`; }
 
-  return hours + ":" + minutes + ":" + seconds;
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 run().catch(e => console.error(e));

@@ -3,6 +3,7 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "target": "esnext",
+    "skipLibCheck": true,
     "sourceMap": false,
     "experimentalDecorators": true,
     "noImplicitAny": false,

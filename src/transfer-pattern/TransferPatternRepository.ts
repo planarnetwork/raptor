@@ -1,5 +1,5 @@
-import {TransferPatternIndex} from "./results/StringResults";
-import {Pool} from "mysql2/promise";
+import type {TransferPatternIndex} from "./results/StringResults";
+import type {Pool} from "mysql2/promise";
 
 /**
  * Access to the transfer_patterns table in a mysql compatible database

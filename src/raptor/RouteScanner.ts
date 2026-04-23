@@ -1,4 +1,4 @@
-import { DayOfWeek, Time, Trip } from "../gtfs/GTFS";
+import type { DayOfWeek, Time, Trip } from "../gtfs/GTFS";
 
 /**
  * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce plan time.
@@ -17,11 +17,11 @@ export class RouteScanner {
    */
   public getTrip(routeId: RouteID, stopIndex: number, time: Time): Trip | undefined {
 
-    if (!this.routeScanPosition.hasOwnProperty(routeId)) {
+    if (!Object.hasOwn(this.routeScanPosition, routeId)) {
       this.routeScanPosition[routeId] = this.tripsByRoute[routeId].length - 1;
     }
 
-    let lastFound;
+    let lastFound: Trip | undefined;
     const routeTrips = this.tripsByRoute[routeId];
 
     // iterate backwards through the trips on the route, starting where we last found a trip

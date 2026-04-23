@@ -1,11 +1,11 @@
-import { RaptorAlgorithm, StopTimes } from "../raptor/RaptorAlgorithm";
-import { DayOfWeek, StopID, Time } from "../gtfs/GTFS";
-import { ResultsFactory } from "../results/ResultsFactory";
+import type { RaptorAlgorithm, StopTimes } from "../raptor/RaptorAlgorithm";
+import type { DayOfWeek, StopID, Time } from "../gtfs/GTFS";
+import type { ResultsFactory } from "../results/ResultsFactory";
 import { getDateNumber } from "./DateUtil";
-import { Journey } from "../results/Journey";
-import { JourneyFilter } from "../results/filter/JourneyFilter";
+import type { Journey } from "../results/Journey";
+import type { JourneyFilter } from "../results/filter/JourneyFilter";
 import { keyValue } from "ts-array-utils";
-import { Arrivals, ConnectionIndex } from "../raptor/ScanResults";
+import type { Arrivals, ConnectionIndex } from "../raptor/ScanResults";
 
 /**
  * Implementation of Raptor that searches for journeys between a set of origin and destinations.

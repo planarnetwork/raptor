@@ -1,5 +1,5 @@
-import { StopID, StopTime, Time, TimetableLeg, Transfer, Trip } from "../../src/gtfs/GTFS";
-import { Journey } from "../../src/results/Journey";
+import type { StopID, StopTime, Time, TimetableLeg, Transfer, Trip } from "../../src/gtfs/GTFS";
+import type { Journey } from "../../src/results/Journey";
 import { Service } from "../../src/gtfs/Service";
 
 export const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
@@ -23,7 +23,7 @@ let tripId = 0;
 
 export function t(...stopTimes: StopTime[]): Trip {
   return {
-    tripId: "trip" + tripId++,
+    tripId: `trip${tripId++}`,
     stopTimes: stopTimes,
     serviceId: "1",
     service: services["1"]

@@ -1,6 +1,6 @@
-import { StopID, Transfer } from "../gtfs/GTFS";
-import { Journey } from "./Journey";
-import { Connection, ConnectionIndex } from "../raptor/ScanResults";
+import type { StopID, Transfer } from "../gtfs/GTFS";
+import type { Journey } from "./Journey";
+import type { Connection, ConnectionIndex } from "../raptor/ScanResults";
 
 /**
  * Create results from the kConnections index

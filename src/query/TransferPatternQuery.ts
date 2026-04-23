@@ -1,7 +1,7 @@
-import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
-import { DayOfWeek, StopID } from "../gtfs/GTFS";
+import type { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
+import type { DayOfWeek, StopID } from "../gtfs/GTFS";
 import { getDateNumber } from "./DateUtil";
-import { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";
+import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";
 
 /**
  * Uses the Raptor algorithm to perform full day range queries and send the results to the repository.

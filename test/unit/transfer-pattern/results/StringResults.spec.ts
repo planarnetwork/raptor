@@ -1,6 +1,6 @@
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import {StringResults} from "../../../../src/transfer-pattern/results/StringResults";
-import {StopID} from "../../../../src/gtfs/GTFS";
+import type {StopID} from "../../../../src/gtfs/GTFS";
 
 describe("StringResults", () => {
 
@@ -16,7 +16,7 @@ describe("StringResults", () => {
     mergePath(["A", "B", "C", "D"], tree);
     mergePath(["A", "B", "C"], tree);
 
-    chai.expect(tree.finalize()).to.deep.equal(expected);
+    expect(tree.finalize()).toEqual(expected);
   });
 
   it("Orders results", () => {
@@ -33,7 +33,7 @@ describe("StringResults", () => {
     mergePath(["C", "D", "B"], tree);
     mergePath(["C", "B", "E"], tree);
 
-    chai.expect(tree.finalize()).to.deep.equal(expected);
+    expect(tree.finalize()).toEqual(expected);
   });
 
   it("Adds different paths", () => {
@@ -47,7 +47,7 @@ describe("StringResults", () => {
     mergePath(["A", "B", "C", "D"], tree);
     mergePath(["A", "C", "B", "D"], tree);
 
-    chai.expect(tree.finalize()).to.deep.equal(expected);
+    expect(tree.finalize()).toEqual(expected);
   });
 
 });
