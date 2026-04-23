@@ -1,9 +1,9 @@
-import * as cp  from "child_process";
+import * as cp  from "node:child_process";
 import * as ProgressBar from "progress";
-import * as gtfs from "gtfs-stream";
-import * as fs from "fs";
-import {StopID} from "./gtfs/GTFS";
-import * as os from "os";
+import { plain as gtfs } from "gtfs-stream";
+import * as fs from "node:fs";
+import type {StopID} from "./gtfs/GTFS";
+import * as os from "node:os";
 
 const numCPUs = os.cpus().length;
 
@@ -13,7 +13,7 @@ async function run(filename: string, dateString: string) {
   const bar = new ProgressBar("  [:current of :total] [:bar] :percent eta :eta  ", { total: stops.length });
 
   for (let i = 0; i < Math.min(numCPUs - 2, stops.length); i++) {
-    const worker = cp.fork(__dirname + "/transfer-pattern-worker", [filename, date.toISOString()]);
+    const worker = cp.fork(`${__dirname}/transfer-pattern-worker`, [filename, date.toISOString()]);
 
     worker.on("message", () => {
       if (stops.length > 0) {

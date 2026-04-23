@@ -1,8 +1,8 @@
-import * as gtfs from "gtfs-stream";
-import {CalendarIndex, StopIndex, Trip} from "./GTFS";
-import {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
+import { plain as gtfs } from "gtfs-stream";
+import type {CalendarIndex, StopIndex, Trip} from "./GTFS";
+import type {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
 import {pushNested, setNested} from "ts-array-utils";
-import {Readable} from "stream";
+import type {Readable} from "node:stream";
 import {TimeParser} from "./TimeParser";
 import { Service } from "./Service";
 

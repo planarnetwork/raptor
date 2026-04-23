@@ -1,7 +1,7 @@
-import { DayOfWeek, Trip } from "../gtfs/GTFS";
-import { Interchange, RaptorAlgorithm, TransfersByOrigin } from "./RaptorAlgorithm";
+import type { DayOfWeek, Trip } from "../gtfs/GTFS";
+import { type Interchange, RaptorAlgorithm, type TransfersByOrigin } from "./RaptorAlgorithm";
 import { QueueFactory } from "./QueueFactory";
-import { RouteScannerFactory, TripsIndexedByRoute } from "./RouteScanner";
+import { RouteScannerFactory, type TripsIndexedByRoute } from "./RouteScanner";
 import { getDateNumber } from "../query/DateUtil";
 import { ScanResultsFactory } from "./ScanResultsFactory";
 
@@ -43,7 +43,7 @@ export class RaptorAlgorithmFactory {
 
     for (const trip of trips) {
       const path = trip.stopTimes.map(s => s.stop);
-      const routeId = this.getRouteId(trip, tripsByRoute);
+      const routeId = RaptorAlgorithmFactory.getRouteId(trip, tripsByRoute);
 
       if (!routeStopIndex[routeId]) {
         tripsByRoute[routeId] = [];

@@ -1,7 +1,7 @@
-import { ConnectionIndex } from "../../raptor/ScanResults";
+import type { ConnectionIndex } from "../../raptor/ScanResults";
 import { isTransfer } from "../../results/ResultsFactory";
-import { StopID } from "../../gtfs/GTFS";
-import { Path, TransferPatternResults } from "./TransferPatternResults";
+import type { StopID } from "../../gtfs/GTFS";
+import type { Path, TransferPatternResults } from "./TransferPatternResults";
 
 /**
  * Uses the Raptor algorithm to perform full day range queries and stores the result as a DAG.

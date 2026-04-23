@@ -1,4 +1,4 @@
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import { MultipleCriteriaFilter } from "../../../../../src/results/filter/MultipleCriteriaFilter";
 import { j, st } from "../../../util";
 
@@ -48,7 +48,7 @@ describe("MultipleCriteriaFilter", () => {
     ];
     const actual = filter.apply(journeys);
 
-    chai.expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   });
 
   it("keeps slower journeys if they have fewer changes", () => {
@@ -95,7 +95,7 @@ describe("MultipleCriteriaFilter", () => {
     ];
     const actual = filter.apply(journeys);
 
-    chai.expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   });
 
   it("sorts journeys before filtering them", () => {
@@ -146,7 +146,7 @@ describe("MultipleCriteriaFilter", () => {
     ];
     const actual = filter.apply(journeys);
 
-    chai.expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   });
 
 });

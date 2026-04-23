@@ -1,4 +1,4 @@
-import { Time, TimetableLeg, Transfer } from "../gtfs/GTFS";
+import type { Time, TimetableLeg, Transfer } from "../gtfs/GTFS";
 
 /**
  * A leg

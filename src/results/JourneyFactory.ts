@@ -1,7 +1,7 @@
-import { StopID, Time, TimetableLeg } from "../gtfs/GTFS";
-import { isTransfer, ResultsFactory } from "./ResultsFactory";
-import { ConnectionIndex } from "../raptor/ScanResults";
-import { AnyLeg, Journey } from "./Journey";
+import type { StopID, Time, TimetableLeg } from "../gtfs/GTFS";
+import { isTransfer, type ResultsFactory } from "./ResultsFactory";
+import type { ConnectionIndex } from "../raptor/ScanResults";
+import type { AnyLeg, Journey } from "./Journey";
 
 /**
  * Extracts journeys from the kConnections index.

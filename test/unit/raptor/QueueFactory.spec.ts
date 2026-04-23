@@ -1,4 +1,4 @@
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import { QueueFactory } from "../../../src/raptor/QueueFactory";
 
 describe("QueueFactory", () => {
@@ -27,7 +27,7 @@ describe("QueueFactory", () => {
       "RouteC": "StopB"
     };
 
-    chai.expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   });
 
   it("picks the earliest stop on the route", () => {
@@ -54,7 +54,7 @@ describe("QueueFactory", () => {
       "RouteC": "StopB"
     };
 
-    chai.expect(actual).to.deep.equal(expected);
+    expect(actual).toEqual(expected);
   });
 
 });

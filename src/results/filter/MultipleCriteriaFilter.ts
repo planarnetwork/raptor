@@ -1,5 +1,5 @@
-import { Journey } from "../Journey";
-import { JourneyFilter } from "./JourneyFilter";
+import type { Journey } from "../Journey";
+import type { JourneyFilter } from "./JourneyFilter";
 
 /**
  * Returns true if b arrives before or at the same time as a

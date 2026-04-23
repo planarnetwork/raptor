@@ -1,4 +1,4 @@
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { allDays, j, services, setDefaultTrip, st, t, tf } from "../util";
 import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
@@ -23,7 +23,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("A", null, 1000),
         st("B", 1030, 1035),
@@ -52,7 +52,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("A", null, 1000),
         st("B", 1030, 1035),
@@ -81,7 +81,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("A", null, 1000),
         st("B", 1030, 1035),
@@ -112,7 +112,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([]);
+    expect(result).toEqual([]);
   });
 
   it("returns the fastest and the least changes", () => {
@@ -148,7 +148,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1100, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       direct,
       change
     ]);
@@ -194,7 +194,7 @@ describe("DepartAfterQuery", () => {
       st("E", 1255, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       fastest
     ]);
   });
@@ -239,7 +239,7 @@ describe("DepartAfterQuery", () => {
       st("E", 1300, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       journey1
     ]);
   });
@@ -280,7 +280,7 @@ describe("DepartAfterQuery", () => {
       st("E", 1100, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       change
     ]);
   });
@@ -310,7 +310,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("A", null, 1000),
         st("B", 1030, 1035),
@@ -358,7 +358,7 @@ describe("DepartAfterQuery", () => {
       tf("C", "D", 10)
     );
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       transfer
     ]);
   });
@@ -389,7 +389,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1200, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       direct
     ]);
   });
@@ -420,7 +420,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1200, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       direct
     ]);
   });
@@ -465,7 +465,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1110, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       direct,
       change
     ]);
@@ -517,7 +517,7 @@ describe("DepartAfterQuery", () => {
       ]
     );
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       lastPossible
     ]);
   });
@@ -563,7 +563,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1110, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       change
     ]);
   });
@@ -611,7 +611,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1110, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       change
     ]);
   });
@@ -657,7 +657,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1100, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       change
     ]);
   });
@@ -703,7 +703,7 @@ describe("DepartAfterQuery", () => {
       st("C", 1110, null)
     ]);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       change
     ]);
   });
@@ -779,7 +779,7 @@ describe("DepartAfterQuery", () => {
       ]
     );
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       direct,
       slowChange,
       change
@@ -820,7 +820,7 @@ describe("DepartAfterQuery", () => {
       ]
     );
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       faster
     ]);
   });
@@ -853,7 +853,7 @@ describe("DepartAfterQuery", () => {
       st("E", 1100, null)
     ]);
 
-    chai.expect(result[0].legs).to.deep.equal(expected.legs);
+    expect(result[0].legs).toEqual(expected.legs);
   });
 
   it("adds a day to the arrival time of journeys that are made overnight", () => {
@@ -876,7 +876,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result[0].arrivalTime).to.equal(1100 + 86400);
+    expect(result[0].arrivalTime).toBe(1100 + 86400);
   });
 
   it("increments the day when searching subsequent days", () => {
@@ -901,7 +901,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result[0].arrivalTime).to.equal(1100 + 86400);
+    expect(result[0].arrivalTime).toBe(1100 + 86400);
   });
 
   it("uses all results from every day", () => {
@@ -962,9 +962,11 @@ describe("DepartAfterQuery", () => {
       change,
     ];
 
-    expected.forEach(journey => journey.arrivalTime += 86400);
+    for (const journey of expected) {
+      journey.arrivalTime += 86400;
+    }
 
-    chai.expect(result).to.deep.equal(expected);
+    expect(result).toEqual(expected);
   });
 
   it("does not return overnight journeys that cannot be made", () => {
@@ -992,7 +994,7 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result[0].arrivalTime).to.equal(86400 + 3700 + 3600);
+    expect(result[0].arrivalTime).toBe(86400 + 3700 + 3600);
   });
 
 });

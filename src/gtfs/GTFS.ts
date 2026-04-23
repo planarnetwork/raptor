@@ -1,7 +1,7 @@
 /**
  * StopID e.g. NRW
  */
-import { Service } from "./Service";
+import type { Service } from "./Service";
 
 export type StopID = string;
 

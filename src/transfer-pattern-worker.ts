@@ -1,7 +1,7 @@
 import {loadGTFS} from "./gtfs/GTFSLoader";
 import {StringResults} from "./transfer-pattern/results/StringResults";
 import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepository";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { RaptorAlgorithmFactory } from "./raptor/RaptorAlgorithmFactory";
 import { TransferPatternQuery } from "./query/TransferPatternQuery";
 import * as mysql from "mysql2/promise";
@@ -39,7 +39,7 @@ function morePlease() {
 function getDatabase() {
   return mysql.createPool({
     host: process.env.DATABASE_HOSTNAME || "localhost",
-    port: parseInt(process.env.DATABASE_PORT || "3306"),
+    port: parseInt(process.env.DATABASE_PORT || "3306", 10),
     user: process.env.DATABASE_USERNAME || "root",
     password: process.env.DATABASE_PASSWORD || "",
     database: process.env.OJP_DATABASE_NAME || "ojp",

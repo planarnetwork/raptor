@@ -1,5 +1,5 @@
-import { ConnectionIndex } from "../../raptor/ScanResults";
-import { StopID } from "../../gtfs/GTFS";
+import type { ConnectionIndex } from "../../raptor/ScanResults";
+import type { StopID } from "../../gtfs/GTFS";
 
 /**
  * Create the results factory

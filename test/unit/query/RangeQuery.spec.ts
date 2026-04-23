@@ -1,5 +1,5 @@
 import { j, setDefaultTrip, st, t } from "../util";
-import * as chai from "chai";
+import { describe, it, expect } from "vitest";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
 import { RangeQuery } from "../../../src/query/RangeQuery";
@@ -32,7 +32,7 @@ describe("RangeQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("A", null, 1000),
         st("B", 1030, 1035),
@@ -87,7 +87,7 @@ describe("RangeQuery", () => {
 
     setDefaultTrip(result);
 
-    chai.expect(result).to.deep.equal([
+    expect(result).toEqual([
       j([
         st("A", null, 1359),
         st("C", 1501, null)

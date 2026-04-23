@@ -1,6 +1,6 @@
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {StringResults} from "../src/transfer-pattern/results/StringResults";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
 import { TransferPatternQuery } from "../src/query/TransferPatternQuery";
 
@@ -30,7 +30,7 @@ async function run() {
   console.timeEnd("patterns");
 
   console.time("paths");
-  const paths = Array.from(results["BHIPET"]);
+  const paths = Array.from(results.BHIPET);
   console.timeEnd("paths");
 
   console.log("Results:");
