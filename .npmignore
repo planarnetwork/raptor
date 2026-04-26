@@ -1,8 +1,9 @@
 node_modules/
 .idea/
 npm-debug.log
-src/
-test/
+/src/
+/test/
+/dist/test/
 tsconfig.json
 .github
 *.zip
