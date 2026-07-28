@@ -1,49 +1,56 @@
-import type { DayOfWeek, Time, Trip } from "../gtfs/GTFS";
+import type { DayOfWeek, Time } from "../gtfs/GTFS";
+import type { RouteIdx, Timetable } from "./Timetable";
 
 /**
- * Returns trips for specific routes. Maintains a reference to the last trip returned in order to reduce plan time.
+ * No trip on the route is reachable.
+ */
+export const NO_TRIP = -1;
+
+/**
+ * Returns trips for specific routes. Maintains the position of the last trip returned in order to
+ * reduce plan time.
  */
 export class RouteScanner {
-  private readonly routeScanPosition: Record<RouteID, number> = {};
+  /** Trip each route is scanned back from, starting at its last trip and only ever moving earlier */
+  private readonly routeScanPosition: Int32Array;
 
   constructor(
-    private readonly tripsByRoute: TripsIndexedByRoute,
+    private readonly timetable: Timetable,
     private readonly date: number,
     private readonly dow: DayOfWeek,
-  ) {}
+  ) {
+    this.routeScanPosition = Int32Array.from(timetable.routeTrips, trips => trips.length - 1);
+  }
 
   /**
-   * Return the earliest trip stop times possible on the given route
+   * Return the index of the earliest trip on the route that can be boarded at the given position,
+   * or NO_TRIP if there isn't one.
    */
-  public getTrip(routeId: RouteID, stopIndex: number, time: Time): Trip | undefined {
+  public getTrip(route: RouteIdx, position: number, time: Time): number {
+    const { departures, routeStopOffsets, routeTrips, stopTimesBase } = this.timetable;
+    const numStops = routeStopOffsets[route + 1] - routeStopOffsets[route];
+    const trips = routeTrips[route];
+    const base = stopTimesBase[route] + position;
 
-    if (!Object.hasOwn(this.routeScanPosition, routeId)) {
-      this.routeScanPosition[routeId] = this.tripsByRoute[routeId].length - 1;
-    }
-
-    let lastFound: Trip | undefined;
-    const routeTrips = this.tripsByRoute[routeId];
+    let lastFound = NO_TRIP;
 
     // iterate backwards through the trips on the route, starting where we last found a trip
-    for (let i = this.routeScanPosition[routeId]; i >= 0; i--) {
-      const trip = routeTrips[i];
-      const stopTime = trip.stopTimes[stopIndex];
-
+    for (let i = this.routeScanPosition[route]; i >= 0; i--) {
       // if the trip is unreachable, exit the loop
-      if (stopTime.departureTime < time) {
+      if (departures[base + i * numStops] < time) {
         break;
       }
       // if it is reachable and the service is running that day, update the last valid trip found
-      else if (trip.service.runsOn(this.date, this.dow)) {
-        lastFound = trip;
+      if (trips[i].service.runsOn(this.date, this.dow)) {
+        lastFound = i;
       }
 
       // if we found a trip, update the last found index, if we still haven't found a trip we can also update the
       // last found index as any subsequent scans will be for an earlier time. We can't update the index every time
       // as there may be some services that are reachable but not running before the last found service and searching
       // must continue from the last reachable point.
-      if (!lastFound || lastFound === trip) {
-        this.routeScanPosition[routeId] = i;
+      if (lastFound === NO_TRIP || lastFound === i) {
+        this.routeScanPosition[route] = i;
       }
     }
 
@@ -51,21 +58,3 @@ export class RouteScanner {
   }
 
 }
-
-/**
- * Create the RouteScanner from GTFS trips and calendars
- */
-export class RouteScannerFactory {
-
-  constructor(
-    private readonly tripsByRoute: TripsIndexedByRoute
-  ) {}
-
-  public create(date: number, dow: DayOfWeek): RouteScanner {
-    return new RouteScanner(this.tripsByRoute, date, dow);
-  }
-
-}
-
-export type RouteID = string;
-export type TripsIndexedByRoute = Record<RouteID, Trip[]>;
