@@ -3,11 +3,8 @@
 ## Low-Level Optimizations
 
 ### 1. Object Initialization Pre-allocation
-**Files**: `RaptorAlgorithm.ts:42-68`, `QueueFactory.ts:18-28`
-- Replace `{}` with pre-sized Maps or objects with known keys
-- Pre-allocate `queue` in QueueFactory with expected size
-- Cache array lengths in loops
-**Priority**: HIGH (hot path optimization)
+**DONE** — the queue is a `Map<RouteIdx, number>` built from flat typed arrays and the scan state is
+pre-allocated typed arrays sized by the number of stops. See `Timetable.ts`.
 
 ### 2. Array Method Chain Optimization
 **Files**: `RangeQuery.ts:48`, `GroupStationDepartAfterQuery.ts:88-93`, `MultipleCriteriaFilter.ts:29,46`
@@ -17,34 +14,25 @@
 **Priority**: HIGH (hot path optimization)
 
 ### 3. Object Property Access Optimization
-**Files**: `RaptorAlgorithm.ts:50-66`, `RouteScanner.ts:27-46`
-- Cache repeated property accesses (`trip.stopTimes[pi]`, `this.routePath[routeId]`)
-- Store array lengths before loops instead of accessing `.length` repeatedly
-**Priority**: HIGH (core algorithm performance)
+**DONE** — the scan reads stop times, stops and set down flags from flat typed arrays instead of
+walking `trip.stopTimes[pi]`, and hoists the per-route offsets out of the loop.
 
 ### 4. hasOwnProperty Optimization
-**Files**: `RouteScanner.ts:20`, `Service.ts:14`
-- Replace `hasOwnProperty` with `in` operator or direct property checks
-- Consider using Map instead of objects for frequently checked indices
-**Priority**: MEDIUM (frequent operations)
+**DONE** in `RouteScanner`, which now keeps its scan positions in an `Int32Array`. `Service.ts:14`
+still uses `hasOwn`.
 
 ### 5. String Operations
-**Files**: `RaptorAlgorithmFactory.ts:80`
-- Cache the route ID string computation (`.map().join()` is expensive)
-- Consider numeric route IDs instead of strings
-**Priority**: MEDIUM (frequent operations)
+**DONE** — routes are dense integers. The signature string is only built once per trip when the
+timetable is created, and never touched during a query.
 
 ### 6. ScanResults Initialization
-**Files**: `ScanResultsFactory.ts:11-23`
-- Replace loop-based initialization with Object.fromEntries or bulk operations
-- Use typed arrays for numeric data (bestArrivals, kArrivals)
-**Priority**: HIGH (initialization hot path)
+**DONE** — `bestArrivals` and `kArrivals` are `Int32Array`s and the connection index is only
+populated for stops that are actually reached.
 
 ### 7. Object.keys/entries Optimization
-**Files**: `RaptorAlgorithm.ts:28,36,45`, `ScanResults.ts:42`
-- Replace `Object.keys(origins)` with pre-computed arrays where possible
-- Cache keys that don't change between iterations
-**Priority**: MEDIUM (frequent operations)
+**DONE** for the scan: marked stops are collected into an integer array as they are marked rather
+than recovered with `Object.keys`. `Object.keys(origins)` still runs once per scan, which is
+proportional to the number of origins rather than the number of stops.
 
 ### 8. GTFS Loader Stream Processing
 **Files**: `GTFSLoader.ts:100-118`
@@ -65,6 +53,5 @@
 **Priority**: LOW (build-time optimization)
 
 ## Expected Performance Impact
-- **HIGH** impact: #1, #2, #3, #6 (core algorithm hot paths)
-- **MEDIUM** impact: #4, #5, #7 (frequent operations)
+- **HIGH** impact: #2 (results filtering)
 - **LOW** impact: #8, #9, #10 (loading/auxiliary operations)
