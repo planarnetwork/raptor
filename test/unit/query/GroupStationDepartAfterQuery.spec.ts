@@ -9,6 +9,60 @@ describe("GroupStationDepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();
   const filters = [new MultipleCriteriaFilter()];
 
+  it("returns no results for a destination the feed has no stop for", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      )
+    ];
+
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+
+    expect(query.plan(["A"], ["Z"], new Date("2019-04-18"), 900)).toEqual([]);
+  });
+
+  it("still plans to the destinations the feed does have", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      )
+    ];
+
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+    const result = query.plan(["A"], ["Z", "C"], new Date("2019-04-18"), 900);
+
+    setDefaultTrip(result);
+
+    expect(result).toEqual([
+      j([
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      ])
+    ]);
+  });
+
+  it("returns no results for an origin the feed has no stop for", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, 1035),
+        st("C", 1100, null)
+      )
+    ];
+
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+
+    expect(query.plan(["Z"], ["C"], new Date("2019-04-18"), 900)).toEqual([]);
+  });
+
   it("plans to multiple destinations", () => {
     const trips = [
       t(
