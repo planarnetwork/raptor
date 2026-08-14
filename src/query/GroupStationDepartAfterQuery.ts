@@ -84,7 +84,9 @@ export class GroupStationDepartAfterQuery {
     destinations: StopID[]
   ): Journey[] {
 
-    const destinationsWithResults = destinations.filter(d => Object.keys(kConnections[d]).length > 0);
+    // a destination the feed has no stop for is simply not reachable, which is already how an
+    // origin the feed has no stop for is treated
+    const destinationsWithResults = destinations.filter(d => Object.keys(kConnections[d] ?? {}).length > 0);
     const initialResults = destinationsWithResults.flatMap(d => this.resultsFactory.getResults(kConnections, d));
 
     // reverse the previous connections and then work back through each day pre-pending journeys
