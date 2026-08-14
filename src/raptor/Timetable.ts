@@ -1,15 +1,6 @@
-import type { StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import type { StopID, StopIndex, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import { normalise } from "./Normalise";
 import type { Interchange, TransfersByOrigin } from "./RaptorAlgorithm";
-
-/**
- * Dense index assigned to a stop, in the range [0, number of stops).
- */
-export type StopIdx = number;
-
-/**
- * Dense index assigned to a route, in the range [0, number of routes).
- */
-export type RouteIdx = number;
 
 /**
  * Arrival time used for a stop that has not been reached. Chosen to be larger than any real
@@ -17,196 +8,26 @@ export type RouteIdx = number;
  */
 export const NOT_REACHED = 0x7fffffff;
 
-/**
- * A transfer paired with its destination resolved to a stop index. The transfer itself is the one
- * given to the factory, which is what ends up in the returned journeys.
- */
-export interface IndexedTransfer {
-  destination: StopIdx;
-  transfer: Transfer;
-}
-
-/**
- * The timetable in the "global array" form described by the Raptor paper: every stop and route is
- * a dense integer index, and everything the scan reads is a flat typed array indexed by those
- * integers. This removes the string hashing and pointer chasing from the hot path.
- *
- * Variable length data is concatenated into a single flat array, with an offsets array giving the
- * bounds of each slice. Route `r` owns `[routeStopOffsets[r], routeStopOffsets[r + 1])` of
- * routeStops, so the offsets array has one more entry than there are routes and the length of a
- * slice is the gap between two offsets:
- *
- *   stopsInRoute                     routeStopOffsets[r + 1] - routeStopOffsets[r]
- *   stop at position p of route r    routeStops[routeStopOffsets[r] + p]
- *   arrival of trip t at position p  arrivals[stopTimesBase[r] + t * stopsInRoute + p]
- *
- * The number of stops and routes is the length of the arrays holding them, so it is not stored
- * separately.
- */
-export interface Timetable {
-  /** Stop id to stop index, used to translate queries in and results out */
-  stopIndex: Map<StopID, StopIdx>;
-  /** Stop index to stop id, the inverse of stopIndex. Its length is the number of stops */
-  stopIds: StopID[];
-
-  /** Bounds of each route's slice of routeStops, dropOff and pickUp. Its length is the number of routes + 1 */
-  routeStopOffsets: Int32Array;
-  /** Concatenated stop sequences of every route */
-  routeStops: Int32Array;
-  /**
-   * Parallel to routeStops, 1 where the route sets down passengers. Pick up and set down are part
-   * of the route signature, so every trip on a route shares this pattern.
-   */
-  dropOff: Uint8Array;
-  /** Parallel to routeStops, 1 where the route picks passengers up */
-  pickUp: Uint8Array;
-
-  /** Offset of each route's slice of arrivals and departures. Its length is the number of routes + 1 */
-  stopTimesBase: Int32Array;
-  /** Concatenated trip-major arrival times of every route */
-  arrivals: Int32Array;
-  /** Concatenated trip-major departure times of every route */
-  departures: Int32Array;
-
-  /** Each route's trips in departure order, for the calendar check and journey reconstruction */
-  routeTrips: Trip[][];
-
-  /** Bounds of each stop's slice of stopRoutes and stopRoutePos. Its length is the number of stops + 1 */
-  stopRouteOffsets: Int32Array;
-  /** Concatenated lists of the routes picking up at each stop */
-  stopRoutes: Int32Array;
-  /** Parallel to stopRoutes, the position of that stop within that route */
-  stopRoutePos: Int32Array;
-
-  /** Minimum interchange time at each stop */
-  interchange: Int32Array;
-  /** Transfers available from each stop */
-  transfers: IndexedTransfer[][];
-}
-
 const DEFAULT_INTERCHANGE_TIME = 0;
 const OVERTAKING_ROUTE_SUFFIX = "|overtakes";
 
 /**
- * Trips grouped into routes, before they are flattened into the arrays above.
- */
-interface RouteGrouping {
-  stopIndex: Map<StopID, StopIdx>;
-  stopIds: StopID[];
-  /** Stop sequence of each route */
-  routeStops: StopIdx[][];
-  /** Trips on each route, in departure order */
-  routeTrips: Trip[][];
-  /** For each stop, the routes picking up there and the position of that stop within them */
-  stopRoutePositions: Map<RouteIdx, number>[];
-}
-
-/**
- * Two trips belong to the same route when they call at the same stops in the same order with the
- * same pick up and set down pattern.
- */
-function routeSignature(stops: StopIdx[], stopTimes: StopTime[]): string {
-  return stopTimes
-    .map((stopTime, i) => `${stops[i]},${stopTime.pickUp ? 1 : 0}${stopTime.dropOff ? 1 : 0}`)
-    .join("|");
-}
-
-function finalArrival(trip: Trip): Time {
-  return trip.stopTimes[trip.stopTimes.length - 1].arrivalTime;
-}
-
-/**
- * A trip overtakes a route when it arrives earlier than a trip that departed before it. Raptor
- * needs the trips on a route to be ordered, so an overtaking trip is put on a route of its own.
- */
-function overtakes(trip: Trip, routeTrips: Trip[]): boolean {
-  for (const other of routeTrips) {
-    if (finalArrival(trip) < finalArrival(other)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Assign every stop and route a dense index and group the trips onto their routes.
- */
-function groupTripsIntoRoutes(trips: Trip[], transfers: TransfersByOrigin): RouteGrouping {
-  const stopIndex = new Map<StopID, StopIdx>();
-  const stopIds: StopID[] = [];
-  const stopRoutePositions: Map<RouteIdx, number>[] = [];
-
-  const internStop = (stop: StopID): StopIdx => {
-    let index = stopIndex.get(stop);
-
-    if (index === undefined) {
-      index = stopIds.length;
-      stopIndex.set(stop, index);
-      stopIds.push(stop);
-      stopRoutePositions.push(new Map());
-    }
-
-    return index;
-  };
-
-  const routeIndex = new Map<string, RouteIdx>();
-  const routeStops: StopIdx[][] = [];
-  const routeTrips: Trip[][] = [];
-
-  for (const trip of trips) {
-    const stopTimes = trip.stopTimes;
-    const stops = stopTimes.map(stopTime => internStop(stopTime.stop));
-
-    let signature = routeSignature(stops, stopTimes);
-    const existing = routeIndex.get(signature);
-
-    if (existing !== undefined && overtakes(trip, routeTrips[existing])) {
-      signature += OVERTAKING_ROUTE_SUFFIX;
-    }
-
-    let route = routeIndex.get(signature);
-
-    if (route === undefined) {
-      route = routeStops.length;
-      routeIndex.set(signature, route);
-      routeStops.push(stops);
-      routeTrips.push([]);
-
-      // walk backwards so that on a route calling at a stop twice, the earlier call wins
-      for (let p = stops.length - 1; p >= 0; p--) {
-        if (stopTimes[p].pickUp) {
-          stopRoutePositions[stops[p]].set(route, p);
-        }
-      }
-    }
-
-    routeTrips[route].push(trip);
-  }
-
-  // transfers can reach stops that no trip calls at, so they are interned after the trips
-  for (const origin of Object.keys(transfers)) {
-    internStop(origin);
-
-    for (const transfer of transfers[origin]) {
-      internStop(transfer.destination);
-    }
-  }
-
-  return { stopIndex, stopIds, routeStops, routeTrips, stopRoutePositions };
-}
-
-/**
- * Group the trips into routes and flatten the result into the global arrays above.
+ * Normalise the feed, group the trips into routes and flatten the result into the global arrays
+ * above.
  *
- * Trips must already be sorted by departure time: the trips of a route are laid out in that order
- * and the scan relies on it to walk backwards to the earliest reachable trip.
+ * The trips of a route are laid out in departure order and the scan relies on it to walk backwards
+ * to the earliest reachable trip, so they are sorted here rather than by the caller.
  */
 export function createTimetable(
-  trips: Trip[],
-  transfers: TransfersByOrigin,
-  interchange: Interchange
+  feedTrips: Trip[],
+  feedTransfers: TransfersByOrigin,
+  feedInterchange: Interchange,
+  stops: StopIndex
 ): Timetable {
+  const { trips, transfers, interchange } = normalise(feedTrips, feedTransfers, feedInterchange, stops);
+
+  trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
+
   const { stopIndex, stopIds, routeStops: routeStopSeq, routeTrips, stopRoutePositions } =
     groupTripsIntoRoutes(trips, transfers);
 
@@ -310,4 +131,192 @@ export function createTimetable(
     interchange: interchangeTimes,
     transfers: indexedTransfers
   };
+}
+
+/**
+ * Assign every stop and route a dense index and group the trips onto their routes.
+ */
+function groupTripsIntoRoutes(trips: Trip[], transfers: TransfersByOrigin): RouteGrouping {
+  const stopIndex = new Map<StopID, StopIdx>();
+  const stopIds: StopID[] = [];
+  const stopRoutePositions: Map<RouteIdx, number>[] = [];
+
+  const internStop = (stop: StopID): StopIdx => {
+    let index = stopIndex.get(stop);
+
+    if (index === undefined) {
+      index = stopIds.length;
+      stopIndex.set(stop, index);
+      stopIds.push(stop);
+      stopRoutePositions.push(new Map());
+    }
+
+    return index;
+  };
+
+  const routeIndex = new Map<string, RouteIdx>();
+  const routeStops: StopIdx[][] = [];
+  const routeTrips: Trip[][] = [];
+  const routeLatestArrival: Time[] = [];
+
+  for (const trip of trips) {
+    const stopTimes = trip.stopTimes;
+    const stops = stopTimes.map(stopTime => internStop(stopTime.stop));
+
+    let signature = routeSignature(stops, stopTimes);
+    const existing = routeIndex.get(signature);
+
+    if (existing !== undefined && overtakes(trip, routeLatestArrival[existing])) {
+      signature += OVERTAKING_ROUTE_SUFFIX;
+    }
+
+    let route = routeIndex.get(signature);
+
+    if (route === undefined) {
+      route = routeStops.length;
+      routeIndex.set(signature, route);
+      routeStops.push(stops);
+      routeTrips.push([]);
+      routeLatestArrival.push(Number.MIN_SAFE_INTEGER);
+
+      // walk backwards so that on a route calling at a stop twice, the earlier call wins
+      for (let p = stops.length - 1; p >= 0; p--) {
+        if (stopTimes[p].pickUp) {
+          stopRoutePositions[stops[p]].set(route, p);
+        }
+      }
+    }
+
+    routeTrips[route].push(trip);
+
+    if (finalArrival(trip) > routeLatestArrival[route]) {
+      routeLatestArrival[route] = finalArrival(trip);
+    }
+  }
+
+  // transfers can reach stops that no trip calls at, so they are interned after the trips
+  for (const origin of Object.keys(transfers)) {
+    internStop(origin);
+
+    for (const transfer of transfers[origin]) {
+      internStop(transfer.destination);
+    }
+  }
+
+  return { stopIndex, stopIds, routeStops, routeTrips, stopRoutePositions };
+}
+
+/**
+ * Two trips belong to the same route when they call at the same stops in the same order with the
+ * same pick up and set down pattern.
+ */
+function routeSignature(stops: StopIdx[], stopTimes: StopTime[]): string {
+  return stopTimes
+    .map((stopTime, i) => `${stops[i]},${stopTime.pickUp ? 1 : 0}${stopTime.dropOff ? 1 : 0}`)
+    .join("|");
+}
+
+/**
+ * A trip overtakes a route when it arrives earlier than a trip that departed before it. Raptor
+ * needs the trips on a route to be ordered, so an overtaking trip is put on a route of its own.
+ *
+ * Trips are added in departure order, so comparing against the latest arrival so far is enough.
+ */
+function overtakes(trip: Trip, latestArrival: Time): boolean {
+  return finalArrival(trip) < latestArrival;
+}
+
+function finalArrival(trip: Trip): Time {
+  return trip.stopTimes[trip.stopTimes.length - 1].arrivalTime;
+}
+
+/**
+ * Dense index assigned to a stop, in the range [0, number of stops).
+ */
+export type StopIdx = number;
+
+/**
+ * Dense index assigned to a route, in the range [0, number of routes).
+ */
+export type RouteIdx = number;
+
+/**
+ * A transfer paired with its destination resolved to a stop index. The transfer itself is the one
+ * given to the factory, which is what ends up in the returned journeys.
+ */
+export interface IndexedTransfer {
+  destination: StopIdx;
+  transfer: Transfer;
+}
+
+/**
+ * The timetable in the "global array" form described by the Raptor paper: every stop and route is
+ * a dense integer index, and everything the scan reads is a flat typed array indexed by those
+ * integers. This removes the string hashing and pointer chasing from the hot path.
+ *
+ * Variable length data is concatenated into a single flat array, with an offsets array giving the
+ * bounds of each slice. Route `r` owns `[routeStopOffsets[r], routeStopOffsets[r + 1])` of
+ * routeStops, so the offsets array has one more entry than there are routes and the length of a
+ * slice is the gap between two offsets:
+ *
+ *   stopsInRoute                     routeStopOffsets[r + 1] - routeStopOffsets[r]
+ *   stop at position p of route r    routeStops[routeStopOffsets[r] + p]
+ *   arrival of trip t at position p  arrivals[stopTimesBase[r] + t * stopsInRoute + p]
+ *
+ * The number of stops and routes is the length of the arrays holding them, so it is not stored
+ * separately.
+ */
+export interface Timetable {
+  /** Stop id to stop index, used to translate queries in and results out */
+  stopIndex: Map<StopID, StopIdx>;
+  /** Stop index to stop id, the inverse of stopIndex. Its length is the number of stops */
+  stopIds: StopID[];
+
+  /** Bounds of each route's slice of routeStops, dropOff and pickUp. Its length is the number of routes + 1 */
+  routeStopOffsets: Int32Array;
+  /** Concatenated stop sequences of every route */
+  routeStops: Int32Array;
+  /**
+   * Parallel to routeStops, 1 where the route sets down passengers. Pick up and set down are part
+   * of the route signature, so every trip on a route shares this pattern.
+   */
+  dropOff: Uint8Array;
+  /** Parallel to routeStops, 1 where the route picks up */
+  pickUp: Uint8Array;
+
+  /** Offset of each route's slice of arrivals and departures. Its length is the number of routes + 1 */
+  stopTimesBase: Int32Array;
+  /** Concatenated trip-major arrival times of every route */
+  arrivals: Int32Array;
+  /** Concatenated trip-major departure times of every route */
+  departures: Int32Array;
+
+  /** Each route's trips in departure order, for the calendar check and journey reconstruction */
+  routeTrips: Trip[][];
+
+  /** Bounds of each stop's slice of stopRoutes and stopRoutePos. Its length is the number of stops + 1 */
+  stopRouteOffsets: Int32Array;
+  /** Concatenated lists of the routes picking up at each stop */
+  stopRoutes: Int32Array;
+  /** Parallel to stopRoutes, the position of that stop within that route */
+  stopRoutePos: Int32Array;
+
+  /** Minimum interchange time at each stop */
+  interchange: Int32Array;
+  /** Transfers available from each stop */
+  transfers: IndexedTransfer[][];
+}
+
+/**
+ * Trips grouped into routes, before they are flattened into the arrays above.
+ */
+interface RouteGrouping {
+  stopIndex: Map<StopID, StopIdx>;
+  stopIds: StopID[];
+  /** Stop sequence of each route */
+  routeStops: StopIdx[][];
+  /** Trips on each route, in departure order */
+  routeTrips: Trip[][];
+  /** For each stop, the routes picking up there and the position of that stop within them */
+  stopRoutePositions: Map<RouteIdx, number>[];
 }

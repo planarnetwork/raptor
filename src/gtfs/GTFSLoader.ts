@@ -8,6 +8,9 @@ import { Service } from "./Service";
 
 /**
  * Returns trips, transfers, interchange time and calendars from a GTFS zip.
+ *
+ * Stops are returned as the feed gives them. Resolving them to the stations the algorithm plans
+ * between is done when the timetable is created.
  */
 export function loadGTFS(stream: Readable): Promise<GTFSData> {
   const timeParser = new TimeParser();
@@ -17,19 +20,28 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
   const calendars: CalendarIndex = {};
   const dates = {};
   const stopTimes = {};
-  const stops = {};
+  const stops: StopIndex = {};
 
-  const processor = {
-    link: row => {
+  const addTransfer = (row, duration: number, startTime: number, endTime: number) => {
+    if (row.from_stop_id === row.to_stop_id) {
+      interchange[row.from_stop_id] = duration;
+    }
+    else {
       const t = {
         origin: row.from_stop_id,
         destination: row.to_stop_id,
-        duration: +row.duration,
-        startTime: timeParser.getTime(row.start_time),
-        endTime: timeParser.getTime(row.end_time)
+        duration,
+        startTime,
+        endTime
       };
 
       pushNested(t, transfers, row.from_stop_id);
+    }
+  };
+
+  const processor = {
+    link: row => {
+      addTransfer(row, +row.duration, timeParser.getTime(row.start_time), timeParser.getTime(row.end_time));
     },
     calendar: row => {
       calendars[row.service_id] = {
@@ -67,20 +79,13 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
       pushNested(stopTime, stopTimes, row.trip_id);
     },
     transfer: row => {
-      if (row.from_stop_id === row.to_stop_id) {
-        interchange[row.from_stop_id] = +row.min_transfer_time;
-      }
-      else {
-        const t = {
-          origin: row.from_stop_id,
-          destination: row.to_stop_id,
-          duration: +row.min_transfer_time,
-          startTime: 0,
-          endTime: Number.MAX_SAFE_INTEGER
-        };
-
-        pushNested(t, transfers, row.from_stop_id);
-      }
+      // a feed that puts the footpaths in transfers.txt rather than links.txt gives them a window
+      addTransfer(
+        row,
+        +row.min_transfer_time,
+        row.start_time ? timeParser.getTime(row.start_time) : 0,
+        row.end_time ? timeParser.getTime(row.end_time) : Number.MAX_SAFE_INTEGER
+      );
     },
     stop: row => {
       const stop = {
@@ -90,7 +95,10 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
         description: row.stop_desc,
         latitude: +row.stop_lat,
         longitude: +row.stop_lon,
-        timezone: row.zone_id
+        timezone: row.zone_id,
+        locationType: +(row.location_type ?? 0),
+        parentStation: row.parent_station,
+        platformCode: row.platform_code
       };
 
       setNested(stop, stops, row.stop_id);
@@ -109,7 +117,7 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
         }
 
         for (const t of trips) {
-          t.stopTimes = stopTimes[t.tripId];
+          t.stopTimes = stopTimes[t.tripId] || [];
           t.service = services[t.serviceId];
         }
 

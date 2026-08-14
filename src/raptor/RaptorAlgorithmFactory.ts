@@ -1,4 +1,4 @@
-import type { DayOfWeek, Trip } from "../gtfs/GTFS";
+import type { DayOfWeek, StopIndex, Trip } from "../gtfs/GTFS";
 import { type Interchange, RaptorAlgorithm, type TransfersByOrigin } from "./RaptorAlgorithm";
 import { getDateNumber } from "../query/DateUtil";
 import { createTimetable } from "./Timetable";
@@ -14,11 +14,15 @@ export class RaptorAlgorithmFactory {
    *
    * If a date is passed all trips will be filtered to ensure they run on that date. This improves query performance
    * but reduces flexibility
+   *
+   * The stop index is what a feed identifying platforms individually is resolved against, and the
+   * stations it gives are the stops queries are made with and journeys are returned in.
    */
   public static create(
     trips: Trip[],
     transfers: TransfersByOrigin,
     interchange: Interchange,
+    stops: StopIndex,
     date?: Date
   ): RaptorAlgorithm {
 
@@ -29,8 +33,6 @@ export class RaptorAlgorithmFactory {
       trips = trips.filter(trip => trip.service.runsOn(dateNumber, dow));
     }
 
-    trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
-
-    return new RaptorAlgorithm(createTimetable(trips, transfers, interchange));
+    return new RaptorAlgorithm(createTimetable(trips, transfers, interchange, stops));
   }
 }

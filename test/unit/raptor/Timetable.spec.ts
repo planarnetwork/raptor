@@ -1,11 +1,30 @@
 import { describe, it, expect } from "vitest";
 import { createTimetable } from "../../../src/raptor/Timetable";
 import { st, t, tf } from "../util";
+import type { Stop, StopID, StopIndex } from "../../../src/gtfs/GTFS";
 
 describe("Timetable", () => {
 
+  function stop(id: StopID, code: string | undefined, locationType = 0, parentStation?: StopID): Stop {
+    return {
+      id,
+      code: code as string,
+      name: id,
+      description: "",
+      latitude: 0,
+      longitude: 0,
+      timezone: "Europe/London",
+      locationType,
+      parentStation
+    };
+  }
+
+  function stopIndex(...stops: Stop[]): StopIndex {
+    return stops.reduce((all, s) => { all[s.id] = s; return all; }, {} as StopIndex);
+  }
+
   it("assigns a dense index to every stop", () => {
-    const timetable = createTimetable([t(st("A", null, 1000), st("B", 1100, null))], {}, {});
+    const timetable = createTimetable([t(st("A", null, 1000), st("B", 1100, null))], {}, {}, {});
 
     expect(timetable.stopIds.length).toBe(2);
     expect(timetable.stopIds).toEqual(["A", "B"]);
@@ -17,7 +36,7 @@ describe("Timetable", () => {
     const timetable = createTimetable([
       t(st("A", null, 1000), st("B", 1100, null)),
       t(st("A", null, 2000), st("B", 2100, null))
-    ], {}, {});
+    ], {}, {}, {});
 
     expect(timetable.routeTrips.length).toBe(1);
     expect(timetable.routeTrips[0].length).toBe(2);
@@ -28,7 +47,7 @@ describe("Timetable", () => {
     const timetable = createTimetable([
       t(st("A", null, 1000), st("B", 1100, null)),
       t(st("A", null, 2000), st("C", 2100, null))
-    ], {}, {});
+    ], {}, {}, {});
 
     expect(timetable.routeTrips.length).toBe(2);
   });
@@ -38,7 +57,7 @@ describe("Timetable", () => {
       // departs first but arrives second, so the second trip overtakes it
       t(st("A", null, 1000), st("B", 3000, null)),
       t(st("A", null, 2000), st("B", 2500, null))
-    ], {}, {});
+    ], {}, {}, {});
 
     expect(timetable.routeTrips.length).toBe(2);
     expect(timetable.routeTrips[0].length).toBe(1);
@@ -49,7 +68,7 @@ describe("Timetable", () => {
     const timetable = createTimetable([
       t(st("A", null, 1000), st("B", 1100, 1150), st("C", 1200, null)),
       t(st("A", null, 2000), st("B", 2100, 2150), st("C", 2200, null))
-    ], {}, {});
+    ], {}, {}, {});
 
     const { arrivals, departures, routeStopOffsets, stopTimesBase } = timetable;
     const numStops = routeStopOffsets[1] - routeStopOffsets[0];
@@ -65,7 +84,7 @@ describe("Timetable", () => {
   it("records where each route sets down", () => {
     const timetable = createTimetable([
       t(st("A", null, 1000), st("B", null, 1150), st("C", 1200, null))
-    ], {}, {});
+    ], {}, {}, {});
 
     expect(Array.from(timetable.routeStops)).toEqual([0, 1, 2]);
     expect(Array.from(timetable.dropOff)).toEqual([0, 0, 1]);
@@ -75,7 +94,7 @@ describe("Timetable", () => {
     const timetable = createTimetable([
       t(st("A", null, 1000), st("B", 1100, 1150), st("C", 1200, null)),
       t(st("B", null, 2000), st("C", 2100, null))
-    ], {}, {});
+    ], {}, {}, {});
 
     const routesAt = (stop: number) => {
       const base = timetable.stopRouteOffsets[stop];
@@ -99,7 +118,7 @@ describe("Timetable", () => {
     // A is called at twice, so a scan starting from A must start at the first call, not the second
     const timetable = createTimetable([
       t(st("A", null, 1000), st("B", 1100, 1150), st("A", 1200, 1250), st("C", 1300, null))
-    ], {}, {});
+    ], {}, {}, {});
 
     const stop = timetable.stopIndex.get("A") as number;
     const base = timetable.stopRouteOffsets[stop];
@@ -114,6 +133,7 @@ describe("Timetable", () => {
     const timetable = createTimetable(
       [t(st("A", null, 1000), st("B", 1100, null))],
       { A: [transfer] },
+      {},
       {}
     );
 
@@ -129,6 +149,7 @@ describe("Timetable", () => {
     const timetable = createTimetable(
       [t(st("A", null, 1000), st("B", 1100, null))],
       { B: [tf("B", "C", 120)] },
+      {},
       {}
     );
 
@@ -141,11 +162,179 @@ describe("Timetable", () => {
     const timetable = createTimetable(
       [t(st("A", null, 1000), st("B", 1100, null))],
       {},
-      { B: 300 }
+      { B: 300 },
+      {}
     );
 
     expect(timetable.interchange[timetable.stopIndex.get("A") as number]).toBe(0);
     expect(timetable.interchange[timetable.stopIndex.get("B") as number]).toBe(300);
+  });
+
+  it("names a stop by the code of the station it belongs to", () => {
+    const timetable = createTimetable(
+      [t(st("9100NRCH4", null, 1000), st("9100DISS1", 1030, null))],
+      {},
+      {},
+      stopIndex(
+        stop("910GNRCH", "NRW", 1),
+        stop("9100NRCH4", "NRW", 0, "910GNRCH"),
+        stop("910GDISS", "DIS", 1),
+        stop("9100DISS1", "DIS", 0, "910GDISS")
+      )
+    );
+
+    expect(timetable.stopIds).toEqual(["NRW", "DIS"]);
+  });
+
+  it("keeps the feed's stop on the stop time as the platform", () => {
+    const timetable = createTimetable(
+      [t(st("9100NRCH4", null, 1000), st("9100DISS1", 1030, null))],
+      {},
+      {},
+      stopIndex(
+        stop("910GNRCH", "NRW", 1),
+        stop("9100NRCH4", "NRW", 0, "910GNRCH"),
+        stop("910GDISS", "DIS", 1),
+        stop("9100DISS1", "DIS", 0, "910GDISS")
+      )
+    );
+
+    expect(timetable.routeTrips[0][0].stopTimes.map(s => s.platformStop))
+      .toEqual(["9100NRCH4", "9100DISS1"]);
+  });
+
+  it("walks up through every level of grouping", () => {
+    const timetable = createTimetable(
+      [t(st("9100NRCH4A", null, 1000), st("910GDISS", 1030, null))],
+      {},
+      {},
+      stopIndex(
+        stop("910GNRCH", "NRW", 1),
+        stop("9100NRCH4", "NRW", 0, "910GNRCH"),
+        stop("9100NRCH4A", "NRW", 4, "9100NRCH4"),
+        stop("910GDISS", "DIS", 1)
+      )
+    );
+
+    expect(timetable.stopIds).toEqual(["NRW", "DIS"]);
+  });
+
+  it("falls back to the id of a stop with no code", () => {
+    const timetable = createTimetable(
+      [t(st("NRW", null, 1000), st("DIS", 1030, null))],
+      {},
+      {},
+      stopIndex(stop("NRW", undefined), stop("DIS", undefined))
+    );
+
+    expect(timetable.stopIds).toEqual(["NRW", "DIS"]);
+  });
+
+  it("stops walking rather than following a parent that is not in the feed", () => {
+    const timetable = createTimetable(
+      [t(st("9100NRCH4", null, 1000), st("910GDISS", 1030, null))],
+      {},
+      {},
+      stopIndex(stop("9100NRCH4", "NRW", 0, "910GNRCH"), stop("910GDISS", "DIS", 1))
+    );
+
+    expect(timetable.stopIds).toEqual(["NRW", "DIS"]);
+  });
+
+  it("rejects two stations sharing a code, which would plan them as one place", () => {
+    const stops = stopIndex(stop("910GNRCH", "NRW", 1), stop("910GNRWICH", "NRW", 1));
+
+    expect(() => createTimetable([], {}, {}, stops))
+      .toThrow(/910GNRCH and 910GNRWICH both have the stop_code NRW/);
+  });
+
+  it("allows the platforms of a station to share its code", () => {
+    const stops = stopIndex(
+      stop("910GNRCH", "NRW", 1),
+      stop("9100NRCH4", "NRW", 0, "910GNRCH"),
+      stop("9100NRCH5", "NRW", 0, "910GNRCH")
+    );
+
+    expect(() => createTimetable([], {}, {}, stops)).not.toThrow();
+  });
+
+  it("keeps only the calls a passenger can use, and the rest as allStopTimes", () => {
+    const passing = st("PAS", 1015, 1015);
+    passing.pickUp = false;
+    passing.dropOff = false;
+
+    const timetable = createTimetable(
+      [t(st("NRW", null, 1000), passing, st("DIS", 1030, null))],
+      {},
+      {},
+      {}
+    );
+
+    expect(timetable.stopIds).toEqual(["NRW", "DIS"]);
+    expect(timetable.routeTrips[0][0].allStopTimes?.map(s => s.stop)).toEqual(["NRW", "PAS", "DIS"]);
+  });
+
+  it("drops a trip that cannot be both boarded and alighted", () => {
+    const timetable = createTimetable(
+      [t(st("NRW", null, 1000), st("DIS", 1030, null)), t(st("NRW", null, 1000))],
+      {},
+      {},
+      {}
+    );
+
+    expect(timetable.routeTrips.length).toBe(1);
+    expect(timetable.routeTrips[0].length).toBe(1);
+  });
+
+  it("moves transfers and interchange onto the station", () => {
+    const timetable = createTimetable(
+      [t(st("9100NRCH4", null, 1000), st("910GDISS", 1030, null))],
+      { "9100NRCH4": [tf("9100NRCH4", "910GDISS", 300)] },
+      { "910GNRCH": 600 },
+      stopIndex(
+        stop("910GNRCH", "NRW", 1),
+        stop("9100NRCH4", "NRW", 0, "910GNRCH"),
+        stop("910GDISS", "DIS", 1)
+      )
+    );
+
+    const from = timetable.stopIndex.get("NRW") as number;
+
+    expect(timetable.interchange[from]).toBe(600);
+    expect(timetable.transfers[from][0].destination).toBe(timetable.stopIndex.get("DIS"));
+  });
+
+  it("drops a transfer between two platforms of one station", () => {
+    const timetable = createTimetable(
+      [t(st("9100NRCH4", null, 1000), st("910GDISS", 1030, null))],
+      { "9100NRCH4": [tf("9100NRCH4", "9100NRCH5", 300)] },
+      {},
+      stopIndex(
+        stop("910GNRCH", "NRW", 1),
+        stop("9100NRCH4", "NRW", 0, "910GNRCH"),
+        stop("9100NRCH5", "NRW", 0, "910GNRCH"),
+        stop("910GDISS", "DIS", 1)
+      )
+    );
+
+    expect(timetable.transfers[timetable.stopIndex.get("NRW") as number]).toEqual([]);
+  });
+
+  it("gives the same result when the same trips are used twice", () => {
+    const trips = [t(st("9100NRCH4", null, 1000), st("9100DISS1", 1030, null))];
+    const stops = stopIndex(
+      stop("910GNRCH", "NRW", 1),
+      stop("9100NRCH4", "NRW", 0, "910GNRCH"),
+      stop("910GDISS", "DIS", 1),
+      stop("9100DISS1", "DIS", 0, "910GDISS")
+    );
+
+    const once = createTimetable(trips, {}, {}, stops);
+    const twice = createTimetable(trips, {}, {}, stops);
+
+    expect(twice.stopIds).toEqual(once.stopIds);
+    expect(twice.routeTrips[0][0].stopTimes.map(s => s.platformStop))
+      .toEqual(["9100NRCH4", "9100DISS1"]);
   });
 
 });
