@@ -92,6 +92,48 @@ describe("DepartAfterQuery", () => {
     ]);
   });
 
+  it("does not board at a stop the route only sets down at", () => {
+    const trips = [
+      // B is set down only, so the only way onto this route is at A
+      t(
+        st("A", null, 600),
+        st("B", 700, null),
+        st("C", 800, null)
+      ),
+      t(
+        st("X", null, 800),
+        st("A", 900, null)
+      ),
+      t(
+        st("X", null, 810),
+        st("B", 950, null)
+      ),
+      t(
+        st("A", null, 1000),
+        st("B", 1100, null),
+        st("C", 1200, null)
+      )
+    ];
+
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const query = new DepartAfterQuery(raptor, journeyFactory);
+    const result = query.plan("X", "C", new Date("2018-10-16"), 700);
+
+    setDefaultTrip(result);
+
+    // reaching B at 950 must not let the journey join the 1000 from A there, it has to board at A
+    expect(result).toEqual([
+      j([
+        st("X", null, 800),
+        st("A", 900, null)
+      ], [
+        st("A", null, 1000),
+        st("B", 1100, null),
+        st("C", 1200, null)
+      ])
+    ]);
+  });
+
   it("does not return journeys that cannot be made", () => {
     const trips = [
       t(

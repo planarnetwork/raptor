@@ -49,7 +49,7 @@ export interface Timetable {
   /** Stop index to stop id, the inverse of stopIndex. Its length is the number of stops */
   stopIds: StopID[];
 
-  /** Bounds of each route's slice of routeStops and dropOff. Its length is the number of routes + 1 */
+  /** Bounds of each route's slice of routeStops, dropOff and pickUp. Its length is the number of routes + 1 */
   routeStopOffsets: Int32Array;
   /** Concatenated stop sequences of every route */
   routeStops: Int32Array;
@@ -58,6 +58,8 @@ export interface Timetable {
    * of the route signature, so every trip on a route shares this pattern.
    */
   dropOff: Uint8Array;
+  /** Parallel to routeStops, 1 where the route picks passengers up */
+  pickUp: Uint8Array;
 
   /** Offset of each route's slice of arrivals and departures. Its length is the number of routes + 1 */
   stopTimesBase: Int32Array;
@@ -225,6 +227,7 @@ export function createTimetable(
 
   const routeStops = new Int32Array(routeStopOffsets[numRoutes]);
   const dropOff = new Uint8Array(routeStopOffsets[numRoutes]);
+  const pickUp = new Uint8Array(routeStopOffsets[numRoutes]);
   const arrivals = new Int32Array(stopTimesBase[numRoutes]);
   const departures = new Int32Array(stopTimesBase[numRoutes]);
 
@@ -237,6 +240,7 @@ export function createTimetable(
       routeStops[stopsBase + p] = stops[p];
       // set down is part of the route signature, so any trip on the route gives the same answer
       dropOff[stopsBase + p] = trips[0].stopTimes[p].dropOff ? 1 : 0;
+      pickUp[stopsBase + p] = trips[0].stopTimes[p].pickUp ? 1 : 0;
     }
 
     for (let t = 0; t < trips.length; t++) {
@@ -295,6 +299,7 @@ export function createTimetable(
     routeStopOffsets,
     routeStops,
     dropOff,
+    pickUp,
     stopTimesBase,
     arrivals,
     departures,

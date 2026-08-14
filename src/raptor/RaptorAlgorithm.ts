@@ -39,7 +39,7 @@ export class RaptorAlgorithm {
 
   private scanRoutes(results: ScanResults, routeScanner: RouteScanner, markedStops: StopIdx[]): void {
     const {
-      arrivals, dropOff, interchange, routeStopOffsets, routeStops, routeTrips, stopTimesBase
+      arrivals, dropOff, interchange, pickUp, routeStopOffsets, routeStops, routeTrips, stopTimesBase
     } = this.timetable;
 
     for (const [route, startPosition] of buildQueue(this.timetable, markedStops)) {
@@ -61,7 +61,9 @@ export class RaptorAlgorithm {
           if (dropOff[stopsBase + pi] === 1 && arrival < results.bestArrival(stop)) {
             results.setTrip(routeTrips[route][trip], boardingPoint, pi, stop, arrival);
           }
-          else if (previousArrival !== NOT_REACHED && previousArrival < arrival) {
+          // reaching the stop earlier by other means may make an earlier trip on this route
+          // catchable, but only where the route picks passengers up
+          else if (pickUp[stopsBase + pi] === 1 && previousArrival !== NOT_REACHED && previousArrival < arrival) {
             const newTrip = routeScanner.getTrip(route, pi, previousArrival);
 
             if (newTrip !== NO_TRIP) {
@@ -71,7 +73,7 @@ export class RaptorAlgorithm {
             }
           }
         }
-        else if (previousArrival !== NOT_REACHED) {
+        else if (pickUp[stopsBase + pi] === 1 && previousArrival !== NOT_REACHED) {
           const newTrip = routeScanner.getTrip(route, pi, previousArrival);
 
           if (newTrip !== NO_TRIP) {
