@@ -18,7 +18,7 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
     const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
 
     expect(query.plan(["A"], ["Z"], new Date("2019-04-18"), 900)).toEqual([]);
@@ -33,7 +33,7 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
     const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
     const result = query.plan(["A"], ["Z", "C"], new Date("2019-04-18"), 900);
 
@@ -57,7 +57,7 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
     const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
 
     expect(query.plan(["Z"], ["C"], new Date("2019-04-18"), 900)).toEqual([]);
@@ -77,7 +77,7 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
     const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
     const result = query.plan(["A"], ["C", "D"], new Date("2019-04-18"), 900);
 
@@ -111,7 +111,7 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {});
+    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
     const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
     const result = query.plan(["A", "B"], ["C", "D"], new Date("2019-04-18"), 900);
 

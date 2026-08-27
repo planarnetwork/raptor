@@ -7,18 +7,19 @@ import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFi
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 async function run() {
-  const filename = process.argv[2] || "/home/linus/Downloads/gb-rail-latest.zip";
+  const filename = process.argv[2] || "gtfs.zip";
   console.log(`Loading ${filename}`);
   console.time("initial load");
   const stream = fs.createReadStream(filename);
-  const [trips, transfers, interchange] = await loadGTFS(stream);
+  const [trips, transfers, interchange, stops] = await loadGTFS(stream);
   console.timeEnd("initial load");
 
   console.time("pre-processing");
   const raptor = RaptorAlgorithmFactory.create(
     trips,
     transfers,
-    interchange
+    interchange,
+    stops
   );
 
   const query = new GroupStationDepartAfterQuery(

@@ -36,9 +36,13 @@ async function getStops(filename: string): Promise<StopID[]> {
 
     fs.createReadStream(filename)
         .pipe(gtfs({ raw: true }))
+        // only the stations, and named the way the algorithm names them. A feed that identifies
+        // platforms individually gives them the same timezone, so they are excluded by having a
+        // parent rather than by their timezone
         .on("data", entity => entity.type === "stop"
             && entity.data.stop_timezone === "Europe/London"
-            && stops.push(entity.data.stop_id)
+            && entity.data.parent_station === undefined
+            && stops.push(entity.data.stop_code ?? entity.data.stop_id)
         )
         .on("error", e => reject(e))
         .on("end", () => resolve(stops));

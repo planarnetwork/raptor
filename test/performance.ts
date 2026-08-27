@@ -64,11 +64,11 @@ const queries = [
 async function run() {
   console.time("initial load");
   const stream = fs.createReadStream("gtfs.zip");
-  const [trips, transfers, interchange] = await loadGTFS(stream);
+  const [trips, transfers, interchange, stops] = await loadGTFS(stream);
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange);
+  const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, stops);
   const query = new GroupStationDepartAfterQuery(raptor, new JourneyFactory());
   console.timeEnd("pre-processing");
 
