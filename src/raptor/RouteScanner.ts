@@ -1,5 +1,5 @@
 import type { DayOfWeek, Time } from "../gtfs/GTFS";
-import type { RouteIdx, Timetable } from "./Timetable";
+import type { RouteIdx, Routes } from "./Timetable";
 
 /**
  * No trip on the route is reachable.
@@ -15,11 +15,11 @@ export class RouteScanner {
   private readonly routeScanPosition: Int32Array;
 
   constructor(
-    private readonly timetable: Timetable,
+    private readonly routes: Routes,
     private readonly date: number,
     private readonly dow: DayOfWeek,
   ) {
-    this.routeScanPosition = Int32Array.from(timetable.routeTrips, trips => trips.length - 1);
+    this.routeScanPosition = Int32Array.from(routes.trips, trips => trips.length - 1);
   }
 
   /**
@@ -27,8 +27,8 @@ export class RouteScanner {
    * or NO_TRIP if there isn't one.
    */
   public getTrip(route: RouteIdx, position: number, time: Time): number {
-    const { departures, routeStopOffsets, routeTrips, stopTimesBase } = this.timetable;
-    const numStops = routeStopOffsets[route + 1] - routeStopOffsets[route];
+    const { departures, stopOffsets, trips: routeTrips, stopTimesBase } = this.routes;
+    const numStops = stopOffsets[route + 1] - stopOffsets[route];
     const trips = routeTrips[route];
     const base = stopTimesBase[route] + position;
 

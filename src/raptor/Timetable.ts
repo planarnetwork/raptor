@@ -8,12 +8,16 @@ import type { Interchange, TransfersByOrigin } from "./RaptorAlgorithm";
  */
 export const NOT_REACHED = 0x7fffffff;
 
+/** Bits of Routes.flags */
+export const PICK_UP = 1;
+export const DROP_OFF = 2;
+
 const DEFAULT_INTERCHANGE_TIME = 0;
 const OVERTAKING_ROUTE_SUFFIX = "|overtakes";
 
 /**
  * Normalise the feed, group the trips into routes and flatten the result into the global arrays
- * above.
+ * below.
  *
  * The trips of a route are laid out in departure order and the scan relies on it to walk backwards
  * to the earliest reachable trip, so they are sorted here rather than by the caller.
@@ -36,32 +40,31 @@ export function createTimetable(
 
   // size each route's slice of the flat arrays. Both are offsets arrays, so the last entry is the
   // total length of the array being sliced.
-  const routeStopOffsets = new Int32Array(numRoutes + 1);
+  const stopOffsets = new Int32Array(numRoutes + 1);
   const stopTimesBase = new Int32Array(numRoutes + 1);
 
   for (let route = 0; route < numRoutes; route++) {
     const stopsInRoute = routeStopSeq[route].length;
 
-    routeStopOffsets[route + 1] = routeStopOffsets[route] + stopsInRoute;
+    stopOffsets[route + 1] = stopOffsets[route] + stopsInRoute;
     stopTimesBase[route + 1] = stopTimesBase[route] + routeTrips[route].length * stopsInRoute;
   }
 
-  const routeStops = new Int32Array(routeStopOffsets[numRoutes]);
-  const dropOff = new Uint8Array(routeStopOffsets[numRoutes]);
-  const pickUp = new Uint8Array(routeStopOffsets[numRoutes]);
+  const routeStops = new Int32Array(stopOffsets[numRoutes]);
+  const flags = new Uint8Array(stopOffsets[numRoutes]);
   const arrivals = new Int32Array(stopTimesBase[numRoutes]);
   const departures = new Int32Array(stopTimesBase[numRoutes]);
 
   for (let route = 0; route < numRoutes; route++) {
     const stops = routeStopSeq[route];
     const trips = routeTrips[route];
-    const stopsBase = routeStopOffsets[route];
+    const stopsBase = stopOffsets[route];
 
     for (let p = 0; p < stops.length; p++) {
       routeStops[stopsBase + p] = stops[p];
-      // set down is part of the route signature, so any trip on the route gives the same answer
-      dropOff[stopsBase + p] = trips[0].stopTimes[p].dropOff ? 1 : 0;
-      pickUp[stopsBase + p] = trips[0].stopTimes[p].pickUp ? 1 : 0;
+      // pick up and set down are part of the route signature, so any trip gives the same answer
+      flags[stopsBase + p] =
+        (trips[0].stopTimes[p].pickUp ? PICK_UP : 0) | (trips[0].stopTimes[p].dropOff ? DROP_OFF : 0);
     }
 
     for (let t = 0; t < trips.length; t++) {
@@ -76,21 +79,21 @@ export function createTimetable(
   }
 
   // invert routeStops to get the routes picking up at each stop
-  const stopRouteOffsets = new Int32Array(numStops + 1);
+  const byStopOffsets = new Int32Array(numStops + 1);
 
   for (let stop = 0; stop < numStops; stop++) {
-    stopRouteOffsets[stop + 1] = stopRouteOffsets[stop] + stopRoutePositions[stop].size;
+    byStopOffsets[stop + 1] = byStopOffsets[stop] + stopRoutePositions[stop].size;
   }
 
-  const stopRoutes = new Int32Array(stopRouteOffsets[numStops]);
-  const stopRoutePos = new Int32Array(stopRouteOffsets[numStops]);
+  const byStopRoute = new Int32Array(byStopOffsets[numStops]);
+  const byStopPosition = new Int32Array(byStopOffsets[numStops]);
 
   for (let stop = 0; stop < numStops; stop++) {
-    let offset = stopRouteOffsets[stop];
+    let offset = byStopOffsets[stop];
 
     for (const [route, position] of stopRoutePositions[stop]) {
-      stopRoutes[offset] = route;
-      stopRoutePos[offset] = position;
+      byStopRoute[offset] = route;
+      byStopPosition[offset] = position;
       offset++;
     }
   }
@@ -117,17 +120,20 @@ export function createTimetable(
   return {
     stopIndex,
     stopIds,
-    routeStopOffsets,
-    routeStops,
-    dropOff,
-    pickUp,
-    stopTimesBase,
-    arrivals,
-    departures,
-    routeTrips,
-    stopRouteOffsets,
-    stopRoutes,
-    stopRoutePos,
+    routes: {
+      stopOffsets,
+      stops: routeStops,
+      flags,
+      stopTimesBase,
+      arrivals,
+      departures,
+      trips: routeTrips
+    },
+    routesByStop: {
+      offsets: byStopOffsets,
+      route: byStopRoute,
+      position: byStopPosition
+    },
     interchange: interchangeTimes,
     transfers: indexedTransfers
   };
@@ -250,18 +256,48 @@ export interface IndexedTransfer {
 }
 
 /**
- * The timetable in the "global array" form described by the Raptor paper: every stop and route is
- * a dense integer index, and everything the scan reads is a flat typed array indexed by those
- * integers. This removes the string hashing and pointer chasing from the hot path.
+ * Everything the scan reads about a route, in the "global array" form described by the Raptor
+ * paper. Variable length data is concatenated into a single flat array, with an offsets array
+ * giving the bounds of each slice, so route `r` owns `[stopOffsets[r], stopOffsets[r + 1])` of
+ * stops and flags:
  *
- * Variable length data is concatenated into a single flat array, with an offsets array giving the
- * bounds of each slice. Route `r` owns `[routeStopOffsets[r], routeStopOffsets[r + 1])` of
- * routeStops, so the offsets array has one more entry than there are routes and the length of a
- * slice is the gap between two offsets:
- *
- *   stopsInRoute                     routeStopOffsets[r + 1] - routeStopOffsets[r]
- *   stop at position p of route r    routeStops[routeStopOffsets[r] + p]
+ *   stopsInRoute                     stopOffsets[r + 1] - stopOffsets[r]
+ *   stop at position p of route r    stops[stopOffsets[r] + p]
  *   arrival of trip t at position p  arrivals[stopTimesBase[r] + t * stopsInRoute + p]
+ */
+export interface Routes {
+  /** Bounds of each route's slice of stops and flags. Its length is the number of routes + 1 */
+  stopOffsets: Int32Array;
+  /** Concatenated stop sequences of every route */
+  stops: Int32Array;
+  /** Parallel to stops, the PICK_UP and DROP_OFF bits of each call */
+  flags: Uint8Array;
+  /** Offset of each route's slice of arrivals and departures. Its length is the number of routes + 1 */
+  stopTimesBase: Int32Array;
+  /** Concatenated trip-major arrival times of every route */
+  arrivals: Int32Array;
+  /** Concatenated trip-major departure times of every route */
+  departures: Int32Array;
+  /** Each route's trips in departure order, for the calendar check and journey reconstruction */
+  trips: Trip[][];
+}
+
+/**
+ * The routes picking up at each stop, which is what turns a set of marked stops into a queue of
+ * routes to scan. Stop `s` owns `[offsets[s], offsets[s + 1])` of route and position.
+ */
+export interface RoutesByStop {
+  /** Bounds of each stop's slice. Its length is the number of stops + 1 */
+  offsets: Int32Array;
+  /** Concatenated lists of the routes picking up at each stop */
+  route: Int32Array;
+  /** Parallel to route, the position of that stop within that route */
+  position: Int32Array;
+}
+
+/**
+ * Everything the algorithm needs to scan, with every stop, route and trip a dense integer index
+ * into a flat typed array. This removes the string hashing and pointer chasing from the hot path.
  *
  * The number of stops and routes is the length of the arrays holding them, so it is not stored
  * separately.
@@ -271,36 +307,8 @@ export interface Timetable {
   stopIndex: Map<StopID, StopIdx>;
   /** Stop index to stop id, the inverse of stopIndex. Its length is the number of stops */
   stopIds: StopID[];
-
-  /** Bounds of each route's slice of routeStops, dropOff and pickUp. Its length is the number of routes + 1 */
-  routeStopOffsets: Int32Array;
-  /** Concatenated stop sequences of every route */
-  routeStops: Int32Array;
-  /**
-   * Parallel to routeStops, 1 where the route sets down passengers. Pick up and set down are part
-   * of the route signature, so every trip on a route shares this pattern.
-   */
-  dropOff: Uint8Array;
-  /** Parallel to routeStops, 1 where the route picks up */
-  pickUp: Uint8Array;
-
-  /** Offset of each route's slice of arrivals and departures. Its length is the number of routes + 1 */
-  stopTimesBase: Int32Array;
-  /** Concatenated trip-major arrival times of every route */
-  arrivals: Int32Array;
-  /** Concatenated trip-major departure times of every route */
-  departures: Int32Array;
-
-  /** Each route's trips in departure order, for the calendar check and journey reconstruction */
-  routeTrips: Trip[][];
-
-  /** Bounds of each stop's slice of stopRoutes and stopRoutePos. Its length is the number of stops + 1 */
-  stopRouteOffsets: Int32Array;
-  /** Concatenated lists of the routes picking up at each stop */
-  stopRoutes: Int32Array;
-  /** Parallel to stopRoutes, the position of that stop within that route */
-  stopRoutePos: Int32Array;
-
+  routes: Routes;
+  routesByStop: RoutesByStop;
   /** Minimum interchange time at each stop */
   interchange: Int32Array;
   /** Transfers available from each stop */

@@ -2,7 +2,7 @@ import type { DayOfWeek, StopID, Time, Transfer } from "../gtfs/GTFS";
 import { buildQueue } from "./Queue";
 import { NO_TRIP, RouteScanner } from "./RouteScanner";
 import { type Arrivals, type ConnectionIndex, ScanResults } from "./ScanResults";
-import { NOT_REACHED, type StopIdx, type Timetable } from "./Timetable";
+import { DROP_OFF, NOT_REACHED, PICK_UP, type StopIdx, type Timetable } from "./Timetable";
 
 /**
  * Implementation of the Raptor journey planning algorithm
@@ -17,7 +17,7 @@ export class RaptorAlgorithm {
    * Perform a plan of the routes at a given time and return the resulting kConnections index
    */
   public scan(origins: StopTimes, date: number, dow: DayOfWeek): [ConnectionIndex, Arrivals] {
-    const routeScanner = new RouteScanner(this.timetable, date, dow);
+    const routeScanner = new RouteScanner(this.timetable.routes, date, dow);
     const results = new ScanResults(this.timetable, origins);
     const stopIndex = this.timetable.stopIndex;
 
@@ -38,13 +38,12 @@ export class RaptorAlgorithm {
   }
 
   private scanRoutes(results: ScanResults, routeScanner: RouteScanner, markedStops: StopIdx[]): void {
-    const {
-      arrivals, dropOff, interchange, pickUp, routeStopOffsets, routeStops, routeTrips, stopTimesBase
-    } = this.timetable;
+    const { interchange, routes } = this.timetable;
+    const { arrivals, flags, stopOffsets, stops, stopTimesBase, trips: routeTrips } = routes;
 
-    for (const [route, startPosition] of buildQueue(this.timetable, markedStops)) {
-      const stopsBase = routeStopOffsets[route];
-      const numStops = routeStopOffsets[route + 1] - stopsBase;
+    for (const [route, startPosition] of buildQueue(this.timetable.routesByStop, markedStops)) {
+      const stopsBase = stopOffsets[route];
+      const numStops = stopOffsets[route + 1] - stopsBase;
       const timesBase = stopTimesBase[route];
 
       let boardingPoint = -1;
@@ -52,18 +51,18 @@ export class RaptorAlgorithm {
       let tripBase = -1;
 
       for (let pi = startPosition; pi < numStops; pi++) {
-        const stop = routeStops[stopsBase + pi];
+        const stop = stops[stopsBase + pi];
         const previousArrival = results.previousArrival(stop);
 
         if (trip !== NO_TRIP) {
           const arrival = arrivals[tripBase + pi] + interchange[stop];
 
-          if (dropOff[stopsBase + pi] === 1 && arrival < results.bestArrival(stop)) {
+          if ((flags[stopsBase + pi] & DROP_OFF) !== 0 && arrival < results.bestArrival(stop)) {
             results.setTrip(routeTrips[route][trip], boardingPoint, pi, stop, arrival);
           }
           // reaching the stop earlier by other means may make an earlier trip on this route
           // catchable, but only where the route picks passengers up
-          else if (pickUp[stopsBase + pi] === 1 && previousArrival !== NOT_REACHED && previousArrival < arrival) {
+          else if ((flags[stopsBase + pi] & PICK_UP) !== 0 && previousArrival !== NOT_REACHED && previousArrival < arrival) {
             const newTrip = routeScanner.getTrip(route, pi, previousArrival);
 
             if (newTrip !== NO_TRIP) {
@@ -73,7 +72,7 @@ export class RaptorAlgorithm {
             }
           }
         }
-        else if (pickUp[stopsBase + pi] === 1 && previousArrival !== NOT_REACHED) {
+        else if ((flags[stopsBase + pi] & PICK_UP) !== 0 && previousArrival !== NOT_REACHED) {
           const newTrip = routeScanner.getTrip(route, pi, previousArrival);
 
           if (newTrip !== NO_TRIP) {

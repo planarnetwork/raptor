@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildQueue } from "../../../src/raptor/Queue";
-import type { Timetable } from "../../../src/raptor/Timetable";
+import type { RoutesByStop } from "../../../src/raptor/Timetable";
 
 const StopA = 0;
 const StopB = 1;
@@ -9,10 +9,9 @@ const RouteB = 1;
 const RouteC = 2;
 
 /**
- * Build the part of the timetable the queue factory reads: for each stop, the routes picking up
- * there and the position of that stop within each of those routes.
+ * For each stop, the routes picking up there and the position of that stop within each of them.
  */
-function timetable(...stops: [route: number, position: number][][]): Timetable {
+function routesByStop(...stops: [route: number, position: number][][]): RoutesByStop {
   const offsets: number[] = [];
   const routes: number[] = [];
   const positions: number[] = [];
@@ -29,16 +28,16 @@ function timetable(...stops: [route: number, position: number][][]): Timetable {
   offsets.push(routes.length);
 
   return {
-    stopRouteOffsets: Int32Array.from(offsets),
-    stopRoutes: Int32Array.from(routes),
-    stopRoutePos: Int32Array.from(positions)
-  } as unknown as Timetable;
+    offsets: Int32Array.from(offsets),
+    route: Int32Array.from(routes),
+    position: Int32Array.from(positions)
+  };
 }
 
 describe("buildQueue", () => {
 
   it("enqueues stops", () => {
-    const actual = buildQueue(timetable(
+    const actual = buildQueue(routesByStop(
       [[RouteA, 1], [RouteB, 2]],
       [[RouteB, 1], [RouteC, 1]]
     ), [StopA, StopB]);
@@ -48,7 +47,7 @@ describe("buildQueue", () => {
   });
 
   it("picks the earliest stop on the route", () => {
-    const actual = buildQueue(timetable(
+    const actual = buildQueue(routesByStop(
       [[RouteA, 1], [RouteB, 1]],
       [[RouteB, 2], [RouteC, 1]]
     ), [StopB, StopA]);

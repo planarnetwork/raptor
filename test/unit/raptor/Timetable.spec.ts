@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTimetable } from "../../../src/raptor/Timetable";
+import { createTimetable, DROP_OFF, PICK_UP } from "../../../src/raptor/Timetable";
 import { st, t, tf } from "../util";
 import type { Stop, StopID, StopIndex } from "../../../src/gtfs/GTFS";
 
@@ -38,9 +38,9 @@ describe("Timetable", () => {
       t(st("A", null, 2000), st("B", 2100, null))
     ], {}, {}, {});
 
-    expect(timetable.routeTrips.length).toBe(1);
-    expect(timetable.routeTrips[0].length).toBe(2);
-    expect(timetable.routeStopOffsets[1] - timetable.routeStopOffsets[0]).toBe(2);
+    expect(timetable.routes.trips.length).toBe(1);
+    expect(timetable.routes.trips[0].length).toBe(2);
+    expect(timetable.routes.stopOffsets[1] - timetable.routes.stopOffsets[0]).toBe(2);
   });
 
   it("separates trips calling at different stops into different routes", () => {
@@ -49,7 +49,7 @@ describe("Timetable", () => {
       t(st("A", null, 2000), st("C", 2100, null))
     ], {}, {}, {});
 
-    expect(timetable.routeTrips.length).toBe(2);
+    expect(timetable.routes.trips.length).toBe(2);
   });
 
   it("separates an overtaking trip into its own route", () => {
@@ -59,9 +59,9 @@ describe("Timetable", () => {
       t(st("A", null, 2000), st("B", 2500, null))
     ], {}, {}, {});
 
-    expect(timetable.routeTrips.length).toBe(2);
-    expect(timetable.routeTrips[0].length).toBe(1);
-    expect(timetable.routeTrips[1].length).toBe(1);
+    expect(timetable.routes.trips.length).toBe(2);
+    expect(timetable.routes.trips[0].length).toBe(1);
+    expect(timetable.routes.trips[1].length).toBe(1);
   });
 
   it("lays the stop times out trip-major within each route", () => {
@@ -70,8 +70,8 @@ describe("Timetable", () => {
       t(st("A", null, 2000), st("B", 2100, 2150), st("C", 2200, null))
     ], {}, {}, {});
 
-    const { arrivals, departures, routeStopOffsets, stopTimesBase } = timetable;
-    const numStops = routeStopOffsets[1] - routeStopOffsets[0];
+    const { arrivals, departures, stopOffsets, stopTimesBase } = timetable.routes;
+    const numStops = stopOffsets[1] - stopOffsets[0];
 
     expect(numStops).toBe(3);
     expect(Array.from(arrivals)).toEqual([1000, 1100, 1200, 2000, 2100, 2200]);
@@ -81,13 +81,13 @@ describe("Timetable", () => {
     expect(arrivals[stopTimesBase[0] + 1 * numStops + 2]).toBe(2200);
   });
 
-  it("records where each route sets down", () => {
+  it("records where each route picks up and sets down", () => {
     const timetable = createTimetable([
       t(st("A", null, 1000), st("B", null, 1150), st("C", 1200, null))
     ], {}, {}, {});
 
-    expect(Array.from(timetable.routeStops)).toEqual([0, 1, 2]);
-    expect(Array.from(timetable.dropOff)).toEqual([0, 0, 1]);
+    expect(Array.from(timetable.routes.stops)).toEqual([0, 1, 2]);
+    expect(Array.from(timetable.routes.flags)).toEqual([PICK_UP, PICK_UP, DROP_OFF]);
   });
 
   it("indexes the routes picking up at each stop, and where in the route they call", () => {
@@ -97,12 +97,12 @@ describe("Timetable", () => {
     ], {}, {}, {});
 
     const routesAt = (stop: number) => {
-      const base = timetable.stopRouteOffsets[stop];
-      const count = timetable.stopRouteOffsets[stop + 1] - base;
+      const base = timetable.routesByStop.offsets[stop];
+      const count = timetable.routesByStop.offsets[stop + 1] - base;
 
       return Array.from({ length: count }, (_, i) => [
-        timetable.stopRoutes[base + i],
-        timetable.stopRoutePos[base + i]
+        timetable.routesByStop.route[base + i],
+        timetable.routesByStop.position[base + i]
       ]);
     };
 
@@ -121,11 +121,11 @@ describe("Timetable", () => {
     ], {}, {}, {});
 
     const stop = timetable.stopIndex.get("A") as number;
-    const base = timetable.stopRouteOffsets[stop];
+    const base = timetable.routesByStop.offsets[stop];
 
-    expect(timetable.stopRouteOffsets[stop + 1] - base).toBe(1);
-    expect(timetable.stopRoutes[base]).toBe(0);
-    expect(timetable.stopRoutePos[base]).toBe(0);
+    expect(timetable.routesByStop.offsets[stop + 1] - base).toBe(1);
+    expect(timetable.routesByStop.route[base]).toBe(0);
+    expect(timetable.routesByStop.position[base]).toBe(0);
   });
 
   it("resolves transfer destinations to stop indexes", () => {
@@ -199,7 +199,7 @@ describe("Timetable", () => {
       )
     );
 
-    expect(timetable.routeTrips[0][0].stopTimes.map(s => s.platformStop))
+    expect(timetable.routes.trips[0][0].stopTimes.map(s => s.platformStop))
       .toEqual(["9100NRCH4", "9100DISS1"]);
   });
 
@@ -271,7 +271,7 @@ describe("Timetable", () => {
     );
 
     expect(timetable.stopIds).toEqual(["NRW", "DIS"]);
-    expect(timetable.routeTrips[0][0].allStopTimes?.map(s => s.stop)).toEqual(["NRW", "PAS", "DIS"]);
+    expect(timetable.routes.trips[0][0].allStopTimes?.map(s => s.stop)).toEqual(["NRW", "PAS", "DIS"]);
   });
 
   it("drops a trip that cannot be both boarded and alighted", () => {
@@ -282,8 +282,8 @@ describe("Timetable", () => {
       {}
     );
 
-    expect(timetable.routeTrips.length).toBe(1);
-    expect(timetable.routeTrips[0].length).toBe(1);
+    expect(timetable.routes.trips.length).toBe(1);
+    expect(timetable.routes.trips[0].length).toBe(1);
   });
 
   it("moves transfers and interchange onto the station", () => {
@@ -333,7 +333,7 @@ describe("Timetable", () => {
     const twice = createTimetable(trips, {}, {}, stops);
 
     expect(twice.stopIds).toEqual(once.stopIds);
-    expect(twice.routeTrips[0][0].stopTimes.map(s => s.platformStop))
+    expect(twice.routes.trips[0][0].stopTimes.map(s => s.platformStop))
       .toEqual(["9100NRCH4", "9100DISS1"]);
   });
 
