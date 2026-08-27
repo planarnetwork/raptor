@@ -9,6 +9,15 @@ describe("GroupStationDepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();
   const filters = [new MultipleCriteriaFilter()];
 
+  it("rejects a date the timetable has no calendar for", () => {
+    const trips = [t(st("A", null, 1000), st("B", 1030, null))];
+    const raptor = RaptorAlgorithmFactory.create(feed(trips));
+    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+
+    expect(() => query.plan(["A"], ["B"], new Date("2031-04-18"), 900))
+      .toThrow(/covers 20180101 to 20201231, so it cannot plan for 20310418/);
+  });
+
   it("returns no results for a destination the feed has no stop for", () => {
     const trips = [
       t(

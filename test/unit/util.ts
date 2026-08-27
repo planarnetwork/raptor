@@ -27,7 +27,8 @@ export function feed(
   interchange: Interchange = {},
   stops: StopIndex = {}
 ): GTFSFeed {
-  return { trips, transfers, interchange, stops };
+  // wide enough for every date the specs plan for
+  return { trips, transfers, interchange, stops, feedInfo: { startDate: 20180101, endDate: 20201231 } };
 }
 
 let tripId = 0;

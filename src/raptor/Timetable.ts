@@ -1,7 +1,8 @@
 import type { StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
 import type { GTFSFeed } from "../gtfs/GTFSLoader";
+import { type Calendar, createCalendar, getCalendarWindow } from "./Calendar";
 import { normalise } from "./Normalise";
-import type { Interchange, TransfersByOrigin } from "./RaptorAlgorithm";
+import type { TransfersByOrigin } from "./RaptorAlgorithm";
 
 /**
  * Arrival time used for a stop that has not been reached. Chosen to be larger than any real
@@ -38,12 +39,14 @@ export function createTimetable(feed: GTFSFeed): Timetable {
   // total length of the array being sliced.
   const stopOffsets = new Int32Array(numRoutes + 1);
   const stopTimesBase = new Int32Array(numRoutes + 1);
+  const tripOffsets = new Int32Array(numRoutes + 1);
 
   for (let route = 0; route < numRoutes; route++) {
     const stopsInRoute = routeStopSeq[route].length;
 
     stopOffsets[route + 1] = stopOffsets[route] + stopsInRoute;
     stopTimesBase[route + 1] = stopTimesBase[route] + routeTrips[route].length * stopsInRoute;
+    tripOffsets[route + 1] = tripOffsets[route] + routeTrips[route].length;
   }
 
   const routeStops = new Int32Array(stopOffsets[numRoutes]);
@@ -94,6 +97,9 @@ export function createTimetable(feed: GTFSFeed): Timetable {
     }
   }
 
+  const [startDate, endDate] = getCalendarWindow(feed.feedInfo?.startDate, feed.feedInfo?.endDate);
+  const calendar = createCalendar(routeTrips.flat(), startDate, endDate);
+
   const interchangeTimes = new Int32Array(numStops);
 
   for (let stop = 0; stop < numStops; stop++) {
@@ -123,7 +129,9 @@ export function createTimetable(feed: GTFSFeed): Timetable {
       stopTimesBase,
       arrivals,
       departures,
-      trips: routeTrips
+      tripOffsets,
+      trips: routeTrips,
+      calendar
     },
     routesByStop: {
       offsets: byStopOffsets,
@@ -274,8 +282,12 @@ export interface Routes {
   arrivals: Int32Array;
   /** Concatenated trip-major departure times of every route */
   departures: Int32Array;
-  /** Each route's trips in departure order, for the calendar check and journey reconstruction */
+  /** Bounds of each route's trips in the global, route major trip numbering */
+  tripOffsets: Int32Array;
+  /** Each route's trips in departure order, for journey reconstruction */
   trips: Trip[][];
+  /** Which trips run on which date */
+  calendar: Calendar;
 }
 
 /**

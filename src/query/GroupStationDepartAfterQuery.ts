@@ -1,7 +1,7 @@
 import type { RaptorAlgorithm, StopTimes } from "../raptor/RaptorAlgorithm";
-import type { DayOfWeek, StopID, Time } from "../gtfs/GTFS";
+import type { StopID, Time } from "../gtfs/GTFS";
 import type { ResultsFactory } from "../results/ResultsFactory";
-import { getDateNumber } from "./DateUtil";
+import { checkCovered, getDateNumber } from "./DateUtil";
 import type { Journey } from "../results/Journey";
 import type { JourneyFilter } from "../results/filter/JourneyFilter";
 import { keyValue } from "ts-array-utils";
@@ -25,6 +25,8 @@ export class GroupStationDepartAfterQuery {
    * Plan a journey between the origin and destination set of stops on the given date and time
    */
   public plan(origins: StopID[], destinations: StopID[], date: Date, time: Time): Journey[] {
+    checkCovered(this.raptor, getDateNumber(date));
+
     // set the departure time for each origin
     const originTimes = origins.reduce(keyValue(origin => [origin, time]), {});
 
@@ -43,9 +45,7 @@ export class GroupStationDepartAfterQuery {
     const connectionIndexes: ConnectionIndex[] = [];
 
     for (let i = 0; i < this.maxSearchDays; i++) {
-      const date = getDateNumber(startDate);
-      const dayOfWeek = startDate.getDay() as DayOfWeek;
-      const [kConnections, bestArrivals] = this.raptor.scan(origins, date, dayOfWeek);
+      const [kConnections, bestArrivals] = this.raptor.scan(origins, getDateNumber(startDate));
       const results = this.getJourneysFromConnections(kConnections, connectionIndexes, destinations);
 
       if (results.length > 0) {

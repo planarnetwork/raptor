@@ -1,4 +1,5 @@
-import type { DayOfWeek, Time } from "../gtfs/GTFS";
+import type { DateNumber, Time } from "../gtfs/GTFS";
+import { dayOffset, NOT_COVERED } from "./Calendar";
 import type { RouteIdx, Routes } from "./Timetable";
 
 /**
@@ -13,13 +14,17 @@ export const NO_TRIP = -1;
 export class RouteScanner {
   /** Trip each route is scanned back from, starting at its last trip and only ever moving earlier */
   private readonly routeScanPosition: Int32Array;
+  /** The calendar's slice for the date being scanned, or an empty one outside the period it covers */
+  private readonly runsToday: Uint8Array;
 
-  constructor(
-    private readonly routes: Routes,
-    private readonly date: number,
-    private readonly dow: DayOfWeek,
-  ) {
+  constructor(private readonly routes: Routes, date: DateNumber) {
+    const calendar = routes.calendar;
+    const offset = dayOffset(calendar, date);
+
     this.routeScanPosition = Int32Array.from(routes.trips, trips => trips.length - 1);
+    this.runsToday = offset === NOT_COVERED
+      ? new Uint8Array(calendar.stride)
+      : calendar.runs.subarray(offset, offset + calendar.stride);
   }
 
   /**
@@ -27,10 +32,11 @@ export class RouteScanner {
    * or NO_TRIP if there isn't one.
    */
   public getTrip(route: RouteIdx, position: number, time: Time): number {
-    const { departures, stopOffsets, trips: routeTrips, stopTimesBase } = this.routes;
+    const { departures, stopOffsets, stopTimesBase, tripOffsets } = this.routes;
     const numStops = stopOffsets[route + 1] - stopOffsets[route];
-    const trips = routeTrips[route];
+    const firstTrip = tripOffsets[route];
     const base = stopTimesBase[route] + position;
+    const runsToday = this.runsToday;
 
     let lastFound = NO_TRIP;
 
@@ -40,8 +46,10 @@ export class RouteScanner {
       if (departures[base + i * numStops] < time) {
         break;
       }
-      // if it is reachable and the service is running that day, update the last valid trip found
-      if (trips[i].service.runsOn(this.date, this.dow)) {
+      // if it is reachable and the trip is running that day, update the last valid trip found
+      const trip = firstTrip + i;
+
+      if ((runsToday[trip >> 3] & (1 << (trip & 7))) !== 0) {
         lastFound = i;
       }
 

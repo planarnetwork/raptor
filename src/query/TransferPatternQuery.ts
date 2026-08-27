@@ -1,6 +1,6 @@
 import type { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
-import type { DayOfWeek, StopID } from "../gtfs/GTFS";
-import { getDateNumber } from "./DateUtil";
+import type { StopID } from "../gtfs/GTFS";
+import { checkCovered, getDateNumber } from "./DateUtil";
 import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";
 
 /**
@@ -19,12 +19,14 @@ export class TransferPatternQuery {
    */
   public plan(origin: StopID, dateObj: Date): TransferPatternIndex {
     const date = getDateNumber(dateObj);
-    const dayOfWeek = dateObj.getDay() as DayOfWeek;
     const results = this.resultFactory();
+
+    checkCovered(this.raptor, date);
+
     let time = 1;
 
     while (time < this.ONE_DAY) {
-      const [kConnections] = this.raptor.scan({ [origin]: time }, date, dayOfWeek);
+      const [kConnections] = this.raptor.scan({ [origin]: time }, date);
 
       time = results.add(kConnections);
     }

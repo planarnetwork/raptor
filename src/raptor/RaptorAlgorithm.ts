@@ -1,4 +1,5 @@
-import type { DayOfWeek, StopID, Time, Transfer } from "../gtfs/GTFS";
+import type { DateNumber, StopID, Time, Transfer } from "../gtfs/GTFS";
+import { dayOffset, NOT_COVERED } from "./Calendar";
 import { buildQueue } from "./Queue";
 import { NO_TRIP, RouteScanner } from "./RouteScanner";
 import { type Arrivals, type ConnectionIndex, ScanResults } from "./ScanResults";
@@ -14,10 +15,27 @@ export class RaptorAlgorithm {
   ) { }
 
   /**
+   * Whether the timetable was built with a calendar reaching the given date. Planning for a date
+   * it does not cover finds nothing, so queries check before they scan.
+   */
+  public covers(date: DateNumber): boolean {
+    return dayOffset(this.timetable.routes.calendar, date) !== NOT_COVERED;
+  }
+
+  /**
+   * The period the timetable covers
+   */
+  public get period(): [DateNumber, DateNumber] {
+    const { startDate, endDate } = this.timetable.routes.calendar;
+
+    return [startDate, endDate];
+  }
+
+  /**
    * Perform a plan of the routes at a given time and return the resulting kConnections index
    */
-  public scan(origins: StopTimes, date: number, dow: DayOfWeek): [ConnectionIndex, Arrivals] {
-    const routeScanner = new RouteScanner(this.timetable.routes, date, dow);
+  public scan(origins: StopTimes, date: DateNumber): [ConnectionIndex, Arrivals] {
+    const routeScanner = new RouteScanner(this.timetable.routes, date);
     const results = new ScanResults(this.timetable, origins);
     const stopIndex = this.timetable.stopIndex;
 
