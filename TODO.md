@@ -18,8 +18,9 @@ pre-allocated typed arrays sized by the number of stops. See `Timetable.ts`.
 walking `trip.stopTimes[pi]`, and hoists the per-route offsets out of the loop.
 
 ### 4. hasOwnProperty Optimization
-**DONE** in `RouteScanner`, which now keeps its scan positions in an `Int32Array`. `Service.ts:14`
-still uses `hasOwn`.
+**DONE** in `RouteScanner`, which now keeps its scan positions in an `Int32Array` and reads whether
+a trip runs from a bit rather than calling `Service.runsOn`. `Service.ts:14` still uses `hasOwn`,
+but only while the calendar is being built, not during a query.
 
 ### 5. String Operations
 **DONE** — routes are dense integers. The signature string is only built once per trip when the
