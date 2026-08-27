@@ -7,7 +7,7 @@ import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFi
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 async function run() {
-  const filename = process.argv[2] || "/home/linus/Downloads/gb-rail-latest.zip";
+  const filename = process.argv[2] || "gtfs.zip";
   console.log(`Loading ${filename}`);
   console.time("initial load");
   const stream = fs.createReadStream(filename);
