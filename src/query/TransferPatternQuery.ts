@@ -1,6 +1,5 @@
 import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
 import type { Network } from "../network/Network";
-import type { StopIdx } from "../network/Timetable";
 import type { StopID } from "../gtfs/GTFS";
 import { checkCovered, getDateNumber } from "./DateUtil";
 import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";
@@ -29,7 +28,12 @@ export class TransferPatternQuery {
 
     checkCovered(this.raptor, date);
 
-    const stop = this.network.stopIndex.get(origin) as StopIdx;
+    const stop = this.network.stopIndex.get(origin);
+
+    // an origin the feed has no stop for is not reachable, which is how the scan treats it too
+    if (stop === undefined) {
+      return results.finalize();
+    }
 
     let time = 1;
 
