@@ -1,4 +1,5 @@
-import type { StopID, StopIndex, Trip, Stop } from "../gtfs/GTFS";
+import type { Stop, StopID, StopIndex, Trip } from "../gtfs/GTFS";
+import type { GTFSFeed } from "../gtfs/GTFSLoader";
 import type { Interchange, TransfersByOrigin } from "./RaptorAlgorithm";
 import { pushNested } from "ts-array-utils";
 
@@ -21,13 +22,8 @@ const MAX_PARENT_DEPTH = 10;
  *
  * The trips are rewritten in place, and running twice over the same trips is a no op.
  */
-export function normalise(
-  trips: Trip[],
-  transfers: TransfersByOrigin,
-  interchange: Interchange,
-  stops: StopIndex
-): TimetableInput {
-
+export function normalise(feed: GTFSFeed): TimetableInput {
+  const { trips, transfers, interchange, stops } = feed;
   const stations = stationCodes(stops);
   const station = (id: StopID): StopID => stations.get(id) ?? id;
   const stationTrips: Trip[] = [];

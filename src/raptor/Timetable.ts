@@ -1,4 +1,5 @@
-import type { StopID, StopIndex, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import type { StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import type { GTFSFeed } from "../gtfs/GTFSLoader";
 import { normalise } from "./Normalise";
 import type { Interchange, TransfersByOrigin } from "./RaptorAlgorithm";
 
@@ -22,13 +23,8 @@ const OVERTAKING_ROUTE_SUFFIX = "|overtakes";
  * The trips of a route are laid out in departure order and the scan relies on it to walk backwards
  * to the earliest reachable trip, so they are sorted here rather than by the caller.
  */
-export function createTimetable(
-  feedTrips: Trip[],
-  feedTransfers: TransfersByOrigin,
-  feedInterchange: Interchange,
-  stops: StopIndex
-): Timetable {
-  const { trips, transfers, interchange } = normalise(feedTrips, feedTransfers, feedInterchange, stops);
+export function createTimetable(feed: GTFSFeed): Timetable {
+  const { trips, transfers, interchange } = normalise(feed);
 
   trips.sort((a, b) => a.stopTimes[0].departureTime - b.stopTimes[0].departureTime);
 

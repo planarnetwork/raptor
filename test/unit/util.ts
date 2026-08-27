@@ -1,4 +1,6 @@
-import type { StopID, StopTime, Time, TimetableLeg, Transfer, Trip } from "../../src/gtfs/GTFS";
+import type { StopID, StopIndex, StopTime, Time, TimetableLeg, Transfer, Trip } from "../../src/gtfs/GTFS";
+import type { GTFSFeed } from "../../src/gtfs/GTFSLoader";
+import type { Interchange, TransfersByOrigin } from "../../src/raptor/RaptorAlgorithm";
 import type { Journey } from "../../src/results/Journey";
 import { Service } from "../../src/gtfs/Service";
 
@@ -18,6 +20,15 @@ export const services = {
     {}
   )
 };
+
+export function feed(
+  trips: Trip[],
+  transfers: TransfersByOrigin = {},
+  interchange: Interchange = {},
+  stops: StopIndex = {}
+): GTFSFeed {
+  return { trips, transfers, interchange, stops };
+}
 
 let tripId = 0;
 

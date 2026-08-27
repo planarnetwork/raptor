@@ -1,4 +1,4 @@
-import { j, setDefaultTrip, st, t } from "../util";
+import { feed, j, setDefaultTrip, st, t } from "../util";
 import { describe, it, expect } from "vitest";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
@@ -26,7 +26,7 @@ describe("RangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
+    const raptor = RaptorAlgorithmFactory.create(feed(trips));
     const query = new RangeQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"));
 
@@ -81,7 +81,7 @@ describe("RangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
+    const raptor = RaptorAlgorithmFactory.create(feed(trips));
     const query = new RangeQuery(raptor, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"));
 

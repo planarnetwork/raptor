@@ -11,10 +11,10 @@ import * as mysql from "mysql2/promise";
  */
 async function worker(filename: string, date: Date): Promise<void> {
   const stream = fs.createReadStream(filename);
-  const [trips, transfers, interchange, stops] = await loadGTFS(stream);
-  const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, stops, date);
+  const feed = await loadGTFS(stream);
+  const raptor = RaptorAlgorithmFactory.create(feed, date);
 
-  const query = new TransferPatternQuery(raptor, () => new StringResults(interchange));
+  const query = new TransferPatternQuery(raptor, () => new StringResults(feed.interchange));
   const repository = new TransferPatternRepository(getDatabase());
 
   process.on("message", async (stop: string) => {

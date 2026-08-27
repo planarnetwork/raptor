@@ -7,21 +7,15 @@ import { TransferPatternQuery } from "../src/query/TransferPatternQuery";
 async function run() {
   console.time("initial load");
   const stream = fs.createReadStream("/home/linus/Downloads/gb-rail-latest.zip");
-  const [trips, transfers, interchange, stops] = await loadGTFS(stream);
+  const feed = await loadGTFS(stream);
   console.timeEnd("initial load");
 
   console.time("pre-processing");
   const date = new Date("2019-06-05");
   const startHeap = process.memoryUsage().heapUsed;
-  const raptor = RaptorAlgorithmFactory.create(
-    trips,
-    transfers,
-    interchange,
-    stops,
-    date
-  );
+  const raptor = RaptorAlgorithmFactory.create(feed, date);
 
-  const query = new TransferPatternQuery(raptor, () => new StringResults(interchange));
+  const query = new TransferPatternQuery(raptor, () => new StringResults(feed.interchange));
 
   const endHeap = process.memoryUsage().heapUsed;
   console.timeEnd("pre-processing");

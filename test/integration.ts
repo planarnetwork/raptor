@@ -11,16 +11,11 @@ async function run() {
   console.log(`Loading ${filename}`);
   console.time("initial load");
   const stream = fs.createReadStream(filename);
-  const [trips, transfers, interchange, stops] = await loadGTFS(stream);
+  const feed = await loadGTFS(stream);
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorAlgorithmFactory.create(
-    trips,
-    transfers,
-    interchange,
-    stops
-  );
+  const raptor = RaptorAlgorithmFactory.create(feed);
 
   const query = new GroupStationDepartAfterQuery(
     raptor,
