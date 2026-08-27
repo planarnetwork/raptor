@@ -1,8 +1,9 @@
 import type { Connection, ConnectionIndex } from "../../raptor/ScanResults";
-import { type Network, stopAt } from "../../raptor/Network";
-import { boardingTime } from "./BoardingTime";
+import type { Network } from "../../raptor/Network";
+import { departureOf, originIndexOf } from "../../results/Connections";
+import type { StopIdx } from "../../raptor/Timetable";
 import { isTransfer } from "../../results/ResultsFactory";
-import type { StopID, Time } from "../../gtfs/GTFS";
+import type { Time } from "../../gtfs/GTFS";
 import type { Path } from "./TransferPatternResults";
 import type { Interchange } from "../../raptor/RaptorAlgorithm";
 
@@ -23,9 +24,11 @@ export class StringResults {
   public add(kConnections: ConnectionIndex, network: Network): number {
     let nextDepartureTime = Number.MAX_SAFE_INTEGER;
 
-    for (const destination in kConnections) {
-      for (const k in kConnections[destination]) {
-        const [path, departureTime] = this.getPath(kConnections, k, destination, network);
+    for (let stop = 0; stop < kConnections.length; stop++) {
+      const destination = network.stopIds[stop];
+
+      for (const k in kConnections[stop]) {
+        const [path, departureTime] = this.getPath(kConnections, k, stop, network);
 
         if (path.length >= 1) {
           const [origin, ...tail] = path;
@@ -52,7 +55,7 @@ export class StringResults {
   private getPath(
     kConnections: ConnectionIndex,
     k: string,
-    finalDestination: StopID,
+    finalDestination: StopIdx,
     network: Network
   ): [Path, Time] {
     const path: Path = [];
@@ -61,13 +64,15 @@ export class StringResults {
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
       const transfer = isTransfer(connection) ? network.transfers[connection] : undefined;
-      const origin = transfer ? transfer.origin : stopAt(network, connection[0], connection[2]);
+      const origin = transfer
+        ? (network.stopIndex.get(transfer.origin) as StopIdx)
+        : originIndexOf(network, connection as Connection);
 
       departureTime = transfer
           ? departureTime - transfer.duration - this.interchange[transfer.destination]
-          : boardingTime(network, connection as Connection);
+          : departureOf(network, connection as Connection);
 
-      path.unshift(origin);
+      path.unshift(network.stopIds[origin]);
 
       destination = origin;
     }

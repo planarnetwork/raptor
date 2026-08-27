@@ -1,45 +1,38 @@
-import type { StopID, Time } from "../gtfs/GTFS";
-import type { Network } from "./Network";
-import type { StopTimes } from "./RaptorAlgorithm";
+import type { Time } from "../gtfs/GTFS";
+import type { Origins } from "./RaptorAlgorithm";
 import { NOT_REACHED, type RouteIdx, type StopIdx } from "./Timetable";
 
 /**
  * Best arrival time at every stop, overall and per round, plus the connection that achieved it.
  *
- * While the scan is running everything is held in dense arrays indexed by stop index. finalize
- * converts the result back to the stop id keyed indexes the rest of the library works with.
+ * Everything is a dense array indexed by stop index. Naming a stop, a trip or a transfer is the
+ * network's job, and only worth doing for a journey that is returned.
  */
 export class ScanResults {
   private k = 0;
   private markedStops: StopIdx[] = [];
-  private readonly stopIds: StopID[];
+  private readonly numStops: number;
   private readonly bestArrivals: Int32Array;
   private readonly kArrivals: Int32Array[];
-  private readonly kConnections: (Connection | TransferIdx)[][];
+  private readonly kConnections: ConnectionIndex;
 
-  constructor(network: Network, origins: StopTimes) {
-    const { stopIndex, stopIds } = network;
-
+  constructor(numStops: number, origins: Origins) {
     // round zero: the origins are reached at their departure time, nothing else is reached at all
-    const initialArrivals = new Int32Array(stopIds.length).fill(NOT_REACHED);
+    const initialArrivals = new Int32Array(numStops).fill(NOT_REACHED);
 
-    for (const origin of Object.keys(origins)) {
-      const stop = stopIndex.get(origin);
-
-      if (stop !== undefined) {
-        initialArrivals[stop] = origins[origin];
-      }
+    for (const [stop, time] of origins) {
+      initialArrivals[stop] = time;
     }
 
-    this.stopIds = stopIds;
+    this.numStops = numStops;
     this.kArrivals = [initialArrivals];
     this.bestArrivals = initialArrivals.slice();
-    this.kConnections = Array.from({ length: stopIds.length }, () => []);
+    this.kConnections = Array.from({ length: numStops }, () => []);
   }
 
   public addRound(): void {
     this.k++;
-    this.kArrivals.push(new Int32Array(this.stopIds.length).fill(NOT_REACHED));
+    this.kArrivals.push(new Int32Array(this.numStops).fill(NOT_REACHED));
     this.markedStops = [];
   }
 
@@ -66,25 +59,7 @@ export class ScanResults {
   }
 
   public finalize(): [ConnectionIndex, Arrivals] {
-    // null prototype so that a stop id like "__proto__" is stored as an ordinary key
-    const kConnections: ConnectionIndex = Object.create(null);
-    const bestArrivals: Arrivals = Object.create(null);
-
-    for (let stop = 0; stop < this.stopIds.length; stop++) {
-      const stopId = this.stopIds[stop];
-      const index: Record<number, Connection | TransferIdx> = Object.create(null);
-
-      // rounds the stop was not reached in are holes in the array, which forEach skips
-      this.kConnections[stop].forEach((connection, k) => { index[k] = connection; });
-
-      kConnections[stopId] = index;
-
-      if (this.bestArrivals[stop] !== NOT_REACHED) {
-        bestArrivals[stopId] = this.bestArrivals[stop];
-      }
-    }
-
-    return [kConnections, bestArrivals];
+    return [this.kConnections, this.bestArrivals];
   }
 
   private setArrival(stop: StopIdx, time: Time): void {
@@ -100,11 +75,14 @@ export class ScanResults {
   }
 }
 
-export type Arrivals = Record<StopID, Time>;
+/**
+ * Best arrival time at each stop, NOT_REACHED where it was never reached
+ */
+export type Arrivals = Int32Array;
 
 /**
  * A leg taken on a vehicle: the route, the trip on it, and the positions boarded and alighted at.
- * Network.trips turns the trip into the feed's, and stopAt turns the positions into stops.
+ * Connections.ts turns one back into the feed's trip, stops and times.
  */
 export type Connection = [route: RouteIdx, trip: number, from: number, to: number];
 
@@ -113,4 +91,8 @@ export type Connection = [route: RouteIdx, trip: number, from: number, to: numbe
  */
 export type TransferIdx = number;
 
-export type ConnectionIndex = Record<StopID, Record<number, Connection | TransferIdx>>;
+/**
+ * The connection that gave the best arrival at each stop in each round. Indexed by stop, then
+ * sparsely by round, so a stop with no entries was never reached.
+ */
+export type ConnectionIndex = (Connection | TransferIdx)[][];

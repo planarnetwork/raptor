@@ -1,5 +1,4 @@
 import type { DateNumber, StopID, Time, Transfer } from "../gtfs/GTFS";
-import type { Network } from "./Network";
 import { dayOffset, NOT_COVERED } from "./TripCalendar";
 import { buildQueue } from "./Queue";
 import { NO_TRIP, RouteScanner } from "./RouteScanner";
@@ -11,13 +10,9 @@ import { DROP_OFF, NOT_REACHED, PICK_UP, type StopIdx, type Timetable } from "./
  */
 export class RaptorAlgorithm {
 
-  private readonly timetable: Timetable;
-
   constructor(
-    public readonly network: Network
-  ) {
-    this.timetable = network.timetable;
-  }
+    private readonly timetable: Timetable
+  ) { }
 
   /**
    * Whether the timetable was built with a calendar reaching the given date. Planning for a date
@@ -39,14 +34,11 @@ export class RaptorAlgorithm {
   /**
    * Perform a plan of the routes at a given time and return the resulting kConnections index
    */
-  public scan(origins: StopTimes, date: DateNumber): [ConnectionIndex, Arrivals] {
+  public scan(origins: Origins, date: DateNumber): [ConnectionIndex, Arrivals] {
     const routeScanner = new RouteScanner(this.timetable.routes, date);
-    const results = new ScanResults(this.network, origins);
-    const stopIndex = this.network.stopIndex;
+    const results = new ScanResults(this.timetable.interchange.length, origins);
 
-    let markedStops = Object.keys(origins)
-      .map(origin => stopIndex.get(origin))
-      .filter(stop => stop !== undefined);
+    let markedStops = [...origins.keys()];
 
     while (markedStops.length > 0) {
       results.addRound();
@@ -130,4 +122,8 @@ export class RaptorAlgorithm {
 
 export type Interchange = Record<StopID, Time>;
 export type TransfersByOrigin = Record<StopID, Transfer[]>;
-export type StopTimes = Record<StopID, Time>;
+
+/**
+ * The stops a search starts from, each with the time it is reached at
+ */
+export type Origins = Map<StopIdx, Time>;

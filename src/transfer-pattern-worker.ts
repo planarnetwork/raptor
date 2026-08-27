@@ -2,7 +2,7 @@ import {loadGTFS} from "./gtfs/GTFSLoader";
 import {StringResults} from "./transfer-pattern/results/StringResults";
 import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepository";
 import * as fs from "node:fs";
-import { RaptorAlgorithmFactory } from "./raptor/RaptorAlgorithmFactory";
+import { createNetwork } from "./raptor/Network";
 import { TransferPatternQuery } from "./query/TransferPatternQuery";
 import * as mysql from "mysql2/promise";
 
@@ -12,9 +12,9 @@ import * as mysql from "mysql2/promise";
 async function worker(filename: string, date: Date): Promise<void> {
   const stream = fs.createReadStream(filename);
   const feed = await loadGTFS(stream);
-  const raptor = RaptorAlgorithmFactory.create(feed, date);
+  const network = createNetwork(feed, date);
 
-  const query = new TransferPatternQuery(raptor, () => new StringResults(feed.interchange));
+  const query = new TransferPatternQuery(network, () => new StringResults(feed.interchange));
   const repository = new TransferPatternRepository(getDatabase());
 
   process.on("message", async (stop: string) => {

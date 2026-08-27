@@ -29,11 +29,3 @@ export function callAt(trip: Trip, position: number): number {
 
   return -1;
 }
-
-/**
- * The stop times the leg covers, from the call boarded at to the call alighted at, including the
- * passing points between them.
- */
-export function stopTimesBetween(trip: Trip, from: number, to: number): StopTime[] {
-  return trip.stopTimes.slice(callAt(trip, from), callAt(trip, to) + 1);
-}

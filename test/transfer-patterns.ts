@@ -1,7 +1,7 @@
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {StringResults} from "../src/transfer-pattern/results/StringResults";
 import * as fs from "node:fs";
-import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
+import { createNetwork } from "../src/raptor/Network";
 import { TransferPatternQuery } from "../src/query/TransferPatternQuery";
 
 async function run() {
@@ -13,9 +13,9 @@ async function run() {
   console.time("pre-processing");
   const date = new Date("2019-06-05");
   const startHeap = process.memoryUsage().heapUsed;
-  const raptor = RaptorAlgorithmFactory.create(feed, date);
+  const network = createNetwork(feed, date);
 
-  const query = new TransferPatternQuery(raptor, () => new StringResults(feed.interchange));
+  const query = new TransferPatternQuery(network, () => new StringResults(feed.interchange));
 
   const endHeap = process.memoryUsage().heapUsed;
   console.timeEnd("pre-processing");

@@ -1,14 +1,14 @@
-import type { StopID } from "../gtfs/GTFS";
 import type { Network } from "../raptor/Network";
 import type { Journey } from "./Journey";
 import type { Connection, ConnectionIndex, TransferIdx } from "../raptor/ScanResults";
+import type { StopIdx } from "../raptor/Timetable";
 
 /**
  * Create results from the kConnections index
  */
 export interface ResultsFactory {
 
-  getResults(kConnections: ConnectionIndex, destination: StopID, network: Network): Journey[];
+  getResults(kConnections: ConnectionIndex, destination: StopIdx, network: Network): Journey[];
 
 }
 

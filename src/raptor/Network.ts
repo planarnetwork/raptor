@@ -1,4 +1,5 @@
-import type { StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import type { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
+import { getDateNumber } from "../query/DateUtil";
 import type { GTFSFeed } from "../gtfs/GTFSLoader";
 import { createTripCalendar, getCalendarWindow } from "./TripCalendar";
 import { normalise } from "./Normalise";
@@ -19,8 +20,18 @@ const OVERTAKING_ROUTE_SUFFIX = "|overtakes";
  *
  * The trips of a route are laid out in departure order and the scan relies on it to walk backwards
  * to the earliest reachable trip, so they are sorted here rather than by the caller.
+ *
+ * If a date is given the trips are filtered to those running on it first, which makes planning
+ * faster at the cost of only being able to plan for that date.
  */
-export function createNetwork(feed: GTFSFeed): Network {
+export function createNetwork(feed: GTFSFeed, date?: Date): Network {
+  if (date) {
+    const dateNumber = getDateNumber(date);
+    const dow = date.getDay() as DayOfWeek;
+
+    feed = { ...feed, trips: feed.trips.filter(trip => trip.service.runsOn(dateNumber, dow)) };
+  }
+
   const { trips, calls, transfers, interchange, stations } = normalise(feed);
   const order = trips
     .map((_, i) => i)
@@ -128,15 +139,6 @@ export function createNetwork(feed: GTFSFeed): Network {
     trips: networkTrips,
     transfers
   };
-}
-
-/**
- * The stop a route calls at, as the algorithm names it
- */
-export function stopAt(network: Network, route: RouteIdx, position: number): StopID {
-  const { stopOffsets, stops } = network.timetable.routes;
-
-  return network.stopIds[stops[stopOffsets[route] + position]];
 }
 
 /**

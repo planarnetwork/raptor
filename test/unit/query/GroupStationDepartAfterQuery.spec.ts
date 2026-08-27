@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { feed, j, setDefaultTrip, st, t } from "../util";
-import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
+import { createNetwork } from "../../../src/raptor/Network";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { MultipleCriteriaFilter } from "../../../src/results/filter/MultipleCriteriaFilter";
 import { GroupStationDepartAfterQuery } from "../../../src/query/GroupStationDepartAfterQuery";
@@ -11,8 +11,8 @@ describe("GroupStationDepartAfterQuery", () => {
 
   it("rejects a date the timetable has no calendar for", () => {
     const trips = [t(st("A", null, 1000), st("B", 1030, null))];
-    const raptor = RaptorAlgorithmFactory.create(feed(trips));
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+    const network = createNetwork(feed(trips));
+    const query = new GroupStationDepartAfterQuery(network, journeyFactory, 1, filters);
 
     expect(() => query.plan(["A"], ["B"], new Date("2031-04-18"), 900))
       .toThrow(/covers 20180101 to 20201231, so it cannot plan for 20310418/);
@@ -27,8 +27,8 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(feed(trips));
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+    const network = createNetwork(feed(trips));
+    const query = new GroupStationDepartAfterQuery(network, journeyFactory, 1, filters);
 
     expect(query.plan(["A"], ["Z"], new Date("2019-04-18"), 900)).toEqual([]);
   });
@@ -42,8 +42,8 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(feed(trips));
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+    const network = createNetwork(feed(trips));
+    const query = new GroupStationDepartAfterQuery(network, journeyFactory, 1, filters);
     const result = query.plan(["A"], ["Z", "C"], new Date("2019-04-18"), 900);
 
     setDefaultTrip(result);
@@ -66,8 +66,8 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(feed(trips));
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+    const network = createNetwork(feed(trips));
+    const query = new GroupStationDepartAfterQuery(network, journeyFactory, 1, filters);
 
     expect(query.plan(["Z"], ["C"], new Date("2019-04-18"), 900)).toEqual([]);
   });
@@ -86,8 +86,8 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(feed(trips));
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+    const network = createNetwork(feed(trips));
+    const query = new GroupStationDepartAfterQuery(network, journeyFactory, 1, filters);
     const result = query.plan(["A"], ["C", "D"], new Date("2019-04-18"), 900);
 
     setDefaultTrip(result);
@@ -120,8 +120,8 @@ describe("GroupStationDepartAfterQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(feed(trips));
-    const query = new GroupStationDepartAfterQuery(raptor, journeyFactory, 1, filters);
+    const network = createNetwork(feed(trips));
+    const query = new GroupStationDepartAfterQuery(network, journeyFactory, 1, filters);
     const result = query.plan(["A", "B"], ["C", "D"], new Date("2019-04-18"), 900);
 
     setDefaultTrip(result);

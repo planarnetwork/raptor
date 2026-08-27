@@ -1,5 +1,7 @@
 import type { ConnectionIndex } from "../../raptor/ScanResults";
-import { type Network, stopAt } from "../../raptor/Network";
+import type { Network } from "../../raptor/Network";
+import { originIndexOf } from "../../results/Connections";
+import type { StopIdx } from "../../raptor/Timetable";
 import { isTransfer } from "../../results/ResultsFactory";
 import type { StopID } from "../../gtfs/GTFS";
 import type { Path, TransferPatternResults } from "./TransferPatternResults";
@@ -31,9 +33,9 @@ export class GraphResults implements TransferPatternResults<TransferPatternGraph
   private getPaths(kConnections: ConnectionIndex, network: Network): Path[] {
     const results: Path[] = [];
 
-    for (const destination in kConnections) {
-      for (const k in kConnections[destination]) {
-        results.push(this.getPath(kConnections, k, destination, network));
+    for (let stop = 0; stop < kConnections.length; stop++) {
+      for (const k in kConnections[stop]) {
+        results.push(this.getPath(kConnections, k, stop, network));
       }
     }
 
@@ -43,18 +45,18 @@ export class GraphResults implements TransferPatternResults<TransferPatternGraph
   private getPath(
     kConnections: ConnectionIndex,
     k: string,
-    finalDestination: StopID,
+    finalDestination: StopIdx,
     network: Network
   ): Path {
-    const path = [finalDestination];
+    const path = [network.stopIds[finalDestination]];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
       const origin = isTransfer(connection)
-        ? network.transfers[connection].origin
-        : stopAt(network, connection[0], connection[2]);
+        ? (network.stopIndex.get(network.transfers[connection].origin) as StopIdx)
+        : originIndexOf(network, connection);
 
-      path.push(origin);
+      path.push(network.stopIds[origin]);
 
       destination = origin;
     }

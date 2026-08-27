@@ -1,4 +1,6 @@
-import type { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
+import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
+import type { Network } from "../raptor/Network";
+import type { StopIdx } from "../raptor/Timetable";
 import type { StopID } from "../gtfs/GTFS";
 import { checkCovered, getDateNumber } from "./DateUtil";
 import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";
@@ -9,10 +11,14 @@ import type { StringResults, TransferPatternIndex } from "../transfer-pattern/re
 export class TransferPatternQuery {
   private readonly ONE_DAY = 24 * 60 * 60;
 
+  private readonly raptor: RaptorAlgorithm;
+
   constructor(
-    private readonly raptor: RaptorAlgorithm,
+    private readonly network: Network,
     private readonly resultFactory: () => StringResults,
-  ) {}
+  ) {
+    this.raptor = new RaptorAlgorithm(network.timetable);
+  }
 
   /**
    * Generate generate a full day's set of results and store them using the resultsFactory
@@ -23,12 +29,14 @@ export class TransferPatternQuery {
 
     checkCovered(this.raptor, date);
 
+    const stop = this.network.stopIndex.get(origin) as StopIdx;
+
     let time = 1;
 
     while (time < this.ONE_DAY) {
-      const [kConnections] = this.raptor.scan({ [origin]: time }, date);
+      const [kConnections] = this.raptor.scan(new Map([[stop, time]]), date);
 
-      time = results.add(kConnections, this.raptor.network);
+      time = results.add(kConnections, this.network);
     }
 
     return results.finalize();

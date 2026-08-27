@@ -1,6 +1,7 @@
-import type { StopID, Time, TimetableLeg } from "../gtfs/GTFS";
-import { stopTimesBetween } from "../gtfs/Calls";
-import { type Network, stopAt } from "../raptor/Network";
+import type { Time, TimetableLeg } from "../gtfs/GTFS";
+import type { StopIdx } from "../raptor/Timetable";
+import type { Network } from "../raptor/Network";
+import { originIndexOf, stopTimesOf, tripOf } from "./Connections";
 import { isTransfer, type ResultsFactory } from "./ResultsFactory";
 import type { ConnectionIndex } from "../raptor/ScanResults";
 import type { AnyLeg, Journey } from "./Journey";
@@ -13,10 +14,10 @@ export class JourneyFactory implements ResultsFactory {
   /**
    * Take the best result of each round for the given destination and turn it into a journey.
    */
-  public getResults(kConnections: ConnectionIndex, destination: StopID, network: Network): Journey[] {
+  public getResults(kConnections: ConnectionIndex, destination: StopIdx, network: Network): Journey[] {
     const results: Journey[] = [];
 
-    for (const k of Object.keys(kConnections[destination] || {})) {
+    for (const k of Object.keys(kConnections[destination])) {
       const legs = this.getJourneyLegs(kConnections, k, destination, network);
       const departureTime = this.getDepartureTime(legs);
       const arrivalTime = this.getArrivalTime(legs);
@@ -33,7 +34,7 @@ export class JourneyFactory implements ResultsFactory {
   private getJourneyLegs(
     kConnections: ConnectionIndex,
     k: string,
-    finalDestination: StopID,
+    finalDestination: StopIdx,
     network: Network
   ): AnyLeg[] {
     const legs: AnyLeg[] = [];
@@ -46,13 +47,16 @@ export class JourneyFactory implements ResultsFactory {
 
         legs.push(transfer);
 
-        destination = transfer.origin;
+        destination = network.stopIndex.get(transfer.origin) as StopIdx;
       } else {
-        const [route, tripIndex, from, to] = connection;
-        const trip = network.trips[tripIndex];
-        const origin = stopAt(network, route, from);
+        const origin = originIndexOf(network, connection);
 
-        legs.push({ stopTimes: stopTimesBetween(trip, from, to), origin, destination, trip });
+        legs.push({
+          stopTimes: stopTimesOf(network, connection),
+          origin: network.stopIds[origin],
+          destination: network.stopIds[destination],
+          trip: tripOf(network, connection)
+        });
 
         destination = origin;
       }

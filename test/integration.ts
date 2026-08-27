@@ -2,7 +2,7 @@ import type { Journey } from "../src/results/Journey";
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "node:fs";
-import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
+import { createNetwork } from "../src/raptor/Network";
 import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFilter";
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
@@ -15,10 +15,9 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorAlgorithmFactory.create(feed);
+  const network = createNetwork(feed);
 
-  const query = new GroupStationDepartAfterQuery(
-    raptor,
+  const query = new GroupStationDepartAfterQuery(network,
     new JourneyFactory(),
     3,
     [new MultipleCriteriaFilter()]

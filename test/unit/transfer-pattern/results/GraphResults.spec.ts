@@ -83,7 +83,7 @@ describe("GraphResults", () => {
 });
 
 function mergePath(path: StopID[], tree: GraphResults): void {
-  const kConnections: ConnectionIndex = {};
+  const kConnections: ConnectionIndex = [];
   const stopIds: StopID[] = [];
   const stopIndex = new Map<StopID, number>();
   const routeStops: number[] = [];
@@ -105,11 +105,17 @@ function mergePath(path: StopID[], tree: GraphResults): void {
   // each step of the path is a route of its own, boarded at position 0 and alighted at position 1
   for (let i = 1; i < path.length; i++) {
     routeStops.push(intern(path[i - 1]), intern(path[i]));
-    kConnections[path[i]] = { [i]: [i - 1, i - 1, 0, 1] };
+    kConnections[intern(path[i])] = [];
+    kConnections[intern(path[i])][i] = [i - 1, i - 1, 0, 1];
     trips.push({ stopTimes: [
       { stop: path[i - 1], departureTime: i, arrivalTime: i, pickUp: true, dropOff: false },
       { stop: path[i], departureTime: i, arrivalTime: i, pickUp: false, dropOff: true }
     ] });
+  }
+
+  // every stop needs a slot, including any the path only starts from
+  for (let stop = 0; stop < stopIds.length; stop++) {
+    kConnections[stop] = kConnections[stop] ?? [];
   }
 
   const network = {

@@ -1,7 +1,7 @@
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "node:fs";
-import { RaptorAlgorithmFactory } from "../src/raptor/RaptorAlgorithmFactory";
+import { createNetwork } from "../src/raptor/Network";
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 const queries = [
@@ -68,8 +68,8 @@ async function run() {
   console.timeEnd("initial load");
 
   console.time("pre-processing");
-  const raptor = RaptorAlgorithmFactory.create(feed);
-  const query = new GroupStationDepartAfterQuery(raptor, new JourneyFactory());
+  const network = createNetwork(feed);
+  const query = new GroupStationDepartAfterQuery(network, new JourneyFactory());
   console.timeEnd("pre-processing");
 
   console.time("planning");
