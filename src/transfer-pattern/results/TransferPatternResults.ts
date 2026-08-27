@@ -1,6 +1,6 @@
-import type { ConnectionIndex } from "../../raptor/ScanResults";
+import type { ConnectionIndex } from "../../raptor/Connection";
 import type { StopID } from "../../gtfs/GTFS";
-import type { Network } from "../../raptor/Network";
+import type { Network } from "../../network/Network";
 
 /**
  * Create the results factory

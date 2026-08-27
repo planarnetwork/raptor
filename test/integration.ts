@@ -2,7 +2,7 @@ import type { Journey } from "../src/results/Journey";
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "node:fs";
-import { createNetwork } from "../src/raptor/Network";
+import { createNetwork } from "../src/network/Network";
 import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFilter";
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 

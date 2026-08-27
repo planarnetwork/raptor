@@ -1,6 +1,6 @@
+import type { ConnectionIndex } from "../../../../src/raptor/Connection";
 import { describe, it, expect } from "vitest";
-import type { Network } from "../../../../src/raptor/Network";
-import type { ConnectionIndex } from "../../../../src/raptor/ScanResults";
+import type { Network } from "../../../../src/network/Network";
 import {StringResults} from "../../../../src/transfer-pattern/results/StringResults";
 import type {StopID} from "../../../../src/gtfs/GTFS";
 

@@ -1,6 +1,6 @@
 import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
-import type { Network } from "../raptor/Network";
-import type { StopIdx } from "../raptor/Timetable";
+import type { Network } from "../network/Network";
+import type { StopIdx } from "../network/Timetable";
 import type { StopID } from "../gtfs/GTFS";
 import { checkCovered, getDateNumber } from "./DateUtil";
 import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";

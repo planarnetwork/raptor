@@ -2,7 +2,7 @@ import type { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/
 import { getDateNumber } from "../query/DateUtil";
 import type { GTFSFeed } from "../gtfs/GTFSLoader";
 import { createTripCalendar, getCalendarWindow } from "./TripCalendar";
-import { normalise } from "./Normalise";
+import { normalise } from "../gtfs/Normalise";
 import { DROP_OFF, PICK_UP, type RouteIdx, type StopIdx, type Timetable } from "./Timetable";
 
 const DEFAULT_INTERCHANGE_TIME = 0;

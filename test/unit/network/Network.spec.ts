@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { createNetwork } from "../../../src/raptor/Network";
-import { DROP_OFF, PICK_UP, type Timetable } from "../../../src/raptor/Timetable";
+import { createNetwork } from "../../../src/network/Network";
+import { DROP_OFF, PICK_UP, type Timetable } from "../../../src/network/Timetable";
 import { feed, st, t, tf } from "../util";
 import type { Stop, StopID, StopIndex } from "../../../src/gtfs/GTFS";
 

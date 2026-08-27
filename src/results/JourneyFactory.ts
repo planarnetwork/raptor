@@ -1,9 +1,9 @@
+import { isTransfer, type ConnectionIndex } from "../raptor/Connection";
 import type { Time, TimetableLeg } from "../gtfs/GTFS";
-import type { StopIdx } from "../raptor/Timetable";
-import type { Network } from "../raptor/Network";
-import { originIndexOf, stopTimesOf, tripOf } from "./Connections";
-import { isTransfer, type ResultsFactory } from "./ResultsFactory";
-import type { ConnectionIndex } from "../raptor/ScanResults";
+import type { StopIdx } from "../network/Timetable";
+import type { Network } from "../network/Network";
+import { originIndexOf, stopTimesOf, tripOf } from "../raptor/Connection";
+import type { ResultsFactory } from "./ResultsFactory";
 import type { AnyLeg, Journey } from "./Journey";
 
 /**

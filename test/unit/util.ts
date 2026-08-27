@@ -1,6 +1,5 @@
-import type { StopID, StopIndex, StopTime, Time, TimetableLeg, Transfer, Trip } from "../../src/gtfs/GTFS";
+import type { Interchange, StopID, StopIndex, StopTime, Time, TimetableLeg, Transfer, TransfersByOrigin, Trip } from "../../src/gtfs/GTFS";
 import type { GTFSFeed } from "../../src/gtfs/GTFSLoader";
-import type { Interchange, TransfersByOrigin } from "../../src/raptor/RaptorAlgorithm";
 import type { Journey } from "../../src/results/Journey";
 import { Service } from "../../src/gtfs/Service";
 

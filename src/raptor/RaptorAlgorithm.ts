@@ -1,9 +1,10 @@
+import type { ConnectionIndex } from "./Connection";
 import type { DateNumber, StopID, Time, Transfer } from "../gtfs/GTFS";
-import { dayOffset, NOT_COVERED } from "./TripCalendar";
+import { dayOffset, NOT_COVERED } from "../network/TripCalendar";
 import { buildQueue } from "./Queue";
 import { NO_TRIP, RouteScanner } from "./RouteScanner";
-import { type Arrivals, type ConnectionIndex, ScanResults } from "./ScanResults";
-import { DROP_OFF, NOT_REACHED, PICK_UP, type StopIdx, type Timetable } from "./Timetable";
+import { type Arrivals, ScanResults } from "./ScanResults";
+import { DROP_OFF, NOT_REACHED, PICK_UP, type StopIdx, type Timetable } from "../network/Timetable";
 
 /**
  * Implementation of the Raptor journey planning algorithm
@@ -119,9 +120,6 @@ export class RaptorAlgorithm {
     }
   }
 }
-
-export type Interchange = Record<StopID, Time>;
-export type TransfersByOrigin = Record<StopID, Transfer[]>;
 
 /**
  * The stops a search starts from, each with the time it is reached at

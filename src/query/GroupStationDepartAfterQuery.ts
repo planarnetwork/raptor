@@ -1,12 +1,13 @@
+import type { ConnectionIndex } from "../raptor/Connection";
 import { type Origins, RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
 import type { StopID, Time } from "../gtfs/GTFS";
-import type { Network } from "../raptor/Network";
+import type { Network } from "../network/Network";
 import type { ResultsFactory } from "../results/ResultsFactory";
 import { checkCovered, getDateNumber } from "./DateUtil";
 import type { Journey } from "../results/Journey";
 import type { JourneyFilter } from "../results/filter/JourneyFilter";
-import { NOT_REACHED, type StopIdx } from "../raptor/Timetable";
-import type { Arrivals, ConnectionIndex } from "../raptor/ScanResults";
+import { NOT_REACHED, type StopIdx } from "../network/Timetable";
+import type { Arrivals } from "../raptor/ScanResults";
 
 /**
  * Implementation of Raptor that searches for journeys between a set of origin and destinations.

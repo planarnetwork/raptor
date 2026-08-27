@@ -1,4 +1,4 @@
-import type { Network } from "../raptor/Network";
+import type { Network } from "../network/Network";
 import type { ResultsFactory } from "../results/ResultsFactory";
 import type { StopID } from "../gtfs/GTFS";
 import type { Journey } from "../results/Journey";

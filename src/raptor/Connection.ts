@@ -1,12 +1,36 @@
 import type { StopID, StopTime, Time, Trip } from "../gtfs/GTFS";
 import { callAt } from "../gtfs/Calls";
-import type { Network } from "../raptor/Network";
-import type { Connection } from "../raptor/ScanResults";
-import type { StopIdx } from "../raptor/Timetable";
+import type { Network } from "../network/Network";
+import type { RouteIdx, StopIdx } from "../network/Timetable";
 
 /**
- * A connection is four integers, because that is all the scan needs to record. These turn one
- * back into the feed's terms, which is only worth doing for a journey that is returned.
+ * A leg taken on a vehicle: the route, the trip on it, and the positions boarded and alighted at.
+ * Four integers, because that is all the scan needs to record.
+ */
+export type Connection = [route: RouteIdx, trip: number, from: number, to: number];
+
+/**
+ * A leg taken on foot, as an index into Network.transfers
+ */
+export type TransferIdx = number;
+
+/**
+ * The connection that gave the best arrival at each stop in each round. Indexed by stop, then
+ * sparsely by round, so a stop with no entries was never reached.
+ */
+export type ConnectionIndex = (Connection | TransferIdx)[][];
+
+/**
+ * A leg taken on foot is recorded as an index into the network's transfers, a leg taken on a
+ * vehicle as a tuple.
+ */
+export function isTransfer(connection: Connection | TransferIdx): connection is TransferIdx {
+  return typeof connection === "number";
+}
+
+/**
+ * The rest turn a connection back into the feed's terms, which is only worth doing for a journey
+ * that is actually returned.
  */
 
 /**

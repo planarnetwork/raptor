@@ -1,7 +1,7 @@
 import { feed, j, setDefaultTrip, st, t } from "../util";
 import { describe, it, expect } from "vitest";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
-import { createNetwork } from "../../../src/raptor/Network";
+import { createNetwork } from "../../../src/network/Network";
 import { RangeQuery } from "../../../src/query/RangeQuery";
 
 describe("RangeQuery", () => {

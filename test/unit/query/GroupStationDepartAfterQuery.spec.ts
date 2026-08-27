@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { feed, j, setDefaultTrip, st, t } from "../util";
-import { createNetwork } from "../../../src/raptor/Network";
+import { createNetwork } from "../../../src/network/Network";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { MultipleCriteriaFilter } from "../../../src/results/filter/MultipleCriteriaFilter";
 import { GroupStationDepartAfterQuery } from "../../../src/query/GroupStationDepartAfterQuery";

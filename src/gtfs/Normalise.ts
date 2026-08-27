@@ -1,7 +1,6 @@
-import type { Stop, StopID, StopIndex, StopTime, Transfer, Trip } from "../gtfs/GTFS";
-import type { GTFSFeed } from "../gtfs/GTFSLoader";
-import { isCall } from "../gtfs/Calls";
-import type { Interchange } from "./RaptorAlgorithm";
+import type { Interchange, Stop, StopID, StopIndex, StopTime, Transfer, Trip } from "./GTFS";
+import type { GTFSFeed } from "./GTFSLoader";
+import { isCall } from "./Calls";
 
 /**
  * A feed may group stops under a station and those under a station in turn, so the walk up is

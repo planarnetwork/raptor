@@ -125,3 +125,13 @@ export interface Stop {
  * Stops indexed by ID
  */
 export type StopIndex = Record<StopID, Stop>;
+
+/**
+ * Minimum time needed to change vehicles at each stop
+ */
+export type Interchange = Record<StopID, Time>;
+
+/**
+ * Footpaths out of each stop
+ */
+export type TransfersByOrigin = Record<StopID, Transfer[]>;

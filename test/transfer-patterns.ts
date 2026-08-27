@@ -1,7 +1,7 @@
 import {loadGTFS} from "../src/gtfs/GTFSLoader";
 import {StringResults} from "../src/transfer-pattern/results/StringResults";
 import * as fs from "node:fs";
-import { createNetwork } from "../src/raptor/Network";
+import { createNetwork } from "../src/network/Network";
 import { TransferPatternQuery } from "../src/query/TransferPatternQuery";
 
 async function run() {

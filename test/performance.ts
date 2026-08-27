@@ -1,7 +1,7 @@
 import { loadGTFS } from "../src/gtfs/GTFSLoader";
 import { JourneyFactory } from "../src/results/JourneyFactory";
 import * as fs from "node:fs";
-import { createNetwork } from "../src/raptor/Network";
+import { createNetwork } from "../src/network/Network";
 import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
 
 const queries = [

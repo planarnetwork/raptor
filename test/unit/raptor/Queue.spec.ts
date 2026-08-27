@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildQueue } from "../../../src/raptor/Queue";
-import type { RoutesByStop } from "../../../src/raptor/Timetable";
+import type { RoutesByStop } from "../../../src/network/Timetable";
 
 const StopA = 0;
 const StopB = 1;

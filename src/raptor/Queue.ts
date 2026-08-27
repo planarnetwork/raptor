@@ -1,4 +1,4 @@
-import type { RouteIdx, RoutesByStop, StopIdx } from "./Timetable";
+import type { RouteIdx, RoutesByStop, StopIdx } from "../network/Timetable";
 
 /**
  * Routes to scan, each mapped to the position in the route to start scanning from.

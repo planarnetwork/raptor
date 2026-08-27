@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
 import { allDays, feed, j, services, setDefaultTrip, st, t, tf } from "../util";
-import { createNetwork } from "../../../src/raptor/Network";
+import { createNetwork } from "../../../src/network/Network";
 import { DepartAfterQuery } from "../../../src/query/DepartAfterQuery";
 import { Service } from "../../../src/gtfs/Service";
 

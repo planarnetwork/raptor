@@ -1,6 +1,6 @@
 import type { DateNumber, Time } from "../gtfs/GTFS";
-import { dayOffset, NOT_COVERED } from "./TripCalendar";
-import type { RouteIdx, Routes } from "./Timetable";
+import { dayOffset, NOT_COVERED } from "../network/TripCalendar";
+import type { RouteIdx, Routes } from "../network/Timetable";
 
 /**
  * No trip on the route is reachable.

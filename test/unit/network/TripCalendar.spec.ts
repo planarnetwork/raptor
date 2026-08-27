@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createTripCalendar, dayOffset, getCalendarWindow, NOT_COVERED } from "../../../src/raptor/TripCalendar";
+import { createTripCalendar, dayOffset, getCalendarWindow, NOT_COVERED } from "../../../src/network/TripCalendar";
 import { Service } from "../../../src/gtfs/Service";
 import { addDays, getDateNumber } from "../../../src/query/DateUtil";
 import { allDays, st, t } from "../util";

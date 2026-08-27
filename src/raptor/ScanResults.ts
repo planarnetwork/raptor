@@ -1,6 +1,7 @@
 import type { Time } from "../gtfs/GTFS";
 import type { Origins } from "./RaptorAlgorithm";
-import { NOT_REACHED, type RouteIdx, type StopIdx } from "./Timetable";
+import type { Connection, ConnectionIndex, TransferIdx } from "./Connection";
+import { NOT_REACHED, type RouteIdx, type StopIdx } from "../network/Timetable";
 
 /**
  * Best arrival time at every stop, overall and per round, plus the connection that achieved it.
@@ -79,20 +80,3 @@ export class ScanResults {
  * Best arrival time at each stop, NOT_REACHED where it was never reached
  */
 export type Arrivals = Int32Array;
-
-/**
- * A leg taken on a vehicle: the route, the trip on it, and the positions boarded and alighted at.
- * Connections.ts turns one back into the feed's trip, stops and times.
- */
-export type Connection = [route: RouteIdx, trip: number, from: number, to: number];
-
-/**
- * A leg taken on foot, as an index into Network.transfers
- */
-export type TransferIdx = number;
-
-/**
- * The connection that gave the best arrival at each stop in each round. Indexed by stop, then
- * sparsely by round, so a stop with no entries was never reached.
- */
-export type ConnectionIndex = (Connection | TransferIdx)[][];

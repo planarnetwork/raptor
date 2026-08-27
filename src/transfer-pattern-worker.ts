@@ -2,7 +2,7 @@ import {loadGTFS} from "./gtfs/GTFSLoader";
 import {StringResults} from "./transfer-pattern/results/StringResults";
 import {TransferPatternRepository} from "./transfer-pattern/TransferPatternRepository";
 import * as fs from "node:fs";
-import { createNetwork } from "./raptor/Network";
+import { createNetwork } from "./network/Network";
 import { TransferPatternQuery } from "./query/TransferPatternQuery";
 import * as mysql from "mysql2/promise";
 
