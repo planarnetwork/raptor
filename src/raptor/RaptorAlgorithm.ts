@@ -1,5 +1,6 @@
 import type { DateNumber, StopID, Time, Transfer } from "../gtfs/GTFS";
-import { dayOffset, NOT_COVERED } from "./Calendar";
+import type { Network } from "./Network";
+import { dayOffset, NOT_COVERED } from "./TripCalendar";
 import { buildQueue } from "./Queue";
 import { NO_TRIP, RouteScanner } from "./RouteScanner";
 import { type Arrivals, type ConnectionIndex, ScanResults } from "./ScanResults";
@@ -10,9 +11,13 @@ import { DROP_OFF, NOT_REACHED, PICK_UP, type StopIdx, type Timetable } from "./
  */
 export class RaptorAlgorithm {
 
+  private readonly timetable: Timetable;
+
   constructor(
-    private readonly timetable: Timetable
-  ) { }
+    public readonly network: Network
+  ) {
+    this.timetable = network.timetable;
+  }
 
   /**
    * Whether the timetable was built with a calendar reaching the given date. Planning for a date
@@ -36,8 +41,8 @@ export class RaptorAlgorithm {
    */
   public scan(origins: StopTimes, date: DateNumber): [ConnectionIndex, Arrivals] {
     const routeScanner = new RouteScanner(this.timetable.routes, date);
-    const results = new ScanResults(this.timetable, origins);
-    const stopIndex = this.timetable.stopIndex;
+    const results = new ScanResults(this.network, origins);
+    const stopIndex = this.network.stopIndex;
 
     let markedStops = Object.keys(origins)
       .map(origin => stopIndex.get(origin))
@@ -57,7 +62,7 @@ export class RaptorAlgorithm {
 
   private scanRoutes(results: ScanResults, routeScanner: RouteScanner, markedStops: StopIdx[]): void {
     const { interchange, routes } = this.timetable;
-    const { arrivals, flags, stopOffsets, stops, stopTimesBase, trips: routeTrips } = routes;
+    const { arrivals, flags, stopOffsets, stops, stopTimesBase, tripOffsets } = routes;
 
     for (const [route, startPosition] of buildQueue(this.timetable.routesByStop, markedStops)) {
       const stopsBase = stopOffsets[route];
@@ -76,7 +81,7 @@ export class RaptorAlgorithm {
           const arrival = arrivals[tripBase + pi] + interchange[stop];
 
           if ((flags[stopsBase + pi] & DROP_OFF) !== 0 && arrival < results.bestArrival(stop)) {
-            results.setTrip(routeTrips[route][trip], boardingPoint, pi, stop, arrival);
+            results.setTrip(route, tripOffsets[route] + trip, boardingPoint, pi, stop, arrival);
           }
           // reaching the stop earlier by other means may make an earlier trip on this route
           // catchable, but only where the route picks passengers up
@@ -105,17 +110,18 @@ export class RaptorAlgorithm {
 
   private scanTransfers(results: ScanResults, markedStops: StopIdx[]): void {
     const { interchange, transfers } = this.timetable;
+    const { offsets, index, destination, duration, from, until } = transfers;
 
     for (const stop of markedStops) {
       const previousArrival = results.previousArrival(stop);
+      const end = offsets[stop + 1];
 
-      for (const indexed of transfers[stop]) {
-        const destination = indexed.destination;
-        const transfer = indexed.transfer;
-        const arrival = previousArrival + transfer.duration + interchange[destination];
+      for (let i = offsets[stop]; i < end; i++) {
+        const to = destination[i];
+        const arrival = previousArrival + duration[i] + interchange[to];
 
-        if (transfer.startTime <= arrival && transfer.endTime >= arrival && arrival < results.bestArrival(destination)) {
-          results.setTransfer(transfer, destination, arrival);
+        if (from[i] <= arrival && until[i] >= arrival && arrival < results.bestArrival(to)) {
+          results.setTransfer(index[i], to, arrival);
         }
       }
     }

@@ -12,6 +12,8 @@ export * from "./raptor/RaptorAlgorithm";
 export * from "./raptor/RaptorAlgorithmFactory";
 export * from "./raptor/RouteScanner";
 export * from "./raptor/ScanResults";
+export * from "./raptor/TripCalendar";
+export * from "./raptor/Network";
 export * from "./raptor/Timetable";
 export * from "./results/Journey";
 export * from "./results/JourneyFactory";

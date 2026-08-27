@@ -87,7 +87,8 @@ export class GroupStationDepartAfterQuery {
     // a destination the feed has no stop for is simply not reachable, which is already how an
     // origin the feed has no stop for is treated
     const destinationsWithResults = destinations.filter(d => Object.keys(kConnections[d] ?? {}).length > 0);
-    const initialResults = destinationsWithResults.flatMap(d => this.resultsFactory.getResults(kConnections, d));
+    const initialResults = destinationsWithResults
+      .flatMap(d => this.resultsFactory.getResults(kConnections, d, this.raptor.network));
 
     // reverse the previous connections and then work back through each day pre-pending journeys
     return prevConnections
@@ -103,7 +104,7 @@ export class GroupStationDepartAfterQuery {
     return results.flatMap(journeyB => {
       // find some results to the origin of that result and merge them together
       return this.resultsFactory
-        .getResults(kConnections, journeyB.legs[0].origin)
+        .getResults(kConnections, journeyB.legs[0].origin, this.raptor.network)
         .map(journeyA => this.mergeJourneys(journeyA, journeyB));
     });
   }

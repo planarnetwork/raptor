@@ -1,18 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { createCalendar, dayOffset, getCalendarWindow, NOT_COVERED } from "../../../src/raptor/Calendar";
+import { createTripCalendar, dayOffset, getCalendarWindow, NOT_COVERED } from "../../../src/raptor/TripCalendar";
 import { Service } from "../../../src/gtfs/Service";
 import { addDays, getDateNumber } from "../../../src/query/DateUtil";
 import { allDays, st, t } from "../util";
 import type { Trip } from "../../../src/gtfs/GTFS";
 
-describe("Calendar", () => {
+describe("TripCalendar", () => {
 
   function tripOn(service: Service): Trip {
     return { ...t(st("A", null, 1000), st("B", 1100, null)), service };
   }
 
   function runsOn(trips: Trip[], from: number, to: number, date: number, trip = 0): boolean {
-    const calendar = createCalendar(trips, from, to);
+    const calendar = createTripCalendar(trips, from, to);
     const offset = dayOffset(calendar, date);
 
     return offset !== NOT_COVERED && (calendar.runs[offset + (trip >> 3)] & (1 << (trip & 7))) !== 0;
@@ -63,7 +63,7 @@ describe("Calendar", () => {
   });
 
   it("does not cover a date outside its period", () => {
-    const calendar = createCalendar([tripOn(everyDay)], 20180101, 20180107);
+    const calendar = createTripCalendar([tripOn(everyDay)], 20180101, 20180107);
 
     expect(dayOffset(calendar, 20171231)).toBe(NOT_COVERED);
     expect(dayOffset(calendar, 20180108)).toBe(NOT_COVERED);

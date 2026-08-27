@@ -19,10 +19,8 @@ export type Duration = number;
  * GTFS stop time
  */
 export interface StopTime {
-  /** The station the call is at, once the timetable has resolved it from the feed's stop */
+  /** The stop as the feed gives it, which may identify a platform within a station */
   stop: StopID;
-  /** The stop_id as it appears in the feed, which may identify a platform */
-  platformStop?: StopID;
   arrivalTime: Time;
   departureTime: Time;
   pickUp: boolean;
@@ -69,10 +67,8 @@ export type ServiceID = string;
  */
 export interface Trip {
   tripId: TripID;
-  /** Calls a passenger can use, which is what the algorithm plans with */
+  /** The trip's stopping pattern as the feed gives it, passing points and all */
   stopTimes: StopTime[];
-  /** Every call of the trip, including the passing points filtered out of stopTimes */
-  allStopTimes?: StopTime[];
   serviceId: ServiceID;
   service: Service;
 }

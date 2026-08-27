@@ -2,7 +2,7 @@ import type { DayOfWeek } from "../gtfs/GTFS";
 import type { GTFSFeed } from "../gtfs/GTFSLoader";
 import { RaptorAlgorithm } from "./RaptorAlgorithm";
 import { getDateNumber } from "../query/DateUtil";
-import { createTimetable } from "./Timetable";
+import { createNetwork } from "./Network";
 
 /**
  * Prepares GTFS data for the raptor algorithm
@@ -22,6 +22,6 @@ export class RaptorAlgorithmFactory {
       feed = { ...feed, trips: feed.trips.filter(trip => trip.service.runsOn(dateNumber, dow)) };
     }
 
-    return new RaptorAlgorithm(createTimetable(feed));
+    return new RaptorAlgorithm(createNetwork(feed));
   }
 }

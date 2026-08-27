@@ -45,7 +45,6 @@ export function t(...stopTimes: StopTime[]): Trip {
 export function st(stop: StopID, arrivalTime: Time | null, departureTime: Time | null): StopTime {
   return {
     stop: stop,
-    platformStop: stop,
     arrivalTime: arrivalTime || departureTime!,
     departureTime: departureTime || arrivalTime!,
     dropOff: arrivalTime !== null,

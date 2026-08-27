@@ -1,7 +1,7 @@
-import type { Stop, StopID, StopIndex, Trip } from "../gtfs/GTFS";
+import type { Stop, StopID, StopIndex, StopTime, Transfer, Trip } from "../gtfs/GTFS";
 import type { GTFSFeed } from "../gtfs/GTFSLoader";
-import type { Interchange, TransfersByOrigin } from "./RaptorAlgorithm";
-import { pushNested } from "ts-array-utils";
+import { isCall } from "../gtfs/Calls";
+import type { Interchange } from "./RaptorAlgorithm";
 
 /**
  * A feed may group stops under a station and those under a station in turn, so the walk up is
@@ -10,64 +10,52 @@ import { pushNested } from "ts-array-utils";
 const MAX_PARENT_DEPTH = 10;
 
 /**
- * Puts the feed into the terms the algorithm plans in: calls are at stations rather than platforms,
- * and only the calls a passenger can use are kept.
+ * Puts the feed into the terms the algorithm plans in: stops are the stations they belong to, and
+ * only the trips a passenger can both board and alight are kept.
  *
  * Interchange time and transfers are defined at the station and a change of vehicle is only
  * possible there, so a feed that identifies platforms individually has to be resolved to the
  * station before it can be planned with.
  *
- * Nothing is discarded. Each stop time keeps the feed's stop id as platformStop and each trip
- * keeps its full stopping pattern, including passing points, as allStopTimes.
- *
- * The trips are rewritten in place, and running twice over the same trips is a no op.
+ * The feed is only read. Where a call is is answered by stations rather than by rewriting the stop
+ * times, so the trips keep the stopping pattern the feed gave them, passing points and all.
  */
 export function normalise(feed: GTFSFeed): TimetableInput {
-  const { trips, transfers, interchange, stops } = feed;
-  const stations = stationCodes(stops);
+  const stations = stationCodes(feed.stops);
   const station = (id: StopID): StopID => stations.get(id) ?? id;
-  const stationTrips: Trip[] = [];
+  const trips: Trip[] = [];
+  const calls: StopTime[][] = [];
 
-  for (const trip of trips) {
-    const allStopTimes = trip.allStopTimes ?? trip.stopTimes ?? [];
-
-    for (const stopTime of allStopTimes) {
-      const id = stopTime.platformStop ?? stopTime.stop;
-
-      // take the ids from the stop index so every call at a stop shares one string
-      stopTime.platformStop = stops[id]?.id ?? id;
-      stopTime.stop = station(id);
-    }
-
-    trip.allStopTimes = allStopTimes;
-    trip.stopTimes = allStopTimes.filter(stopTime => stopTime.pickUp || stopTime.dropOff);
+  for (const trip of feed.trips) {
+    const tripCalls = trip.stopTimes.filter(isCall);
 
     // a trip that cannot be both boarded and alighted is of no use
-    if (trip.stopTimes.length > 1) {
-      stationTrips.push(trip);
+    if (tripCalls.length > 1) {
+      trips.push(trip);
+      calls.push(tripCalls);
     }
   }
 
-  const stationTransfers: TransfersByOrigin = {};
-  const stationInterchange: Interchange = {};
+  const transfers: Transfer[] = [];
+  const interchange: Interchange = {};
 
-  for (const stop of Object.keys(interchange)) {
-    stationInterchange[station(stop)] = interchange[stop];
+  for (const stop of Object.keys(feed.interchange)) {
+    interchange[station(stop)] = feed.interchange[stop];
   }
 
-  for (const origin of Object.keys(transfers)) {
-    for (const transfer of transfers[origin]) {
+  for (const origin of Object.keys(feed.transfers)) {
+    for (const transfer of feed.transfers[origin]) {
       const from = station(transfer.origin);
       const to = station(transfer.destination);
 
       // moving between two platforms of one station is what interchange time is for
       if (from !== to) {
-        pushNested({ ...transfer, origin: from, destination: to }, stationTransfers, from);
+        transfers.push({ ...transfer, origin: from, destination: to });
       }
     }
   }
 
-  return { trips: stationTrips, transfers: stationTransfers, interchange: stationInterchange };
+  return { trips, calls, transfers, interchange, stations };
 }
 
 /**
@@ -107,10 +95,13 @@ function resolveStation(stops: StopIndex, stop: Stop, depth = 0): Stop {
 
 /**
  * What the timetable is built from, once the feed has been put into the terms the algorithm plans
- * in.
+ * in. Trips and calls are parallel: calls[i] is the usable calls of trips[i], in feed order.
  */
 export interface TimetableInput {
   trips: Trip[];
-  transfers: TransfersByOrigin;
+  calls: StopTime[][];
+  transfers: Transfer[];
   interchange: Interchange;
+  /** Feed stop id to the code of the station it belongs to */
+  stations: Map<StopID, StopID>;
 }

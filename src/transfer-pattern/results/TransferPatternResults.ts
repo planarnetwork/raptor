@@ -1,5 +1,6 @@
 import type { ConnectionIndex } from "../../raptor/ScanResults";
 import type { StopID } from "../../gtfs/GTFS";
+import type { Network } from "../../raptor/Network";
 
 /**
  * Create the results factory
@@ -11,7 +12,7 @@ export type TransferPatternResultsFactory<T> = () => TransferPatternResults<T>;
  */
 export interface TransferPatternResults<T> {
 
-  add(kConnections: ConnectionIndex): void;
+  add(kConnections: ConnectionIndex, network: Network): void;
 
   finalize(): T;
 

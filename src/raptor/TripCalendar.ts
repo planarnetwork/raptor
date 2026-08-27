@@ -17,7 +17,7 @@ const DEFAULT_DAYS = 120;
  * Days are stored one after another, so the trips of a route sit next to each other within a day
  * and the check is a single byte read.
  */
-export function createCalendar(trips: Trip[], startDate: DateNumber, endDate: DateNumber): Calendar {
+export function createTripCalendar(trips: Trip[], startDate: DateNumber, endDate: DateNumber): TripCalendar {
   const days = daysBetween(startDate, endDate) + 1;
   const stride = (trips.length + 7) >> 3;
   const runs = new Uint8Array(days * stride);
@@ -74,7 +74,7 @@ export function getCalendarWindow(startDate?: DateNumber, endDate?: DateNumber):
 /**
  * Byte offset of a date's slice of runs, or NOT_COVERED if the calendar does not reach it
  */
-export function dayOffset(calendar: Calendar, date: DateNumber): number {
+export function dayOffset(calendar: TripCalendar, date: DateNumber): number {
   const day = daysBetween(calendar.startDate, date);
 
   return day < 0 || date > calendar.endDate ? NOT_COVERED : day * calendar.stride;
@@ -85,7 +85,7 @@ export function dayOffset(calendar: Calendar, date: DateNumber): number {
  */
 export const NOT_COVERED = -1;
 
-export interface Calendar {
+export interface TripCalendar {
   /** First date the calendar covers */
   startDate: DateNumber;
   /** Last date the calendar covers */

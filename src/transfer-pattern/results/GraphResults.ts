@@ -1,4 +1,5 @@
 import type { ConnectionIndex } from "../../raptor/ScanResults";
+import { type Network, stopAt } from "../../raptor/Network";
 import { isTransfer } from "../../results/ResultsFactory";
 import type { StopID } from "../../gtfs/GTFS";
 import type { Path, TransferPatternResults } from "./TransferPatternResults";
@@ -12,9 +13,9 @@ export class GraphResults implements TransferPatternResults<TransferPatternGraph
   /**
    * Generate transfer patterns and store them in a DAG
    */
-  public add(kConnections: ConnectionIndex): void {
+  public add(kConnections: ConnectionIndex, network: Network): void {
 
-    for (const path of this.getPaths(kConnections)) {
+    for (const path of this.getPaths(kConnections, network)) {
       this.mergePath(path);
     }
 
@@ -27,24 +28,31 @@ export class GraphResults implements TransferPatternResults<TransferPatternGraph
     return this.results;
   }
 
-  private getPaths(kConnections: ConnectionIndex): Path[] {
+  private getPaths(kConnections: ConnectionIndex, network: Network): Path[] {
     const results: Path[] = [];
 
     for (const destination in kConnections) {
       for (const k in kConnections[destination]) {
-        results.push(this.getPath(kConnections, k, destination));
+        results.push(this.getPath(kConnections, k, destination, network));
       }
     }
 
     return results;
   }
 
-  private getPath(kConnections: ConnectionIndex, k: string, finalDestination: StopID): Path {
+  private getPath(
+    kConnections: ConnectionIndex,
+    k: string,
+    finalDestination: StopID,
+    network: Network
+  ): Path {
     const path = [finalDestination];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
-      const origin = isTransfer(connection) ? connection.origin : connection[0].stopTimes[connection[1]].stop;
+      const origin = isTransfer(connection)
+        ? network.transfers[connection].origin
+        : stopAt(network, connection[0], connection[2]);
 
       path.push(origin);
 

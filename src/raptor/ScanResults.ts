@@ -1,6 +1,7 @@
-import type { StopID, Time, Transfer, Trip } from "../gtfs/GTFS";
+import type { StopID, Time } from "../gtfs/GTFS";
+import type { Network } from "./Network";
 import type { StopTimes } from "./RaptorAlgorithm";
-import { NOT_REACHED, type StopIdx, type Timetable } from "./Timetable";
+import { NOT_REACHED, type RouteIdx, type StopIdx } from "./Timetable";
 
 /**
  * Best arrival time at every stop, overall and per round, plus the connection that achieved it.
@@ -14,10 +15,10 @@ export class ScanResults {
   private readonly stopIds: StopID[];
   private readonly bestArrivals: Int32Array;
   private readonly kArrivals: Int32Array[];
-  private readonly kConnections: (Connection | Transfer)[][];
+  private readonly kConnections: (Connection | TransferIdx)[][];
 
-  constructor(timetable: Timetable, origins: StopTimes) {
-    const { stopIndex, stopIds } = timetable;
+  constructor(network: Network, origins: StopTimes) {
+    const { stopIndex, stopIds } = network;
 
     // round zero: the origins are reached at their departure time, nothing else is reached at all
     const initialArrivals = new Int32Array(stopIds.length).fill(NOT_REACHED);
@@ -50,12 +51,12 @@ export class ScanResults {
     return this.bestArrivals[stop];
   }
 
-  public setTrip(trip: Trip, boardingPoint: number, position: number, stop: StopIdx, time: Time): void {
+  public setTrip(route: RouteIdx, trip: number, from: number, to: number, stop: StopIdx, time: Time): void {
     this.setArrival(stop, time);
-    this.kConnections[stop][this.k] = [trip, boardingPoint, position];
+    this.kConnections[stop][this.k] = [route, trip, from, to];
   }
 
-  public setTransfer(transfer: Transfer, stop: StopIdx, time: Time): void {
+  public setTransfer(transfer: TransferIdx, stop: StopIdx, time: Time): void {
     this.setArrival(stop, time);
     this.kConnections[stop][this.k] = transfer;
   }
@@ -71,7 +72,7 @@ export class ScanResults {
 
     for (let stop = 0; stop < this.stopIds.length; stop++) {
       const stopId = this.stopIds[stop];
-      const index: Record<number, Connection | Transfer> = Object.create(null);
+      const index: Record<number, Connection | TransferIdx> = Object.create(null);
 
       // rounds the stop was not reached in are holes in the array, which forEach skips
       this.kConnections[stop].forEach((connection, k) => { index[k] = connection; });
@@ -100,5 +101,16 @@ export class ScanResults {
 }
 
 export type Arrivals = Record<StopID, Time>;
-export type Connection = [Trip, number, number];
-export type ConnectionIndex = Record<StopID, Record<number, Connection | Transfer>>;
+
+/**
+ * A leg taken on a vehicle: the route, the trip on it, and the positions boarded and alighted at.
+ * Network.trips turns the trip into the feed's, and stopAt turns the positions into stops.
+ */
+export type Connection = [route: RouteIdx, trip: number, from: number, to: number];
+
+/**
+ * A leg taken on foot, as an index into Network.transfers
+ */
+export type TransferIdx = number;
+
+export type ConnectionIndex = Record<StopID, Record<number, Connection | TransferIdx>>;

@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import type { Network } from "../../../../src/raptor/Network";
+import type { ConnectionIndex } from "../../../../src/raptor/ScanResults";
 import {StringResults} from "../../../../src/transfer-pattern/results/StringResults";
 import type {StopID} from "../../../../src/gtfs/GTFS";
 
@@ -53,15 +55,46 @@ describe("StringResults", () => {
 });
 
 function mergePath(path: StopID[], tree: StringResults): void {
-  const kConnections = {};
+  const kConnections: ConnectionIndex = {};
+  const stopIds: StopID[] = [];
+  const stopIndex = new Map<StopID, number>();
+  const routeStops: number[] = [];
 
+  const intern = (stop: StopID): number => {
+    let index = stopIndex.get(stop);
+
+    if (index === undefined) {
+      index = stopIds.length;
+      stopIndex.set(stop, index);
+      stopIds.push(stop);
+    }
+
+    return index;
+  };
+
+  const trips: unknown[] = [];
+
+  // each step of the path is a route of its own, boarded at position 0 and alighted at position 1
   for (let i = 1; i < path.length; i++) {
-    const origin = path[i - 1];
-    const destination = path[i];
-
-    kConnections[destination] = {};
-    kConnections[destination][i] = [{ stopTimes: [{ stop: origin }] }, 0, 1];
+    routeStops.push(intern(path[i - 1]), intern(path[i]));
+    kConnections[path[i]] = { [i]: [i - 1, i - 1, 0, 1] };
+    trips.push({ stopTimes: [
+      { stop: path[i - 1], departureTime: i, arrivalTime: i, pickUp: true, dropOff: false },
+      { stop: path[i], departureTime: i, arrivalTime: i, pickUp: false, dropOff: true }
+    ] });
   }
 
-  tree.add(kConnections);
+  const network = {
+    timetable: {
+      routes: {
+        stopOffsets: Int32Array.from({ length: path.length }, (_, route) => route * 2),
+        stops: Int32Array.from(routeStops)
+      }
+    },
+    stopIds,
+    trips,
+    transfers: []
+  } as unknown as Network;
+
+  tree.add(kConnections, network);
 }

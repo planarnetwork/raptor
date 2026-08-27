@@ -28,7 +28,7 @@ export class TransferPatternQuery {
     while (time < this.ONE_DAY) {
       const [kConnections] = this.raptor.scan({ [origin]: time }, date);
 
-      time = results.add(kConnections);
+      time = results.add(kConnections, this.raptor.network);
     }
 
     return results.finalize();

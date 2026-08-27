@@ -1,5 +1,5 @@
 import type { DateNumber, Time } from "../gtfs/GTFS";
-import { dayOffset, NOT_COVERED } from "./Calendar";
+import { dayOffset, NOT_COVERED } from "./TripCalendar";
 import type { RouteIdx, Routes } from "./Timetable";
 
 /**
@@ -21,7 +21,10 @@ export class RouteScanner {
     const calendar = routes.calendar;
     const offset = dayOffset(calendar, date);
 
-    this.routeScanPosition = Int32Array.from(routes.trips, trips => trips.length - 1);
+    this.routeScanPosition = Int32Array.from(
+      { length: routes.tripOffsets.length - 1 },
+      (_, route) => routes.tripOffsets[route + 1] - routes.tripOffsets[route] - 1
+    );
     this.runsToday = offset === NOT_COVERED
       ? new Uint8Array(calendar.stride)
       : calendar.runs.subarray(offset, offset + calendar.stride);
