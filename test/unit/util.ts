@@ -1,4 +1,5 @@
-import type { StopID, StopTime, Time, TimetableLeg, Transfer, Trip } from "../../src/gtfs/GTFS";
+import type { Interchange, StopID, StopIndex, StopTime, Time, TimetableLeg, Transfer, TransfersByOrigin, Trip } from "../../src/gtfs/GTFS";
+import type { GTFSFeed } from "../../src/gtfs/GTFSLoader";
 import type { Journey } from "../../src/results/Journey";
 import { Service } from "../../src/gtfs/Service";
 
@@ -19,6 +20,16 @@ export const services = {
   )
 };
 
+export function feed(
+  trips: Trip[],
+  transfers: TransfersByOrigin = {},
+  interchange: Interchange = {},
+  stops: StopIndex = {}
+): GTFSFeed {
+  // wide enough for every date the specs plan for
+  return { trips, transfers, interchange, stops, feedInfo: { startDate: 20180101, endDate: 20201231 } };
+}
+
 let tripId = 0;
 
 export function t(...stopTimes: StopTime[]): Trip {
@@ -33,7 +44,6 @@ export function t(...stopTimes: StopTime[]): Trip {
 export function st(stop: StopID, arrivalTime: Time | null, departureTime: Time | null): StopTime {
   return {
     stop: stop,
-    platformStop: stop,
     arrivalTime: arrivalTime || departureTime!,
     departureTime: departureTime || arrivalTime!,
     dropOff: arrivalTime !== null,

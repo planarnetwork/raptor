@@ -1,5 +1,7 @@
-import type { ConnectionIndex } from "../../raptor/ScanResults";
-import { isTransfer } from "../../results/ResultsFactory";
+import { isTransfer, type ConnectionIndex } from "../../raptor/Connection";
+import type { Network } from "../../network/Network";
+import { originIndexOf } from "../../raptor/Connection";
+import type { StopIdx } from "../../network/Timetable";
 import type { StopID } from "../../gtfs/GTFS";
 import type { Path, TransferPatternResults } from "./TransferPatternResults";
 
@@ -12,9 +14,9 @@ export class GraphResults implements TransferPatternResults<TransferPatternGraph
   /**
    * Generate transfer patterns and store them in a DAG
    */
-  public add(kConnections: ConnectionIndex): void {
+  public add(kConnections: ConnectionIndex, network: Network): void {
 
-    for (const path of this.getPaths(kConnections)) {
+    for (const path of this.getPaths(kConnections, network)) {
       this.mergePath(path);
     }
 
@@ -27,26 +29,33 @@ export class GraphResults implements TransferPatternResults<TransferPatternGraph
     return this.results;
   }
 
-  private getPaths(kConnections: ConnectionIndex): Path[] {
+  private getPaths(kConnections: ConnectionIndex, network: Network): Path[] {
     const results: Path[] = [];
 
-    for (const destination in kConnections) {
-      for (const k in kConnections[destination]) {
-        results.push(this.getPath(kConnections, k, destination));
+    for (let stop = 0; stop < kConnections.length; stop++) {
+      for (const k in kConnections[stop]) {
+        results.push(this.getPath(kConnections, k, stop, network));
       }
     }
 
     return results;
   }
 
-  private getPath(kConnections: ConnectionIndex, k: string, finalDestination: StopID): Path {
-    const path = [finalDestination];
+  private getPath(
+    kConnections: ConnectionIndex,
+    k: string,
+    finalDestination: StopIdx,
+    network: Network
+  ): Path {
+    const path = [network.stopIds[finalDestination]];
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
-      const origin = isTransfer(connection) ? connection.origin : connection[0].stopTimes[connection[1]].stop;
+      const origin = isTransfer(connection)
+        ? (network.stopIndex.get(network.transfers[connection].origin) as StopIdx)
+        : originIndexOf(network, connection);
 
-      path.push(origin);
+      path.push(network.stopIds[origin]);
 
       destination = origin;
     }

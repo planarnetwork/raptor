@@ -1,7 +1,7 @@
-import { j, setDefaultTrip, st, t } from "../util";
+import { feed, j, setDefaultTrip, st, t } from "../util";
 import { describe, it, expect } from "vitest";
 import { JourneyFactory } from "../../../src/results/JourneyFactory";
-import { RaptorAlgorithmFactory } from "../../../src/raptor/RaptorAlgorithmFactory";
+import { createNetwork } from "../../../src/network/Network";
 import { RangeQuery } from "../../../src/query/RangeQuery";
 
 describe("RangeQuery", () => {
@@ -26,8 +26,8 @@ describe("RangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
-    const query = new RangeQuery(raptor, journeyFactory);
+    const network = createNetwork(feed(trips));
+    const query = new RangeQuery(network, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"));
 
     setDefaultTrip(result);
@@ -81,8 +81,8 @@ describe("RangeQuery", () => {
       )
     ];
 
-    const raptor = RaptorAlgorithmFactory.create(trips, {}, {}, {});
-    const query = new RangeQuery(raptor, journeyFactory);
+    const network = createNetwork(feed(trips));
+    const query = new RangeQuery(network, journeyFactory);
     const result = query.plan("A", "C", new Date("2018-10-16"));
 
     setDefaultTrip(result);

@@ -1,8 +1,9 @@
-import type { ConnectionIndex } from "../../raptor/ScanResults";
-import { isTransfer } from "../../results/ResultsFactory";
-import type { StopID, Time } from "../../gtfs/GTFS";
+import { isTransfer, type Connection, type ConnectionIndex } from "../../raptor/Connection";
+import type { Network } from "../../network/Network";
+import { departureOf, originIndexOf } from "../../raptor/Connection";
+import type { StopIdx } from "../../network/Timetable";
+import type { Interchange, Time } from "../../gtfs/GTFS";
 import type { Path } from "./TransferPatternResults";
-import type { Interchange } from "../../raptor/RaptorAlgorithm";
 
 /**
  * Store the kConnection results as an index where the key is the journey origin and destination and the value is a Set
@@ -18,12 +19,14 @@ export class StringResults {
   /**
    * Extract the path from each kConnection result and store it in an index
    */
-  public add(kConnections: ConnectionIndex): number {
+  public add(kConnections: ConnectionIndex, network: Network): number {
     let nextDepartureTime = Number.MAX_SAFE_INTEGER;
 
-    for (const destination in kConnections) {
-      for (const k in kConnections[destination]) {
-        const [path, departureTime] = this.getPath(kConnections, k, destination);
+    for (let stop = 0; stop < kConnections.length; stop++) {
+      const destination = network.stopIds[stop];
+
+      for (const k in kConnections[stop]) {
+        const [path, departureTime] = this.getPath(kConnections, k, stop, network);
 
         if (path.length >= 1) {
           const [origin, ...tail] = path;
@@ -47,19 +50,27 @@ export class StringResults {
     return this.results;
   }
 
-  private getPath(kConnections: ConnectionIndex, k: string, finalDestination: StopID): [Path, Time] {
+  private getPath(
+    kConnections: ConnectionIndex,
+    k: string,
+    finalDestination: StopIdx,
+    network: Network
+  ): [Path, Time] {
     const path: Path = [];
     let departureTime = Number.MAX_SAFE_INTEGER;
 
     for (let destination = finalDestination, i = parseInt(k, 10); i > 0; i--) {
       const connection = kConnections[destination][i];
-      const origin = isTransfer(connection) ? connection.origin : connection[0].stopTimes[connection[1]].stop;
+      const transfer = isTransfer(connection) ? network.transfers[connection] : undefined;
+      const origin = transfer
+        ? (network.stopIndex.get(transfer.origin) as StopIdx)
+        : originIndexOf(network, connection as Connection);
 
-      departureTime = isTransfer(connection)
-          ? departureTime - connection.duration - this.interchange[connection.destination]
-          : connection[0].stopTimes[connection[1]].departureTime;
+      departureTime = transfer
+          ? departureTime - transfer.duration - this.interchange[transfer.destination]
+          : departureOf(network, connection as Connection);
 
-      path.unshift(origin);
+      path.unshift(network.stopIds[origin]);
 
       destination = origin;
     }

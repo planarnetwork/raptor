@@ -1,4 +1,4 @@
-import type { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
+import type { Network } from "../network/Network";
 import type { ResultsFactory } from "../results/ResultsFactory";
 import type { StopID } from "../gtfs/GTFS";
 import type { Journey } from "../results/Journey";
@@ -13,10 +13,10 @@ export class RangeQuery {
   private readonly ONE_DAY = 24 * 60 * 60;
   private readonly groupQuery: GroupStationDepartAfterQuery;
 
-  constructor(readonly raptor: RaptorAlgorithm,readonly resultsFactory: ResultsFactory,readonly maxSearchDays: number = 3,
+  constructor(readonly network: Network,readonly resultsFactory: ResultsFactory,readonly maxSearchDays: number = 3,
     private readonly filters: JourneyFilter[] = []
   ) {
-    this.groupQuery = new GroupStationDepartAfterQuery(raptor, resultsFactory, maxSearchDays);
+    this.groupQuery = new GroupStationDepartAfterQuery(network, resultsFactory, maxSearchDays);
   }
 
   /**

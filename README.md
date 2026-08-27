@@ -21,10 +21,9 @@ Additional features not in the paper implementation:
 ## Stops and stations
 
 Journeys are planned between stations, because that is where interchange time and transfers are
-defined and the only place a change of vehicle is possible. `loadGTFS` returns stops as the feed
-gives them; they are resolved when the timetable is created, following `parent_station` up through
-however many levels of grouping the feed uses. Pass the stop index to
-`RaptorAlgorithmFactory.create` and this happens for you.
+defined and the only place a change of vehicle is possible. `loadGTFS` returns the feed exactly as
+it finds it; stops are resolved to their station when the timetable is built, following
+`parent_station` up through however many levels of grouping the feed uses.
 
 Stations are identified by their `stop_code`, falling back to `stop_id` where a feed does not give
 one. That is the identifier queries are made with and journeys are returned in. A feed that
@@ -33,10 +32,23 @@ code the station is actually known by — a CRS code for UK rail. GTFS places no
 requirement on `stop_code`, so a feed that gives two stations the same one is rejected when the
 timetable is created, rather than silently planning them as the same place.
 
-Nothing is lost. Each stop time keeps the feed's `stop_id` as `platformStop`, and each trip keeps
-its full stopping pattern as `allStopTimes`. The legs of a journey are cut from that pattern, so
-they include the passing points between the stop boarded at and the stop alighted at. Filter on
-`pickUp` or `dropOff` for the calls a passenger can use.
+Nothing is lost, because nothing is rewritten. The trips a journey hands back are the feed's own,
+so a leg's stop times carry the feed's `stop_id` — the platform, where the feed identifies one —
+and include the passing points between the stop boarded at and the stop alighted at. Filter on
+`pickUp` or `dropOff` for the calls a passenger can use, and `network.stations` maps a stop to the
+station the algorithm planned it as.
+
+## Dates
+
+The timetable holds a calendar for a fixed period, taken from `feed_info.txt` where the feed gives
+one and 120 days from today where it does not. Planning for a date outside that period throws
+rather than quietly finding nothing. To plan for a different period, set `feedInfo` on the feed
+before building:
+
+```
+const feed = await loadGTFS(fs.createReadStream("gtfs.zip"));
+const network = createNetwork({ ...feed, feedInfo: { startDate: 20250901, endDate: 20251101 } });
+```
 
 ## Usage
 
@@ -54,12 +66,12 @@ Find the first results that depart after a specific time
 
 ```
 const fs = require("fs");
-const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, DepartAfterQuery} = require("raptor-journey-planner");
+const {loadGTFS, JourneyFactory, createNetwork, DepartAfterQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, stops] = await loadGTFS(fs.createReadStream("gtfs.zip"));
-const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, stops);
+const feed = await loadGTFS(fs.createReadStream("gtfs.zip"));
+const network = createNetwork(feed);
 const resultsFactory = new JourneyFactory();
-const query = new DepartAfterQuery(raptor, resultsFactory);
+const query = new DepartAfterQuery(network, resultsFactory);
 const journeys = query.plan("NRW", "STA", new Date(), 9 * 60 * 60);
 ```
 
@@ -69,12 +81,12 @@ Find results from multiple origin and destinations
 
 ```
 const fs = require("fs");
-const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, GroupStationDepartAfterQuery} = require("raptor-journey-planner");
+const {loadGTFS, JourneyFactory, createNetwork, GroupStationDepartAfterQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, stops] = await loadGTFS(fs.createReadStream("gtfs.zip"));
-const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, stops);
+const feed = await loadGTFS(fs.createReadStream("gtfs.zip"));
+const network = createNetwork(feed);
 const resultsFactory = new JourneyFactory();
-const query = new GroupStationDepartAfterQuery(raptor, resultsFactory);
+const query = new GroupStationDepartAfterQuery(network, resultsFactory);
 const journeys = query.plan(["NRW"], ["LST", "EUS"], new Date(), 9 * 60 * 60);
 ```
 
@@ -84,12 +96,12 @@ Find results departing between a time range
 
 ```
 const fs = require("fs");
-const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery} = require("raptor-journey-planner");
+const {loadGTFS, JourneyFactory, createNetwork, RangeQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, stops] = await loadGTFS(fs.createReadStream("gtfs.zip"));
-const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, stops);
+const feed = await loadGTFS(fs.createReadStream("gtfs.zip"));
+const network = createNetwork(feed);
 const resultsFactory = new JourneyFactory();
-const query = new RangeQuery(raptor, resultsFactory);
+const query = new RangeQuery(network, resultsFactory);
 const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
 ```
 
@@ -99,12 +111,12 @@ Finds transfer patterns for a stop on a given date
 
 ```
 const fs = require("fs");
-const {loadGTFS, StringResults, RaptorAlgorithmFactory, TransferPatternQuery} = require("raptor-journey-planner");
+const {loadGTFS, StringResults, createNetwork, TransferPatternQuery} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, stops] = await loadGTFS(fs.createReadStream("gtfs.zip"));
-const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, stops);
-const resultsFactory = () => new StringResults();
-const query = new TransferPatternQuery(raptor, resultsFactory);
+const feed = await loadGTFS(fs.createReadStream("gtfs.zip"));
+const network = createNetwork(feed);
+const resultsFactory = () => new StringResults(feed.interchange);
+const query = new TransferPatternQuery(network, resultsFactory);
 const journeys = query.plan("NRW", new Date());
 ```
 
@@ -114,14 +126,14 @@ By default the multi-criteria filter will keep journeys as long as there are no 
 
 ```
 const fs = require("fs");
-const {loadGTFS, JourneyFactory, RaptorAlgorithmFactory, RangeQuery, MultipleCriteriaFilter} = require("raptor-journey-planner");
+const {loadGTFS, JourneyFactory, createNetwork, RangeQuery, MultipleCriteriaFilter} = require("raptor-journey-planner");
 
-const [trips, transfers, interchange, stops] = await loadGTFS(fs.createReadStream("gtfs.zip"));
-const raptor = RaptorAlgorithmFactory.create(trips, transfers, interchange, stops);
+const feed = await loadGTFS(fs.createReadStream("gtfs.zip"));
+const network = createNetwork(feed);
 const resultsFactory = new JourneyFactory();
 const filter = new MultipleCriteriaFilter();
 const maxSearchDays = 3;
-const query = new RangeQuery(raptor, resultsFactory, maxSearchDays, [filter]);
+const query = new RangeQuery(network, resultsFactory, maxSearchDays, [filter]);
 const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
 ```
 

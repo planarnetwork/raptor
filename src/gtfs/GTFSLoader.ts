@@ -1,18 +1,17 @@
 import { plain as gtfs } from "gtfs-stream";
-import type {CalendarIndex, StopIndex, Trip} from "./GTFS";
-import type {Interchange, TransfersByOrigin} from "../raptor/RaptorAlgorithm";
+import type {CalendarIndex, DateNumber, Interchange, StopIndex, TransfersByOrigin, Trip} from "./GTFS";
 import {pushNested, setNested} from "ts-array-utils";
 import type {Readable} from "node:stream";
 import {TimeParser} from "./TimeParser";
 import { Service } from "./Service";
 
 /**
- * Returns trips, transfers, interchange time and calendars from a GTFS zip.
+ * Returns the contents of a GTFS zip.
  *
  * Stops are returned as the feed gives them. Resolving them to the stations the algorithm plans
  * between is done when the timetable is created.
  */
-export function loadGTFS(stream: Readable): Promise<GTFSData> {
+export function loadGTFS(stream: Readable): Promise<GTFSFeed> {
   const timeParser = new TimeParser();
   const trips: Trip[] = [];
   const transfers = {};
@@ -21,6 +20,7 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
   const dates = {};
   const stopTimes = {};
   const stops: StopIndex = {};
+  let feedInfo: FeedInfo | undefined;
 
   const addTransfer = (row, duration: number, startTime: number, endTime: number) => {
     if (row.from_stop_id === row.to_stop_id) {
@@ -87,6 +87,13 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
         row.end_time ? timeParser.getTime(row.end_time) : Number.MAX_SAFE_INTEGER
       );
     },
+    feed_info: row => {
+      feedInfo = {
+        startDate: row.feed_start_date ? +row.feed_start_date : undefined,
+        endDate: row.feed_end_date ? +row.feed_end_date : undefined,
+        version: row.feed_version
+      };
+    },
     stop: row => {
       const stop = {
         id: row.stop_id,
@@ -121,7 +128,7 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
           t.service = services[t.serviceId];
         }
 
-        resolve([trips, transfers, interchange, stops]);
+        resolve({ trips, transfers, interchange, stops, feedInfo });
       });
   });
 
@@ -130,4 +137,20 @@ export function loadGTFS(stream: Readable): Promise<GTFSData> {
 /**
  * Contents of the GTFS zip file
  */
-export type GTFSData = [Trip[], TransfersByOrigin, Interchange, StopIndex];
+export interface GTFSFeed {
+  trips: Trip[];
+  transfers: TransfersByOrigin;
+  interchange: Interchange;
+  stops: StopIndex;
+  /** feed_info.txt, which a feed does not have to provide */
+  feedInfo?: FeedInfo;
+}
+
+/**
+ * The period the feed covers, and the version it was published as
+ */
+export interface FeedInfo {
+  startDate?: DateNumber;
+  endDate?: DateNumber;
+  version?: string;
+}
