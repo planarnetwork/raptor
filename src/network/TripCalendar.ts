@@ -63,12 +63,21 @@ export function createTripCalendar(trips: Trip[], startDate: DateNumber, endDate
 }
 
 /**
- * The period a feed covers, taken from feed_info where it gives one
+ * The period a feed covers, taken from feed_info where it gives one.
+ *
+ * Both dates are optional and independent in GTFS, so a feed may give only the end of its period.
+ * Anchoring the default length on whichever date it does give keeps the window over the feed
+ * rather than over today.
  */
 export function getCalendarWindow(startDate?: DateNumber, endDate?: DateNumber): [DateNumber, DateNumber] {
-  const start = startDate ?? getDateNumber(new Date());
+  const start = startDate ?? (endDate ? addDays(endDate, -DEFAULT_DAYS) : getDateNumber(new Date()));
+  const end = endDate ?? addDays(start, DEFAULT_DAYS);
 
-  return [start, endDate ?? addDays(start, DEFAULT_DAYS)];
+  if (end < start) {
+    throw new Error(`A feed cannot end before it starts, feed_info covers ${start} to ${end}`);
+  }
+
+  return [start, end];
 }
 
 /**

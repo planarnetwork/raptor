@@ -75,6 +75,15 @@ describe("TripCalendar", () => {
     expect(getCalendarWindow(20260814, 20261114)).toEqual([20260814, 20261114]);
   });
 
+  it("anchors on the end date when that is all the feed gives", () => {
+    expect(getCalendarWindow(undefined, 20261114)).toEqual([addDays(20261114, -120), 20261114]);
+  });
+
+  it("rejects a feed that ends before it starts", () => {
+    expect(() => getCalendarWindow(20261114, 20260814))
+      .toThrow(/cannot end before it starts, feed_info covers 20261114 to 20260814/);
+  });
+
   it("covers 120 days from today when the feed does not say", () => {
     const today = getDateNumber(new Date());
 

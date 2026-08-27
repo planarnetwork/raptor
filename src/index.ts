@@ -1,5 +1,4 @@
 export * from "./gtfs/GTFS";
-export * from "./gtfs/Normalise";
 export * from "./gtfs/Service";
 export * from "./gtfs/GTFSLoader";
 export * from "./gtfs/TimeParser";

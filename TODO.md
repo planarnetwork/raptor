@@ -7,7 +7,7 @@
 pre-allocated typed arrays sized by the number of stops. See `Timetable.ts`.
 
 ### 2. Array Method Chain Optimization
-**Files**: `RangeQuery.ts:48`, `GroupStationDepartAfterQuery.ts:88-93`, `MultipleCriteriaFilter.ts:29,46`
+**Files**: `RangeQuery.ts:45`, `GroupStationDepartAfterQuery.ts:106,119`, `MultipleCriteriaFilter.ts:29,46`
 - Replace `Math.min(...newResults.map(j => j.departureTime))` with single-pass loop
 - Replace `flatMap` chains with for-loops to reduce intermediate arrays
 - Replace `.filter()` with traditional loops for hot paths
@@ -32,8 +32,8 @@ populated for stops that are actually reached.
 
 ### 7. Object.keys/entries Optimization
 **DONE** for the scan: marked stops are collected into an integer array as they are marked rather
-than recovered with `Object.keys`. `Object.keys(origins)` still runs once per scan, which is
-proportional to the number of origins rather than the number of stops.
+than recovered with `Object.keys`. The origins are a `Map` of stop indexes, so nothing walks a
+string keyed object during a scan.
 
 ### 8. GTFS Loader Stream Processing
 **Files**: `GTFSLoader.ts:100-118`
