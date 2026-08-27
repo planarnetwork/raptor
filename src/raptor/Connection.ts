@@ -1,5 +1,5 @@
 import type { StopID, StopTime, Time, Trip } from "../gtfs/GTFS";
-import { callAt } from "../gtfs/Calls";
+import { isCall } from "../gtfs/Normalise";
 import type { Network } from "../network/Network";
 import type { RouteIdx, StopIdx } from "../network/Timetable";
 
@@ -74,4 +74,27 @@ export function departureOf(network: Network, connection: Connection): Time {
   const trip = tripOf(network, connection);
 
   return trip.stopTimes[callAt(trip, connection[2])].departureTime;
+}
+
+/**
+ * Where in the trip's stop times the given call is.
+ *
+ * The algorithm numbers the calls of a route from zero, skipping the passing points, so position
+ * `p` is the `p + 1`th call. Nothing has to be stored to undo that, since whether a stop time is
+ * a call is a property of the stop time.
+ */
+function callAt(trip: Trip, position: number): number {
+  let calls = 0;
+
+  for (let i = 0; i < trip.stopTimes.length; i++) {
+    if (isCall(trip.stopTimes[i])) {
+      if (calls === position) {
+        return i;
+      }
+
+      calls++;
+    }
+  }
+
+  return -1;
 }

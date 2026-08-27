@@ -1,6 +1,5 @@
 import type { Interchange, Stop, StopID, StopIndex, StopTime, Transfer, Trip } from "./GTFS";
 import type { GTFSFeed } from "./GTFSLoader";
-import { isCall } from "./Calls";
 
 /**
  * A feed may group stops under a station and those under a station in turn, so the walk up is
@@ -55,6 +54,15 @@ export function normalise(feed: GTFSFeed): TimetableInput {
   }
 
   return { trips, calls, transfers, interchange, stations };
+}
+
+/**
+ * A call a passenger can use, as opposed to a point the vehicle only passes through. This is the
+ * line between what the algorithm plans with and what it ignores, so anything undoing the filter
+ * has to agree with it.
+ */
+export function isCall(stopTime: StopTime): boolean {
+  return stopTime.pickUp || stopTime.dropOff;
 }
 
 /**
