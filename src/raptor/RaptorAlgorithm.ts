@@ -1,18 +1,25 @@
 import type { ConnectionIndex } from "./Connection";
 import type { DateNumber, Time } from "../gtfs/GTFS";
 import { buildQueue } from "./Queue";
+import { RouteCursor } from "./RouteCursor";
 import { NO_TRIP, RouteScanner } from "./RouteScanner";
 import { type Arrivals, ScanResults } from "./ScanResults";
-import { DROP_OFF, NOT_REACHED, PICK_UP, type StopIdx, type Timetable } from "../network/Timetable";
+import { NOT_REACHED, type StopIdx, type Timetable } from "../network/Timetable";
 
 /**
  * Implementation of the Raptor journey planning algorithm
  */
 export class RaptorAlgorithm {
+  /**
+   * Reused by every scan. A scan is synchronous, so there is never more than one route in flight.
+   */
+  private readonly routes: RouteCursor;
 
   constructor(
     private readonly timetable: Timetable
-  ) { }
+  ) {
+    this.routes = new RouteCursor(timetable.routes);
+  }
 
   /**
    * Perform a plan of the routes at a given time and return the resulting kConnections index
@@ -36,46 +43,29 @@ export class RaptorAlgorithm {
   }
 
   private scanRoutes(results: ScanResults, routeScanner: RouteScanner, markedStops: StopIdx[]): void {
-    const { interchange, routes } = this.timetable;
-    const { arrivals, flags, stopOffsets, stops, stopTimesBase, tripOffsets } = routes;
+    const { interchange } = this.timetable;
 
     for (const [route, startPosition] of buildQueue(this.timetable.routesByStop, markedStops)) {
-      const stopsBase = stopOffsets[route];
-      const numStops = stopOffsets[route + 1] - stopsBase;
-      const timesBase = stopTimesBase[route];
+      this.routes.moveTo(route);
 
       let boardingPoint = -1;
       let trip = NO_TRIP;
-      let tripBase = -1;
 
-      for (let pi = startPosition; pi < numStops; pi++) {
-        const stop = stops[stopsBase + pi];
+      for (let pi = startPosition; pi < this.routes.numStops; pi++) {
+        const stop = this.routes.stopAt(pi);
         const previousArrival = results.previousArrival(stop);
+        const arrival = trip === NO_TRIP ? NOT_REACHED : this.routes.arrival(trip, pi) + interchange[stop];
 
-        if (trip !== NO_TRIP) {
-          const arrival = arrivals[tripBase + pi] + interchange[stop];
-
-          if ((flags[stopsBase + pi] & DROP_OFF) !== 0 && arrival < results.bestArrival(stop)) {
-            results.setTrip(route, tripOffsets[route] + trip, boardingPoint, pi, stop, arrival);
-          }
-          // reaching the stop earlier by other means may make an earlier trip on this route
-          // catchable, but only where the route picks passengers up
-          else if ((flags[stopsBase + pi] & PICK_UP) !== 0 && previousArrival !== NOT_REACHED && previousArrival < arrival) {
-            const newTrip = routeScanner.getTrip(route, pi, previousArrival);
-
-            if (newTrip !== NO_TRIP) {
-              trip = newTrip;
-              tripBase = timesBase + newTrip * numStops;
-              boardingPoint = pi;
-            }
-          }
+        if (this.routes.canDropOff(pi) && arrival < results.bestArrival(stop)) {
+          results.setTrip(route, this.routes.globalTrip(trip), boardingPoint, pi, stop, arrival);
         }
-        else if ((flags[stopsBase + pi] & PICK_UP) !== 0 && previousArrival !== NOT_REACHED) {
-          const newTrip = routeScanner.getTrip(route, pi, previousArrival);
+        // reaching the stop earlier by other means may make an earlier trip on this route
+        // catchable, but only where the route picks passengers up
+        else if (this.routes.canPickUp(pi) && previousArrival !== NOT_REACHED && previousArrival < arrival) {
+          const newTrip = routeScanner.getTrip(this.routes, pi, previousArrival);
 
           if (newTrip !== NO_TRIP) {
             trip = newTrip;
-            tripBase = timesBase + newTrip * numStops;
             boardingPoint = pi;
           }
         }

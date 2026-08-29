@@ -9,6 +9,7 @@ export * from "./query/TransferPatternQuery";
 export * from "./query/GroupStationDepartAfterQuery";
 export * from "./raptor/Queue";
 export * from "./raptor/RaptorAlgorithm";
+export * from "./raptor/RouteCursor";
 export * from "./raptor/RouteScanner";
 export * from "./raptor/ScanResults";
 export * from "./network/TripCalendar";
