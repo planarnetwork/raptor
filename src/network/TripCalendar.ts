@@ -1,4 +1,5 @@
 import type { DateNumber, Trip } from "../gtfs/GTFS";
+import type { Network } from "./Network";
 import type { Service } from "../gtfs/Service";
 import { addDays, daysBetween, getDateNumber, getDayOfWeek } from "../query/DateUtil";
 
@@ -93,6 +94,19 @@ export function dayOffset(calendar: TripCalendar, date: DateNumber): number {
  * Returned by dayOffset for a date outside the period the calendar covers
  */
 export const NOT_COVERED = -1;
+
+/**
+ * Reject a date the timetable has no calendar for, rather than quietly finding nothing
+ */
+export function checkCovered(network: Network, date: DateNumber): void {
+  const { calendar } = network.timetable.routes;
+
+  if (dayOffset(calendar, date) === NOT_COVERED) {
+    const { startDate, endDate } = calendar;
+
+    throw new Error(`The timetable covers ${startDate} to ${endDate}, so it cannot plan for ${date}`);
+  }
+}
 
 export interface TripCalendar {
   /** First date the calendar covers */

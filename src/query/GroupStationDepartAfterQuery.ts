@@ -3,7 +3,8 @@ import { type Origins, RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
 import type { StopID, Time } from "../gtfs/GTFS";
 import type { Network } from "../network/Network";
 import type { ResultsFactory } from "../results/ResultsFactory";
-import { checkCovered, getDateNumber } from "./DateUtil";
+import { checkCovered } from "../network/TripCalendar";
+import { getDateNumber } from "./DateUtil";
 import type { Journey } from "../results/Journey";
 import type { JourneyFilter } from "../results/filter/JourneyFilter";
 import { NOT_REACHED, type StopIdx } from "../network/Timetable";
@@ -31,7 +32,7 @@ export class GroupStationDepartAfterQuery {
    * Plan a journey between the origin and destination set of stops on the given date and time
    */
   public plan(origins: StopID[], destinations: StopID[], date: Date, time: Time): Journey[] {
-    checkCovered(this.raptor, getDateNumber(date));
+    checkCovered(this.network, getDateNumber(date));
 
     // the algorithm works in stop indexes, the query in the ids the caller knows
     const originTimes: Origins = new Map(this.toStopIndexes(origins).map(stop => [stop, time]));

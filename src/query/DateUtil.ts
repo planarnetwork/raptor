@@ -1,5 +1,4 @@
 import type { DateNumber, DayOfWeek } from "../gtfs/GTFS";
-import type { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -36,15 +35,4 @@ export function getDayOfWeek(date: DateNumber): DayOfWeek {
 // UTC throughout so that a clock change never moves a date onto the day either side of it
 function toTimestamp(date: DateNumber): number {
   return Date.UTC(Math.floor(date / 10000), Math.floor(date / 100) % 100 - 1, date % 100);
-}
-
-/**
- * Reject a date the timetable has no calendar for, rather than quietly finding nothing
- */
-export function checkCovered(raptor: RaptorAlgorithm, date: DateNumber): void {
-  if (!raptor.covers(date)) {
-    const [start, end] = raptor.period;
-
-    throw new Error(`The timetable covers ${start} to ${end}, so it cannot plan for ${date}`);
-  }
 }

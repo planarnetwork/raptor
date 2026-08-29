@@ -1,7 +1,8 @@
 import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
 import type { Network } from "../network/Network";
 import type { StopID } from "../gtfs/GTFS";
-import { checkCovered, getDateNumber } from "./DateUtil";
+import { checkCovered } from "../network/TripCalendar";
+import { getDateNumber } from "./DateUtil";
 import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";
 
 /**
@@ -26,7 +27,7 @@ export class TransferPatternQuery {
     const date = getDateNumber(dateObj);
     const results = this.resultFactory();
 
-    checkCovered(this.raptor, date);
+    checkCovered(this.network, date);
 
     const stop = this.network.stopIndex.get(origin);
 
