@@ -65,7 +65,7 @@ describe("RangeQuery", () => {
    *
    * That is rejected because it does not improve the earliest arrival time at C
    */
-  it("does not share bestArrivals or routeScanner", () => {
+  it("does not share bestArrivals or tripScanner", () => {
     const trips = [
       t(
         st("A", null, 1359),

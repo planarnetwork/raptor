@@ -2,7 +2,7 @@ import type { ConnectionIndex } from "./Connection";
 import type { DateNumber, Time } from "../gtfs/GTFS";
 import { buildQueue } from "./Queue";
 import { RouteCursor } from "./RouteCursor";
-import { NO_TRIP, RouteScanner } from "./RouteScanner";
+import { NO_TRIP, TripScanner } from "./TripScanner";
 import { type Arrivals, ScanResults } from "./ScanResults";
 import { NOT_REACHED, type StopIdx, type Timetable } from "../network/Timetable";
 
@@ -25,7 +25,7 @@ export class RaptorAlgorithm {
    * Perform a plan of the routes at a given time and return the resulting kConnections index
    */
   public scan(origins: Origins, date: DateNumber): [ConnectionIndex, Arrivals] {
-    const routeScanner = new RouteScanner(this.timetable.routes, date);
+    const tripScanner = new TripScanner(this.timetable.routes, date);
     const results = new ScanResults(this.timetable.interchange.length, origins);
 
     let markedStops = [...origins.keys()];
@@ -33,7 +33,7 @@ export class RaptorAlgorithm {
     while (markedStops.length > 0) {
       results.addRound();
 
-      this.scanRoutes(results, routeScanner, markedStops);
+      this.scanRoutes(results, tripScanner, markedStops);
       this.scanTransfers(results, markedStops);
 
       markedStops = results.getMarkedStops();
@@ -42,7 +42,7 @@ export class RaptorAlgorithm {
     return results.finalize();
   }
 
-  private scanRoutes(results: ScanResults, routeScanner: RouteScanner, markedStops: StopIdx[]): void {
+  private scanRoutes(results: ScanResults, tripScanner: TripScanner, markedStops: StopIdx[]): void {
     const { interchange } = this.timetable;
 
     for (const [route, startPosition] of buildQueue(this.timetable.routesByStop, markedStops)) {
@@ -62,7 +62,7 @@ export class RaptorAlgorithm {
         // reaching the stop earlier by other means may make an earlier trip on this route
         // catchable, but only where the route picks passengers up
         else if (this.routes.canPickUp(pi) && previousArrival !== NOT_REACHED && previousArrival < arrival) {
-          const newTrip = routeScanner.getTrip(this.routes, pi, previousArrival);
+          const newTrip = tripScanner.earliestTrip(this.routes, pi, previousArrival);
 
           if (newTrip !== NO_TRIP) {
             trip = newTrip;
