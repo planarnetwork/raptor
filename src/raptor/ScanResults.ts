@@ -1,6 +1,6 @@
 import type { Time } from "../gtfs/GTFS";
 import type { Origins } from "./RaptorAlgorithm";
-import type { Connection, ConnectionIndex, TransferIdx } from "./Connection";
+import type { ConnectionIndex, TransferIdx } from "./Connection";
 import { NOT_REACHED, type RouteIdx, type StopIdx } from "../network/Timetable";
 
 /**
