@@ -196,19 +196,6 @@ const query = new RangeQuery(network, resultsFactory, maxSearchDays, [filter]);
 const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
 ```
 
-## Upgrading to 4.0
-
-`loadGTFS` still takes a node stream, so the examples above are unchanged. What did change:
-
-- The package now has an `exports` map, so deep imports such as
-  `require("raptor-journey-planner/dist/src/gtfs/GTFSLoader")` no longer resolve. Import from the
-  package root instead. The build output also moved to `dist/cjs` and `dist/esm`.
-- `mysql2` and `progress` are no longer dependencies. If you use `TransferPatternRepository`,
-  install `mysql2` yourself.
-- `loadGTFS` on a source containing no GTFS files now throws instead of returning an empty feed,
-  which is what a URL returning an error page used to do.
-- Node 22 or later is required.
-
 ## Contributing
 
 Issues and PRs are very welcome. To get the project set up run:
