@@ -1,7 +1,7 @@
-import type { DateNumber, Time } from "../gtfs/GTFS";
-import { dayOffset, NOT_COVERED } from "../network/TripCalendar";
-import type { RouteCursor } from "./RouteCursor";
-import type { Routes } from "../network/Timetable";
+import type { DateNumber, Time } from "../gtfs/GTFS.js";
+import { dayOffset, NOT_COVERED } from "../network/TripCalendar.js";
+import type { RouteCursor } from "./RouteCursor.js";
+import type { Routes } from "../network/Timetable.js";
 
 /**
  * No trip on the route is reachable.

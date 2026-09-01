@@ -1,8 +1,8 @@
-import type { Network } from "../network/Network";
-import type { StopID, Time } from "../gtfs/GTFS";
-import type { ResultsFactory } from "../results/ResultsFactory";
-import type { Journey } from "../results/Journey";
-import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery";
+import type { Network } from "../network/Network.js";
+import type { StopID, Time } from "../gtfs/GTFS.js";
+import type { ResultsFactory } from "../results/ResultsFactory.js";
+import type { Journey } from "../results/Journey.js";
+import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery.js";
 
 /**
  * Implementation of Raptor that searches for journeys departing after a specific time.

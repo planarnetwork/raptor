@@ -1,7 +1,7 @@
-import type { Time } from "../gtfs/GTFS";
-import type { Origins } from "./RaptorAlgorithm";
-import type { ConnectionIndex, TransferIdx } from "./Connection";
-import { NOT_REACHED, type RouteIdx, type StopIdx } from "../network/Timetable";
+import type { Time } from "../gtfs/GTFS.js";
+import type { Origins } from "./RaptorAlgorithm.js";
+import type { ConnectionIndex, TransferIdx } from "./Connection.js";
+import { NOT_REACHED, type RouteIdx, type StopIdx } from "../network/Timetable.js";
 
 /**
  * Best arrival time at every stop, overall and per round, plus the connection that achieved it.

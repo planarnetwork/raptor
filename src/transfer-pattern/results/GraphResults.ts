@@ -1,9 +1,9 @@
-import { isTransfer, type ConnectionIndex } from "../../raptor/Connection";
-import type { Network } from "../../network/Network";
-import { originIndexOf } from "../../raptor/Connection";
-import type { StopIdx } from "../../network/Timetable";
-import type { StopID } from "../../gtfs/GTFS";
-import type { Path, TransferPatternResults } from "./TransferPatternResults";
+import { isTransfer, type ConnectionIndex } from "../../raptor/Connection.js";
+import type { Network } from "../../network/Network.js";
+import { originIndexOf } from "../../raptor/Connection.js";
+import type { StopIdx } from "../../network/Timetable.js";
+import type { StopID } from "../../gtfs/GTFS.js";
+import type { Path, TransferPatternResults } from "./TransferPatternResults.js";
 
 /**
  * Uses the Raptor algorithm to perform full day range queries and stores the result as a DAG.

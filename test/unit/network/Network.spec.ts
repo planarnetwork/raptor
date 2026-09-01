@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createNetwork } from "../../../src/network/Network";
-import { DROP_OFF, PICK_UP, type Timetable } from "../../../src/network/Timetable";
-import { feed, st, t, tf } from "../util";
-import type { Stop, StopID, StopIndex } from "../../../src/gtfs/GTFS";
+import { createNetwork } from "../../../src/network/Network.js";
+import { DROP_OFF, PICK_UP, type Timetable } from "../../../src/network/Timetable.js";
+import { feed, st, t, tf } from "../util.js";
+import type { Stop, StopID, StopIndex } from "../../../src/gtfs/GTFS.js";
 
 function transfersFrom(timetable: Timetable, stop: number): { destination: number, duration: number }[] {
   const { offsets, destination, duration } = timetable.transfers;

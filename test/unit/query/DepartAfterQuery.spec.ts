@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { JourneyFactory } from "../../../src/results/JourneyFactory";
-import { allDays, feed, j, services, setDefaultTrip, st, t, tf } from "../util";
-import { createNetwork } from "../../../src/network/Network";
-import { DepartAfterQuery } from "../../../src/query/DepartAfterQuery";
-import { Service } from "../../../src/gtfs/Service";
+import { JourneyFactory } from "../../../src/results/JourneyFactory.js";
+import { allDays, feed, j, services, setDefaultTrip, st, t, tf } from "../util.js";
+import { createNetwork } from "../../../src/network/Network.js";
+import { DepartAfterQuery } from "../../../src/query/DepartAfterQuery.js";
+import { Service } from "../../../src/gtfs/Service.js";
 
 describe("DepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();

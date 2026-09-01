@@ -1,22 +1,17 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
-    "module": "commonjs",
+    "moduleResolution": "node16",
+    "module": "node16",
     "target": "esnext",
     "skipLibCheck": true,
+    "esModuleInterop": true,
     "sourceMap": false,
     "experimentalDecorators": true,
     "noImplicitAny": false,
     "strict": true,
     "declaration": true,
-    "lib": [
-      "esnext",
-      "dom"
-    ]
+    "noEmit": true,
+    "lib": ["esnext", "dom"]
   },
-  "exclude": [
-    "node_modules",
-    "dist/"
-  ]
+  "exclude": ["node_modules", "dist/"]
 }
-

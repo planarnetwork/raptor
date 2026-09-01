@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { feed, j, setDefaultTrip, st, t } from "../util";
-import { createNetwork } from "../../../src/network/Network";
-import { JourneyFactory } from "../../../src/results/JourneyFactory";
-import { MultipleCriteriaFilter } from "../../../src/results/filter/MultipleCriteriaFilter";
-import { GroupStationDepartAfterQuery } from "../../../src/query/GroupStationDepartAfterQuery";
+import { feed, j, setDefaultTrip, st, t } from "../util.js";
+import { createNetwork } from "../../../src/network/Network.js";
+import { JourneyFactory } from "../../../src/results/JourneyFactory.js";
+import { MultipleCriteriaFilter } from "../../../src/results/filter/MultipleCriteriaFilter.js";
+import { GroupStationDepartAfterQuery } from "../../../src/query/GroupStationDepartAfterQuery.js";
 
 describe("GroupStationDepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();

@@ -1,4 +1,4 @@
-import type {TransferPatternIndex} from "./results/StringResults";
+import type {TransferPatternIndex} from "./results/StringResults.js";
 import type {Pool} from "mysql2/promise";
 
 /**

@@ -1,137 +1,146 @@
-import { plain as gtfs } from "gtfs-stream";
-import type {CalendarIndex, DateNumber, Interchange, StopIndex, TransfersByOrigin, Trip} from "./GTFS";
-import {pushNested, setNested} from "ts-array-utils";
-import type {Readable} from "node:stream";
-import {TimeParser} from "./TimeParser";
-import { Service } from "./Service";
+import type { DateNumber, Interchange, StopIndex, TransfersByOrigin, Trip } from "./GTFS.js";
+import { COLUMNS, entityTypeOf } from "./EntityType.js";
+import { CSVParser } from "./CSVParser.js";
+import { FeedBuilder } from "./FeedBuilder.js";
+import { type LoadOptions, ProgressReporter } from "./Progress.js";
+import { type GTFSSource, sizeOf, toChunks } from "./Source.js";
+import { readZip } from "./ZipReader.js";
 
 /**
  * Returns the contents of a GTFS zip.
  *
+ * The zip is read as it arrives rather than after it has all been collected, so the source can be
+ * anything the environment can give bytes from: a file stream in node, a fetch response in a
+ * browser, or the bytes themselves.
+ *
  * Stops are returned as the feed gives them. Resolving them to the stations the algorithm plans
  * between is done when the timetable is created.
  */
-export function loadGTFS(stream: Readable): Promise<GTFSFeed> {
-  const timeParser = new TimeParser();
-  const trips: Trip[] = [];
-  const transfers = {};
-  const interchange = {};
-  const calendars: CalendarIndex = {};
-  const dates = {};
-  const stopTimes = {};
-  const stops: StopIndex = {};
-  let feedInfo: FeedInfo | undefined;
+export async function loadGTFS(source: GTFSSource, options: LoadOptions = {}): Promise<GTFSFeed> {
+  const builder = new FeedBuilder();
+  const progress = new ProgressReporter(options, sizeOf(source));
+  let found = 0;
 
-  const addTransfer = (row, duration: number, startTime: number, endTime: number) => {
-    if (row.from_stop_id === row.to_stop_id) {
-      interchange[row.from_stop_id] = duration;
-    }
-    else {
-      const t = {
-        origin: row.from_stop_id,
-        destination: row.to_stop_id,
-        duration,
-        startTime,
-        endTime
-      };
+  await readZip(
+    toChunks(source),
+    entry => {
+      const type = entityTypeOf(entry.name);
 
-      pushNested(t, transfers, row.from_stop_id);
-    }
-  };
+      if (type === undefined) {
+        return undefined;
+      }
 
-  const processor = {
-    link: row => {
-      addTransfer(row, +row.duration, timeParser.getTime(row.start_time), timeParser.getTime(row.end_time));
-    },
-    calendar: row => {
-      calendars[row.service_id] = {
-        serviceId: row.service_id,
-        startDate: +row.start_date,
-        endDate: +row.end_date,
-        days: {
-          0: row.sunday === "1",
-          1: row.monday === "1",
-          2: row.tuesday === "1",
-          3: row.wednesday === "1",
-          4: row.thursday === "1",
-          5: row.friday === "1",
-          6: row.saturday === "1"
-        },
-        include: {},
-        exclude: {}
-      };
-    },
-    calendar_date: row => {
-      setNested(row.exception_type === "1", dates, row.service_id, row.date);
-    },
-    trip: row => {
-      trips.push({ serviceId: row.service_id, tripId: row.trip_id, stopTimes: [], service: {} as Service });
-    },
-    stop_time: row => {
-      const stopTime = {
-        stop: row.stop_id,
-        departureTime: timeParser.getTime(row.departure_time),
-        arrivalTime: timeParser.getTime(row.arrival_time),
-        pickUp: row.pickup_type === "0" || row.pickup_type === undefined,
-        dropOff: row.drop_off_type === "0" || row.drop_off_type === undefined
-      };
+      found++;
 
-      pushNested(stopTime, stopTimes, row.trip_id);
-    },
-    transfer: row => {
-      // a feed that puts the footpaths in transfers.txt rather than links.txt gives them a window
-      addTransfer(
-        row,
-        +row.min_transfer_time,
-        row.start_time ? timeParser.getTime(row.start_time) : 0,
-        row.end_time ? timeParser.getTime(row.end_time) : Number.MAX_SAFE_INTEGER
-      );
-    },
-    feed_info: row => {
-      feedInfo = {
-        startDate: row.feed_start_date ? +row.feed_start_date : undefined,
-        endDate: row.feed_end_date ? +row.feed_end_date : undefined,
-        version: row.feed_version
-      };
-    },
-    stop: row => {
-      const stop = {
-        id: row.stop_id,
-        code: row.stop_code,
-        name: row.stop_name,
-        description: row.stop_desc,
-        latitude: +row.stop_lat,
-        longitude: +row.stop_lon,
-        timezone: row.zone_id,
-        locationType: +(row.location_type ?? 0),
-        parentStation: row.parent_station,
-        platformCode: row.platform_code
-      };
+      const parser = progress.wanted
+        ? new CSVParser(COLUMNS[type], row => { progress.rows++; builder.add(type, row); })
+        : new CSVParser(COLUMNS[type], row => builder.add(type, row));
 
-      setNested(stop, stops, row.stop_id);
-    }
-  };
+      return (text, final) => {
+        parser.write(text);
 
-  return new Promise(resolve => {
-    stream
-      .pipe(gtfs({ raw: true }))
-      .on("data", entity => processor[entity.type] && processor[entity.type](entity.data))
-      .on("end", () => {
-        const services = {};
-
-        for (const c of Object.values(calendars)) {
-          services[c.serviceId] = new Service(c.startDate, c.endDate, c.days, dates[c.serviceId] || {});
+        if (final) {
+          parser.end();
         }
+      };
+    },
+    {
+      onBytes: bytes => progress.onBytes(bytes),
+      onEntryBytes: (entry, bytes) => progress.onEntryBytes(entry, bytes)
+    }
+  );
 
-        for (const t of trips) {
-          t.stopTimes = stopTimes[t.tripId] || [];
-          t.service = services[t.serviceId];
-        }
+  // an unzipper reading forwards finds no entries in something that is not a zip and says nothing
+  // about it, so a feed that turned out to be an error page would otherwise load as an empty one
+  if (found === 0) {
+    throw new Error(
+      "No GTFS files found. The source has to be a zip containing stops.txt, trips.txt, "
+      + "stop_times.txt and the rest; if it came from a url, check that the url really returns a "
+      + "feed rather than an error page."
+    );
+  }
 
-        resolve({ trips, transfers, interchange, stops, feedInfo });
-      });
-  });
+  progress.onBuilding();
 
+  return builder.build();
+}
+
+/**
+ * Fetches a GTFS zip and loads it, parsing it as it downloads.
+ *
+ * The feed has to be readable by the page, which for a browser means the host either serves it from
+ * the same origin or sends an Access-Control-Allow-Origin header. Most GTFS publishers do neither,
+ * so expect to proxy or to host the feed yourself.
+ */
+export async function loadGTFSFromUrl(url: string | URL, options: FetchOptions = {}): Promise<GTFSFeed> {
+  const request = options.fetch ?? globalThis.fetch;
+  const href = url.toString();
+
+  if (typeof request !== "function") {
+    throw new Error("No fetch available, pass one in options.fetch");
+  }
+
+  let response: Response;
+
+  try {
+    response = await request(href, { signal: options.signal, headers: options.headers });
+  }
+  catch (cause) {
+    // an abort is the caller's own doing and is reported as itself
+    if (cause instanceof Error && cause.name === "AbortError") {
+      throw cause;
+    }
+
+    throw new GTFSFetchError(href, undefined, { cause });
+  }
+
+  if (!response.ok) {
+    throw new GTFSFetchError(href, response.status);
+  }
+
+  return loadGTFS(response, options);
+}
+
+export interface FetchOptions extends LoadOptions {
+  signal?: AbortSignal;
+  headers?: HeadersInit;
+  /** The fetch to use, for an environment that does not have one or for a test that fakes it */
+  fetch?: typeof fetch;
+}
+
+/**
+ * A feed that could not be fetched.
+ */
+export class GTFSFetchError extends Error {
+
+  constructor(
+    public readonly url: string,
+    public readonly status?: number,
+    options?: { cause?: unknown }
+  ) {
+    super(describe(url, status, options?.cause), options);
+
+    this.name = "GTFSFetchError";
+  }
+
+}
+
+/**
+ * A browser refuses a cross origin fetch by rejecting with a TypeError that says nothing, on
+ * purpose, so the likely reason is given here rather than left to be guessed at.
+ */
+function describe(url: string, status: number | undefined, cause: unknown): string {
+  if (status !== undefined) {
+    return `Could not fetch ${url}, the server responded ${status}`;
+  }
+
+  const reason = cause instanceof Error ? cause.message : String(cause);
+
+  return `Could not fetch ${url}. In a browser this is nearly always CORS: a feed on another origin `
+    + `is only readable if the server sends an Access-Control-Allow-Origin header, and most GTFS `
+    + `hosts do not. Serve the feed from your own origin, or put a proxy in front of it that adds `
+    + `the header. Asking for it with mode "no-cors" does not help, because the response is then `
+    + `opaque and has no body to read. The underlying error was: ${reason}`;
 }
 
 /**

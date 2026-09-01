@@ -1,7 +1,7 @@
-import type { StopID, StopTime, Time, Trip } from "../gtfs/GTFS";
-import { isCall } from "../gtfs/Normalise";
-import type { Network } from "../network/Network";
-import type { RouteIdx, StopIdx } from "../network/Timetable";
+import type { StopID, StopTime, Time, Trip } from "../gtfs/GTFS.js";
+import { isCall } from "../network/Normalise.js";
+import type { Network } from "../network/Network.js";
+import type { RouteIdx, StopIdx } from "../network/Timetable.js";
 
 /**
  * A leg taken on a vehicle: the route, the trip on it, and the positions boarded and alighted at.

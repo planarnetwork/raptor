@@ -1,8 +1,8 @@
-import {loadGTFS} from "../src/gtfs/GTFSLoader";
-import {StringResults} from "../src/transfer-pattern/results/StringResults";
+import {loadGTFS} from "../src/gtfs/GTFSLoader.js";
+import {StringResults} from "../src/transfer-pattern/results/StringResults.js";
 import * as fs from "node:fs";
-import { createNetwork } from "../src/network/Network";
-import { TransferPatternQuery } from "../src/query/TransferPatternQuery";
+import { createNetwork } from "../src/network/Network.js";
+import { TransferPatternQuery } from "../src/query/TransferPatternQuery.js";
 
 async function run() {
   console.time("initial load");

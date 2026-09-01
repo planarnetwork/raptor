@@ -1,7 +1,7 @@
-import type { Network } from "../network/Network";
-import type { ConnectionIndex } from "../raptor/Connection";
-import type { StopIdx } from "../network/Timetable";
-import type { Journey } from "./Journey";
+import type { Network } from "../network/Network.js";
+import type { ConnectionIndex } from "../raptor/Connection.js";
+import type { StopIdx } from "../network/Timetable.js";
+import type { Journey } from "./Journey.js";
 
 /**
  * Create results from the kConnections index

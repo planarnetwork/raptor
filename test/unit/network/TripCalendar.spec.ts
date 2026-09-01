@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { createTripCalendar, dayOffset, getCalendarWindow, NOT_COVERED } from "../../../src/network/TripCalendar";
-import { Service } from "../../../src/gtfs/Service";
-import { addDays, getDateNumber } from "../../../src/query/DateUtil";
-import { allDays, st, t } from "../util";
-import type { Trip } from "../../../src/gtfs/GTFS";
+import { createTripCalendar, dayOffset, getCalendarWindow, NOT_COVERED } from "../../../src/network/TripCalendar.js";
+import { Service } from "../../../src/gtfs/Service.js";
+import { addDays, getDateNumber } from "../../../src/query/DateUtil.js";
+import { allDays, st, t } from "../util.js";
+import type { Trip } from "../../../src/gtfs/GTFS.js";
 
 describe("TripCalendar", () => {
 
