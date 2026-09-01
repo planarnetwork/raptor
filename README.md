@@ -54,7 +54,7 @@ const network = createNetwork({ ...feed, feedInfo: { startDate: 20250901, endDat
 
 It will work with any well-formed GTFS data set.
  
-Node 20 or later is required for all examples.
+Node 22 or later is required for all examples. 
 
 ```
 npm install --save raptor-journey-planner
