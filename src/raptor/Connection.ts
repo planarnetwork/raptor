@@ -1,5 +1,5 @@
 import type { StopID, StopTime, Time, Trip } from "../gtfs/GTFS.js";
-import { isCall } from "../network/Normalise.js";
+import { isCall } from "../gtfs/Normalise.js";
 import type { Network } from "../network/Network.js";
 import type { RouteIdx, StopIdx } from "../network/Timetable.js";
 

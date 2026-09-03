@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { FeedBuilder } from "../../../src/gtfs/FeedBuilder.js";
-import { normalise } from "../../../src/network/Normalise.js";
+import { normalise } from "../../../src/gtfs/Normalise.js";
 
 describe("FeedBuilder", () => {
 

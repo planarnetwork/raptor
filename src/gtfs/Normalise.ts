@@ -1,5 +1,5 @@
-import type { Interchange, Stop, StopID, StopIndex, StopTime, Transfer, Trip } from "../gtfs/GTFS.js";
-import type { GTFSFeed } from "../gtfs/GTFSLoader.js";
+import type { Interchange, Stop, StopID, StopIndex, StopTime, Transfer, Trip } from "./GTFS.js";
+import type { GTFSFeed } from "./GTFSLoader.js";
 
 /**
  * A feed may group stops under a station and those under a station in turn, so the walk up is
