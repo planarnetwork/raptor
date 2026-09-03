@@ -1,4 +1,4 @@
-import type { DateNumber, DayOfWeek } from "../gtfs/GTFS";
+import type { DateNumber, DayOfWeek } from "../gtfs/GTFS.js";
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 

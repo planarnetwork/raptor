@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { MultipleCriteriaFilter } from "../../../../src/results/filter/MultipleCriteriaFilter";
-import { j, st } from "../../util";
+import { MultipleCriteriaFilter } from "../../../../src/results/filter/MultipleCriteriaFilter.js";
+import { j, st } from "../../util.js";
 
 describe("MultipleCriteriaFilter", () => {
   const filter = new MultipleCriteriaFilter();

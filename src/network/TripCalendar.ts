@@ -1,7 +1,7 @@
-import type { DateNumber, Trip } from "../gtfs/GTFS";
-import type { Network } from "./Network";
-import type { Service } from "../gtfs/Service";
-import { addDays, daysBetween, getDateNumber, getDayOfWeek } from "../query/DateUtil";
+import type { DateNumber, Trip } from "../gtfs/GTFS.js";
+import type { Network } from "./Network.js";
+import type { Service } from "../gtfs/Service.js";
+import { addDays, daysBetween, getDateNumber, getDayOfWeek } from "../query/DateUtil.js";
 
 /**
  * How long a feed is assumed to cover when it does not say

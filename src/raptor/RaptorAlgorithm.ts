@@ -1,10 +1,10 @@
-import type { ConnectionIndex } from "./Connection";
-import type { DateNumber, Time } from "../gtfs/GTFS";
-import { buildQueue } from "./Queue";
-import { RouteCursor } from "./RouteCursor";
-import { NO_TRIP, TripScanner } from "./TripScanner";
-import { type Arrivals, ScanResults } from "./ScanResults";
-import { NOT_REACHED, type StopIdx, type Timetable } from "../network/Timetable";
+import type { ConnectionIndex } from "./Connection.js";
+import type { DateNumber, Time } from "../gtfs/GTFS.js";
+import { buildQueue } from "./Queue.js";
+import { RouteCursor } from "./RouteCursor.js";
+import { NO_TRIP, TripScanner } from "./TripScanner.js";
+import { type Arrivals, ScanResults } from "./ScanResults.js";
+import { NOT_REACHED, type StopIdx, type Timetable } from "../network/Timetable.js";
 
 /**
  * Implementation of the Raptor journey planning algorithm

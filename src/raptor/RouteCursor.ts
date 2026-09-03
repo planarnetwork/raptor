@@ -1,5 +1,5 @@
-import type { Time } from "../gtfs/GTFS";
-import { DROP_OFF, PICK_UP, type RouteIdx, type Routes, type StopIdx } from "../network/Timetable";
+import type { Time } from "../gtfs/GTFS.js";
+import { DROP_OFF, PICK_UP, type RouteIdx, type Routes, type StopIdx } from "../network/Timetable.js";
 
 /**
  * A view positioned on one route, holding the offsets its slices start at so that the scan works

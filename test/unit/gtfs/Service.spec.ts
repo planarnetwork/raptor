@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { allDays } from "../util";
-import { Service } from "../../../src/gtfs/Service";
+import { allDays } from "../util.js";
+import { Service } from "../../../src/gtfs/Service.js";
 
 describe("Service", () => {
 

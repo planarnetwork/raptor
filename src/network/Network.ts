@@ -1,9 +1,9 @@
-import type { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS";
-import { getDateNumber } from "../query/DateUtil";
-import type { GTFSFeed } from "../gtfs/GTFSLoader";
-import { createTripCalendar, getCalendarWindow } from "./TripCalendar";
-import { normalise } from "../gtfs/Normalise";
-import { DROP_OFF, PICK_UP, type RouteIdx, type StopIdx, type Timetable } from "./Timetable";
+import type { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS.js";
+import { getDateNumber } from "../query/DateUtil.js";
+import type { GTFSFeed } from "../gtfs/GTFSLoader.js";
+import { createTripCalendar, getCalendarWindow } from "./TripCalendar.js";
+import { normalise } from "../gtfs/Normalise.js";
+import { DROP_OFF, PICK_UP, type RouteIdx, type StopIdx, type Timetable } from "./Timetable.js";
 
 const DEFAULT_INTERCHANGE_TIME = 0;
 

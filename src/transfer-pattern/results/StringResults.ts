@@ -1,9 +1,9 @@
-import { isTransfer, type Connection, type ConnectionIndex } from "../../raptor/Connection";
-import type { Network } from "../../network/Network";
-import { departureOf, originIndexOf } from "../../raptor/Connection";
-import type { StopIdx } from "../../network/Timetable";
-import type { Interchange, Time } from "../../gtfs/GTFS";
-import type { Path } from "./TransferPatternResults";
+import { isTransfer, type Connection, type ConnectionIndex } from "../../raptor/Connection.js";
+import type { Network } from "../../network/Network.js";
+import { departureOf, originIndexOf } from "../../raptor/Connection.js";
+import type { StopIdx } from "../../network/Timetable.js";
+import type { Interchange, Time } from "../../gtfs/GTFS.js";
+import type { Path } from "./TransferPatternResults.js";
 
 /**
  * Store the kConnection results as an index where the key is the journey origin and destination and the value is a Set

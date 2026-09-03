@@ -1,10 +1,10 @@
-import type { Journey } from "../src/results/Journey";
-import { loadGTFS } from "../src/gtfs/GTFSLoader";
-import { JourneyFactory } from "../src/results/JourneyFactory";
+import type { Journey } from "../src/results/Journey.js";
+import { loadGTFS } from "../src/gtfs/GTFSLoader.js";
+import { JourneyFactory } from "../src/results/JourneyFactory.js";
 import * as fs from "node:fs";
-import { createNetwork } from "../src/network/Network";
-import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFilter";
-import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
+import { createNetwork } from "../src/network/Network.js";
+import { MultipleCriteriaFilter } from "../src/results/filter/MultipleCriteriaFilter.js";
+import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery.js";
 
 async function run() {
   const filename = process.argv[2] || "gtfs.zip";

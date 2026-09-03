@@ -1,6 +1,6 @@
-import type { ConnectionIndex } from "../../raptor/Connection";
-import type { StopID } from "../../gtfs/GTFS";
-import type { Network } from "../../network/Network";
+import type { ConnectionIndex } from "../../raptor/Connection.js";
+import type { StopID } from "../../gtfs/GTFS.js";
+import type { Network } from "../../network/Network.js";
 
 /**
  * Create the results factory

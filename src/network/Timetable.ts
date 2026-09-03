@@ -1,4 +1,4 @@
-import type { TripCalendar } from "./TripCalendar";
+import type { TripCalendar } from "./TripCalendar.js";
 
 /**
  * Arrival time used for a stop that has not been reached. Chosen to be larger than any real

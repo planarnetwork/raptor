@@ -1,4 +1,4 @@
-import type { DateIndex, DateNumber, DayOfWeek } from "./GTFS";
+import type { DateIndex, DateNumber, DayOfWeek } from "./GTFS.js";
 
 export class Service {
 

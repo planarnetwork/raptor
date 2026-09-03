@@ -1,9 +1,9 @@
-import type { Network } from "../network/Network";
-import type { ResultsFactory } from "../results/ResultsFactory";
-import type { StopID } from "../gtfs/GTFS";
-import type { Journey } from "../results/Journey";
-import type { JourneyFilter } from "../results/filter/JourneyFilter";
-import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery";
+import type { Network } from "../network/Network.js";
+import type { ResultsFactory } from "../results/ResultsFactory.js";
+import type { StopID } from "../gtfs/GTFS.js";
+import type { Journey } from "../results/Journey.js";
+import type { JourneyFilter } from "../results/filter/JourneyFilter.js";
+import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery.js";
 
 /**
  * Use the Raptor algorithm to generate a full day of results.

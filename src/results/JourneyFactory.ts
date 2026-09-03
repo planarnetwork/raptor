@@ -1,10 +1,10 @@
-import { isTransfer, type ConnectionIndex } from "../raptor/Connection";
-import type { Time, TimetableLeg } from "../gtfs/GTFS";
-import type { StopIdx } from "../network/Timetable";
-import type { Network } from "../network/Network";
-import { originIndexOf, stopTimesOf, tripOf } from "../raptor/Connection";
-import type { ResultsFactory } from "./ResultsFactory";
-import type { AnyLeg, Journey } from "./Journey";
+import { isTransfer, type ConnectionIndex } from "../raptor/Connection.js";
+import type { Time } from "../gtfs/GTFS.js";
+import type { StopIdx } from "../network/Timetable.js";
+import type { Network } from "../network/Network.js";
+import { originIndexOf, stopTimesOf, tripOf } from "../raptor/Connection.js";
+import type { ResultsFactory } from "./ResultsFactory.js";
+import type { AnyLeg, Journey, TimetableLeg } from "./Journey.js";
 
 /**
  * Extracts journeys from the kConnections index.

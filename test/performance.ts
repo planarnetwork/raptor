@@ -1,8 +1,8 @@
-import { loadGTFS } from "../src/gtfs/GTFSLoader";
-import { JourneyFactory } from "../src/results/JourneyFactory";
+import { loadGTFS } from "../src/gtfs/GTFSLoader.js";
+import { JourneyFactory } from "../src/results/JourneyFactory.js";
 import * as fs from "node:fs";
-import { createNetwork } from "../src/network/Network";
-import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery";
+import { createNetwork } from "../src/network/Network.js";
+import { GroupStationDepartAfterQuery } from "../src/query/GroupStationDepartAfterQuery.js";
 
 const queries = [
   [["MRF", "LVC", "LVJ", "LIV"], ["NRW"]],

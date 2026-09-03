@@ -1,8 +1,8 @@
-import { feed, j, setDefaultTrip, st, t } from "../util";
+import { feed, j, setDefaultTrip, st, t } from "../util.js";
 import { describe, it, expect } from "vitest";
-import { JourneyFactory } from "../../../src/results/JourneyFactory";
-import { createNetwork } from "../../../src/network/Network";
-import { RangeQuery } from "../../../src/query/RangeQuery";
+import { JourneyFactory } from "../../../src/results/JourneyFactory.js";
+import { createNetwork } from "../../../src/network/Network.js";
+import { RangeQuery } from "../../../src/query/RangeQuery.js";
 
 describe("RangeQuery", () => {
   const journeyFactory = new JourneyFactory();

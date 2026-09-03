@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {TimeParser} from "../../../src/gtfs/TimeParser";
+import {TimeParser} from "../../../src/gtfs/TimeParser.js";
 
 describe("TimeParser", () => {
 

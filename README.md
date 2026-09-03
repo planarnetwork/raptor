@@ -50,15 +50,74 @@ const feed = await loadGTFS(fs.createReadStream("gtfs.zip"));
 const network = createNetwork({ ...feed, feedInfo: { startDate: 20250901, endDate: 20251101 } });
 ```
 
+## Loading a feed
+
+`loadGTFS` takes whatever the environment can give bytes from, and reads the zip as it arrives
+rather than after it has all been collected, so parsing overlaps the download:
+
+```js
+await loadGTFS(fs.createReadStream("gtfs.zip"));  // a node stream
+await loadGTFS(await file.arrayBuffer());          // bytes
+await loadGTFS(fileInput.files[0]);                // a File or Blob
+await loadGTFS(await fetch(url));                  // a Response
+```
+
+or `loadGTFSFromUrl`, which does the fetch for you:
+
+```js
+const feed = await loadGTFSFromUrl("https://example.com/gtfs.zip", {
+  onProgress: p => console.log(`${p.phase} ${p.entry ?? ""} ${p.rows} rows`)
+});
+```
+
+`onProgress` reports the bytes read, the file being read and how far through it we are, and the
+number of rows so far. It is throttled to `progressInterval` milliseconds, 100 by default, so it
+is safe to render from directly.
+
+## In the browser
+
+Loading a feed is slow enough to be worth keeping off the main thread. `PlannerClient` talks to a
+worker that holds the feed and the timetable, so only the journeys you ask for cross back:
+
+```js
+import { PlannerClient } from "raptor-journey-planner";
+
+const worker = new Worker(new URL("raptor-journey-planner/worker", import.meta.url), { type: "module" });
+const planner = new PlannerClient(worker);
+
+await planner.load({ url: "/gtfs.zip" }, { onProgress: p => setProgress(p) });
+
+const journeys = await planner.plan(["NRW"], ["LST"], new Date(), 9 * 60 * 60);
+```
+
+You construct the `Worker` yourself because resolving a worker's URL is a question for whatever is
+bundling your application, and any helper here would only ever be right for one bundler. The entry
+point is a plain ES module, which every bundler understands and a browser can load natively.
+
+Two things to know about what comes back. The journeys are copies, so a leg's `trip` is not the
+same object the worker holds and cannot be used as a key against one. And a trip arrives without
+its `service`: a class does not survive being posted, so it would arrive with its fields and
+without its `runsOn`, which is worse than leaving it out. Whether a trip runs on a date is settled
+inside the worker before the journey is returned.
+
+Passing `{ date }` to `load` restricts the timetable to that date, which makes it smaller and
+queries faster.
+
 ## Usage
 
 It will work with any well-formed GTFS data set.
  
-Node 22 or later is required for all examples. 
+Node 22 or later is required for all examples.
 
 ```
 npm install --save raptor-journey-planner
-``` 
+```
+
+The package ships both CommonJS and ES modules, so `require` and `import` both work. The examples
+below use `require`; the equivalent `import` is the same names from the same place.
+
+`fflate` is the only runtime dependency. `mysql2` is an optional peer dependency, needed only if
+you use `TransferPatternRepository`.
 
 ### Depart After Query
 

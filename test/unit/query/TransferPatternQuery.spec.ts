@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createNetwork } from "../../../src/network/Network";
-import { TransferPatternQuery } from "../../../src/query/TransferPatternQuery";
-import { StringResults } from "../../../src/transfer-pattern/results/StringResults";
-import { feed, st, t, tf } from "../util";
+import { createNetwork } from "../../../src/network/Network.js";
+import { TransferPatternQuery } from "../../../src/query/TransferPatternQuery.js";
+import { StringResults } from "../../../src/transfer-pattern/results/StringResults.js";
+import { feed, st, t, tf } from "../util.js";
 
 describe("TransferPatternQuery", () => {
 

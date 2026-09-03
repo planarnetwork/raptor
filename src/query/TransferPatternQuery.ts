@@ -1,9 +1,9 @@
-import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm";
-import type { Network } from "../network/Network";
-import type { StopID } from "../gtfs/GTFS";
-import { checkCovered } from "../network/TripCalendar";
-import { getDateNumber } from "./DateUtil";
-import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults";
+import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm.js";
+import type { Network } from "../network/Network.js";
+import type { StopID } from "../gtfs/GTFS.js";
+import { checkCovered } from "../network/TripCalendar.js";
+import { getDateNumber } from "./DateUtil.js";
+import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults.js";
 
 /**
  * Uses the Raptor algorithm to perform full day range queries and send the results to the repository.

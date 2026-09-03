@@ -1,7 +1,7 @@
 /**
  * StopID e.g. NRW
  */
-import type { Service } from "./Service";
+import type { Service } from "./Service.js";
 
 export type StopID = string;
 
@@ -28,25 +28,14 @@ export interface StopTime {
 }
 
 /**
- * Leg of a journey
+ * A walk between two stops, available between the given times.
+ *
+ * Declares its own origin and destination rather than extending the journey Leg it also satisfies,
+ * so that the feed's own types do not depend on the shape results are returned in.
  */
-export interface Leg {
+export interface Transfer {
   origin: StopID;
   destination: StopID;
-}
-
-/**
- * Leg with a defined departure and arrival time
- */
-export interface TimetableLeg extends Leg {
-  stopTimes: StopTime[];
-  trip: Trip;
-}
-
-/**
- * Leg with a duration instead of departure and arrival time
- */
-export interface Transfer extends Leg {
   duration: Duration;
   startTime: Time;
   endTime: Time;
