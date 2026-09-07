@@ -15,7 +15,7 @@ async function run() {
   const startHeap = process.memoryUsage().heapUsed;
   const network = createNetwork(feed, date);
 
-  const query = new TransferPatternQuery(network, () => new StringResults(feed.interchange));
+  const query = new TransferPatternQuery(network, () => new StringResults());
 
   const endHeap = process.memoryUsage().heapUsed;
   console.timeEnd("pre-processing");

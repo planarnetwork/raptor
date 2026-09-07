@@ -1,39 +1,26 @@
-import {loadGTFS} from "../gtfs/GTFSLoader.js";
-import {StringResults} from "../transfer-pattern/results/StringResults.js";
-import {TransferPatternRepository} from "../transfer-pattern/TransferPatternRepository.js";
-import * as fs from "node:fs";
-import { createNetwork } from "../network/Network.js";
-import { TransferPatternQuery } from "../query/TransferPatternQuery.js";
+import { parentPort, workerData } from "node:worker_threads";
 import * as mysql from "mysql2/promise";
+import type { StopID, Transfer } from "../gtfs/GTFS.js";
+import type { Network } from "../network/Network.js";
+import type { Timetable } from "../network/Timetable.js";
+import { TransferPatternQuery } from "../query/TransferPatternQuery.js";
+import { StringResults } from "../transfer-pattern/results/StringResults.js";
+import { TransferPatternRepository } from "../transfer-pattern/TransferPatternRepository.js";
 
 /**
- * Worker that finds transfer patterns for a given station
+ * Worker that finds transfer patterns for a given station.
+ *
+ * It is given the timetable rather than a feed to build one from. The timetable is allocated on
+ * SharedArrayBuffers, so every worker reads the one the main thread built instead of loading the
+ * feed again, and building a pattern needs nothing else from it: naming a path takes the stop ids
+ * and the transfers, both of which are small enough to copy.
  */
-async function worker(filename: string, date: Date): Promise<void> {
-  const stream = fs.createReadStream(filename);
-  const feed = await loadGTFS(stream);
-  const network = createNetwork(feed, date);
-
-  const query = new TransferPatternQuery(network, () => new StringResults(feed.interchange));
-  const repository = new TransferPatternRepository(getDatabase());
-
-  process.on("message", async (stop: string) => {
-    const results = query.plan(stop, date);
-
-    await repository.storeTransferPatterns(results);
-
-    morePlease();
-  });
-
-  process.on("SIGUSR2", () => {
-    process.exit();
-  });
-
-  morePlease();
-}
-
-function morePlease() {
-  process.send!("ready");
+interface WorkerInput {
+  timetable: Timetable;
+  stopIds: StopID[];
+  transfers: Transfer[];
+  stations: Map<StopID, StopID>;
+  date: string;
 }
 
 function getDatabase() {
@@ -43,16 +30,37 @@ function getDatabase() {
     user: process.env.DATABASE_USERNAME || "root",
     password: process.env.DATABASE_PASSWORD || "",
     database: process.env.OJP_DATABASE_NAME || "ojp",
-    connectionLimit: 3,
+    // one query is in flight at a time, and a machine with many cores runs many of these
+    connectionLimit: 1,
   });
 }
 
-if (process.argv[2] && process.argv[3]) {
-  worker(process.argv[2], new Date(process.argv[3])).catch(err => {
-    console.error(err);
-    process.exit();
+function worker({ timetable, stopIds, transfers, stations, date }: WorkerInput): void {
+  const network: Network = {
+    timetable,
+    stopIds,
+    stopIndex: new Map(stopIds.map((stop, index) => [stop, index])),
+    stations,
+    transfers,
+    // the feed's trips are the hundreds of megabytes this worker exists to do without. They name
+    // the stop times of a journey, and a transfer pattern does not carry those: the only thing
+    // that reached for them was the departure a path is dated by, which is in the timetable too
+    trips: []
+  };
+
+  const query = new TransferPatternQuery(network, () => new StringResults());
+  const repository = new TransferPatternRepository(getDatabase());
+  const planFor = new Date(date);
+
+  parentPort?.on("message", async (stop: StopID) => {
+    await repository.storeTransferPatterns(query.plan(stop, planFor));
+
+    parentPort?.postMessage("ready");
   });
+
+  parentPort?.postMessage("ready");
 }
-else {
-  console.log("Please specify a date and GTFS file.");
+
+if (workerData) {
+  worker(workerData as WorkerInput);
 }

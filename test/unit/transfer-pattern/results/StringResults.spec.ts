@@ -7,7 +7,7 @@ import type {StopID} from "../../../../src/gtfs/GTFS.js";
 describe("StringResults", () => {
 
   it("Merges duplicate paths", () => {
-    const tree = new StringResults({});
+    const tree = new StringResults();
 
     const expected = {
       "AB": new Set([""]),
@@ -22,7 +22,7 @@ describe("StringResults", () => {
   });
 
   it("Orders results", () => {
-    const tree = new StringResults({});
+    const tree = new StringResults();
 
     const expected = {
       "AC": new Set(["B"]),
@@ -39,7 +39,7 @@ describe("StringResults", () => {
   });
 
   it("Adds different paths", () => {
-    const tree = new StringResults({});
+    const tree = new StringResults();
     const expected = {
       "AC": new Set(["", "B"]),
       "AB": new Set(["", "C"]),
@@ -72,17 +72,21 @@ function mergePath(path: StopID[], tree: StringResults): void {
     return index;
   };
 
-  const trips: unknown[] = [];
+  const stopTimesBase: number[] = [];
+  const tripOffsets: number[] = [];
+  const departures: number[] = [];
 
-  // each step of the path is a route of its own, boarded at position 0 and alighted at position 1
+  // each step of the path is a route of its own with one trip, boarded at position 0 and alighted
+  // at position 1, departing at the step's number
   for (let i = 1; i < path.length; i++) {
+    const route = i - 1;
+
     routeStops.push(intern(path[i - 1]), intern(path[i]));
     kConnections[intern(path[i])] = [];
-    kConnections[intern(path[i])][i] = [i - 1, i - 1, 0, 1];
-    trips.push({ stopTimes: [
-      { stop: path[i - 1], departureTime: i, arrivalTime: i, pickUp: true, dropOff: false },
-      { stop: path[i], departureTime: i, arrivalTime: i, pickUp: false, dropOff: true }
-    ] });
+    kConnections[intern(path[i])][i] = [route, route, 0, 1];
+    stopTimesBase.push(route * 2);
+    tripOffsets.push(route);
+    departures.push(i, i);
   }
 
   // every stop needs a slot, including any the path only starts from
@@ -94,11 +98,15 @@ function mergePath(path: StopID[], tree: StringResults): void {
     timetable: {
       routes: {
         stopOffsets: Int32Array.from({ length: path.length }, (_, route) => route * 2),
-        stops: Int32Array.from(routeStops)
-      }
+        stops: Int32Array.from(routeStops),
+        stopTimesBase: Int32Array.from(stopTimesBase),
+        tripOffsets: Int32Array.from(tripOffsets),
+        departures: Int32Array.from(departures)
+      },
+      interchange: new Int32Array(stopIds.length)
     },
     stopIds,
-    trips,
+    stopIndex,
     transfers: []
   } as unknown as Network;
 

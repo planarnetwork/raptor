@@ -1,36 +1,88 @@
-import * as cp  from "node:child_process";
 import ProgressBar from "progress";
 import * as fs from "node:fs";
-import type {StopID} from "../gtfs/GTFS.js";
 import * as os from "node:os";
+import * as path from "node:path";
+import { Worker } from "node:worker_threads";
+import type { StopID } from "../gtfs/GTFS.js";
 import { CSVParser } from "../gtfs/CSVParser.js";
 import { entityTypeOf } from "../gtfs/EntityType.js";
+import { loadGTFS } from "../gtfs/GTFSLoader.js";
 import { toChunks } from "../gtfs/Source.js";
 import { readZip } from "../gtfs/ZipReader.js";
+import { canShareMemory } from "../network/SharedMemory.js";
+import { createNetwork } from "../network/Network.js";
 
-const numCPUs = os.cpus().length;
-
+/**
+ * Build the timetable once and give it to every worker, rather than every worker building its own.
+ *
+ * The timetable is allocated on SharedArrayBuffers, so it crosses to a worker as shared memory. A
+ * worker that only makes transfer patterns needs nothing else of any size: the feed it was built
+ * from is hundreds of megabytes and is only needed to name a journey's stop times, which a pattern
+ * does not carry.
+ */
 async function run(filename: string, dateString: string) {
   const date = new Date(dateString);
   const stops = await getStops(filename);
-  const bar = new ProgressBar("  [:current of :total] [:bar] :percent eta :eta  ", { total: stops.length });
 
-  for (let i = 0; i < Math.min(numCPUs - 2, stops.length); i++) {
-    const worker = cp.fork(`${__dirname}/transfer-pattern-worker`, [filename, date.toISOString()]);
+  console.log(`Loading ${filename}`);
+
+  const feed = await loadGTFS(fs.createReadStream(filename));
+  const network = createNetwork(feed, date);
+
+  if (!canShareMemory) {
+    console.warn("SharedArrayBuffer is not available, so each worker will be given a copy of the timetable");
+  }
+
+  const workers = Math.min(
+    Number(process.env.WORKERS) || os.cpus().length - 2,
+    stops.length
+  );
+
+  console.log(`Planning ${stops.length} stops on ${workers} workers`);
+
+  const bar = new ProgressBar("  [:current of :total] [:bar] :percent eta :eta  ", { total: stops.length });
+  const workerData = {
+    timetable: network.timetable,
+    stopIds: network.stopIds,
+    transfers: network.transfers,
+    stations: network.stations,
+    date: date.toISOString()
+  };
+
+  await Promise.all(Array.from({ length: workers }, () => new Promise<void>((resolve, reject) => {
+    const worker = new Worker(workerFile(), { workerData });
 
     worker.on("message", () => {
-      if (stops.length > 0) {
-        bar.tick();
+      const stop = stops.pop();
 
-        worker.send(stops.pop()!);
+      if (stop === undefined) {
+        resolve();
+        worker.terminate();
       }
       else {
-        worker.kill("SIGUSR2");
+        bar.tick();
+        worker.postMessage(stop);
       }
     });
 
+    worker.on("error", reject);
+  })));
+}
+
+/**
+ * The worker, whether this is running from source or from the build. A Worker is given an exact
+ * path rather than a module to resolve, so the extension has to be settled here.
+ */
+function workerFile(): string {
+  const candidates = ["transfer-pattern-worker.js", "transfer-pattern-worker.ts"]
+    .map(file => path.join(__dirname, file));
+  const worker = candidates.find(file => fs.existsSync(file));
+
+  if (worker === undefined) {
+    throw new Error(`Could not find the transfer pattern worker, looked in ${candidates.join(" and ")}`);
   }
 
+  return worker;
 }
 
 /**
