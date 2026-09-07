@@ -1,6 +1,6 @@
 import { parentPort, workerData } from "node:worker_threads";
+import type { StopID, Transfer } from "@gb-transit/gtfs-loader";
 import * as mysql from "mysql2/promise";
-import type { StopID, Transfer } from "../gtfs/GTFS.js";
 import type { Network } from "../network/Network.js";
 import type { Timetable } from "../network/Timetable.js";
 import { TransferPatternQuery } from "../query/TransferPatternQuery.js";

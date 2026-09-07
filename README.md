@@ -31,8 +31,8 @@ npm install --save raptor-journey-planner
 The package ships both CommonJS and ES modules, so `require` and `import` both work. The examples
 below use `require`; the equivalent `import` is the same names from the same place.
 
-`fflate` is the only runtime dependency. `mysql2` is an optional peer dependency, needed only if
-you use `TransferPatternRepository`.
+`@gb-transit/gtfs-loader` is the only runtime dependency. `mysql2` is an optional peer dependency,
+needed only if you use `TransferPatternRepository`.
 
 ## Queries
 

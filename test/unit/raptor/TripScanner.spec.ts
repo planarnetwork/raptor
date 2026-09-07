@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createNetwork } from "../../../src/network/Network.js";
 import { RaptorAlgorithm } from "../../../src/raptor/RaptorAlgorithm.js";
-import { getDateNumber } from "../../../src/query/DateUtil.js";
+import { getDateNumber } from "@gb-transit/gtfs-loader";
 import { feed, st, t } from "../util.js";
 
 describe("TripScanner", () => {

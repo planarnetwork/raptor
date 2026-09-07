@@ -1,5 +1,5 @@
 import type { Network } from "../network/Network.js";
-import type { StopID, Time } from "../gtfs/GTFS.js";
+import type { StopID, Time } from "@gb-transit/gtfs-loader";
 import type { ResultsFactory } from "../results/ResultsFactory.js";
 import type { Journey } from "../results/Journey.js";
 import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery.js";

@@ -3,12 +3,8 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { Worker } from "node:worker_threads";
-import type { StopID } from "../gtfs/GTFS.js";
-import { CSVParser } from "../gtfs/CSVParser.js";
-import { entityTypeOf } from "../gtfs/EntityType.js";
-import { loadGTFS } from "../gtfs/GTFSLoader.js";
-import { toChunks } from "../gtfs/Source.js";
-import { readZip } from "../gtfs/ZipReader.js";
+import { CSVParser, entityTypeOf, loadGTFS, readZip, toChunks } from "@gb-transit/gtfs-loader";
+import type { StopID } from "@gb-transit/gtfs-loader";
 import { canShareMemory } from "../network/SharedMemory.js";
 import { createNetwork } from "../network/Network.js";
 

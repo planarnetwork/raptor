@@ -1,6 +1,6 @@
 import type { Network } from "../network/Network.js";
 import type { ResultsFactory } from "../results/ResultsFactory.js";
-import type { StopID } from "../gtfs/GTFS.js";
+import type { StopID } from "@gb-transit/gtfs-loader";
 import type { Journey } from "../results/Journey.js";
 import type { JourneyFilter } from "../results/filter/JourneyFilter.js";
 import { GroupStationDepartAfterQuery } from "./GroupStationDepartAfterQuery.js";

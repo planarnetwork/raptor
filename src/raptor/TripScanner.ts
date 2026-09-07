@@ -1,4 +1,4 @@
-import type { DateNumber, Time } from "../gtfs/GTFS.js";
+import type { DateNumber, Time } from "@gb-transit/gtfs-loader";
 import { dayOffset, NOT_COVERED } from "../network/TripCalendar.js";
 import type { RouteCursor } from "./RouteCursor.js";
 import type { Routes } from "../network/Timetable.js";

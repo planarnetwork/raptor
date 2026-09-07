@@ -1,9 +1,9 @@
-import type { StopID, Time } from "../gtfs/GTFS.js";
+import { getDateNumber } from "@gb-transit/gtfs-loader";
+import type { StopID, Time } from "@gb-transit/gtfs-loader";
 import type { Network } from "../network/Network.js";
 import type { Journey } from "../results/Journey.js";
 import type { JourneyFilter } from "../results/filter/JourneyFilter.js";
 import type { AsyncPlanner } from "./AsyncPlanner.js";
-import { getDateNumber } from "./DateUtil.js";
 import { dayOffset, NOT_COVERED } from "../network/TripCalendar.js";
 
 const ONE_DAY = 24 * 60 * 60;

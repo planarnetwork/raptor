@@ -1,5 +1,5 @@
 import type { ConnectionIndex } from "../../raptor/Connection.js";
-import type { StopID } from "../../gtfs/GTFS.js";
+import type { StopID } from "@gb-transit/gtfs-loader";
 import type { Network } from "../../network/Network.js";
 
 /**

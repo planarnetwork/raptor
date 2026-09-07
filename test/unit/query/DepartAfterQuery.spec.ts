@@ -3,7 +3,7 @@ import { JourneyFactory } from "../../../src/results/JourneyFactory.js";
 import { allDays, feed, j, services, setDefaultTrip, st, t, tf } from "../util.js";
 import { createNetwork } from "../../../src/network/Network.js";
 import { DepartAfterQuery } from "../../../src/query/DepartAfterQuery.js";
-import { Service } from "../../../src/gtfs/Service.js";
+import { Service } from "@gb-transit/gtfs-loader";
 
 describe("DepartAfterQuery", () => {
   const journeyFactory = new JourneyFactory();

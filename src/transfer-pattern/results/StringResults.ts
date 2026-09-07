@@ -2,7 +2,7 @@ import { isTransfer, type Connection, type ConnectionIndex } from "../../raptor/
 import type { Network } from "../../network/Network.js";
 import { originIndexOf } from "../../raptor/Connection.js";
 import type { StopIdx } from "../../network/Timetable.js";
-import type { Time } from "../../gtfs/GTFS.js";
+import type { Time } from "@gb-transit/gtfs-loader";
 import type { Path } from "./TransferPatternResults.js";
 
 /**

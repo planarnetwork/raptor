@@ -1,4 +1,4 @@
-import type { StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS.js";
+import type { StopID, StopTime, Time, Transfer, Trip } from "@gb-transit/gtfs-loader";
 
 /**
  * Part of a journey, from one place to another
