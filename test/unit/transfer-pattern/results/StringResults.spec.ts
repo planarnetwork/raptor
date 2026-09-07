@@ -38,6 +38,16 @@ describe("StringResults", () => {
     expect(tree.finalize()).toEqual(expected);
   });
 
+  it("keeps a pattern that another pattern runs through", () => {
+    const tree = new StringResults();
+
+    mergePath(["A", "B", "D"], tree);
+    mergePath(["A", "B", "C", "D"], tree);
+
+    // changing at B and changing at B then C are both ways of getting from A to D
+    expect(tree.finalize().AD).toEqual(new Set(["B", "B,C"]));
+  });
+
   it("Adds different paths", () => {
     const tree = new StringResults();
     const expected = {
