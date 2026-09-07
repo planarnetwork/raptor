@@ -66,6 +66,33 @@ describe("loadGTFS", () => {
     expect(false).toBe(feed.trips[0].service.runsOn(20240601, 1));
   });
 
+  it("reads a coupling as a link and leaves the interchange times alone", async () => {
+    const feed = await loadGTFS(feedZip({
+      ...FEED,
+      "trips.txt": "trip_id,service_id\nt1,s1\nt2,s1\n",
+      "transfers.txt":
+        "from_stop_id,to_stop_id,from_trip_id,to_trip_id,transfer_type,min_transfer_time\n"
+        + "A,A,,,2,300\n"
+        + "B,B,t1,t2,4,\n"
+    }));
+
+    expect([{ fromTripId: "t1", toTripId: "t2", fromStop: "B", toStop: "B" }]).toEqual(feed.links);
+    expect(300).toBe(feed.interchange.A);
+    expect(undefined).toBe(feed.interchange.B);
+  });
+
+  it("ignores transfers that are forbidden or need re-boarding", async () => {
+    const feed = await loadGTFS(feedZip({
+      ...FEED,
+      "transfers.txt":
+        "from_stop_id,to_stop_id,transfer_type,min_transfer_time\nA,A,3,\nA,B,3,600\nB,B,5,\n"
+    }));
+
+    expect(0).toBe(feed.links.length);
+    expect(0).toBe(Object.keys(feed.interchange).length);
+    expect(0).toBe(Object.keys(feed.transfers).length);
+  });
+
   it("reports progress and finishes with the building phase", async () => {
     const reports: LoadProgress[] = [];
 

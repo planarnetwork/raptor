@@ -1,7 +1,7 @@
 /**
  * StopID e.g. NRW
  */
-import type { Service } from "./Service.js";
+import type { ServiceCalendar } from "./Service.js";
 
 export type StopID = string;
 
@@ -59,7 +59,20 @@ export interface Trip {
   /** The trip's stopping pattern as the feed gives it, passing points and all */
   stopTimes: StopTime[];
   serviceId: ServiceID;
-  service: Service;
+  service: ServiceCalendar;
+}
+
+/**
+ * A transfers.txt row of transfer_type 4, saying the vehicle of one trip carries on as another.
+ *
+ * The stops are optional in GTFS and identify platforms rather than the station the coupling
+ * happens at, so they place the coupling within each trip rather than name where it is.
+ */
+export interface TripLink {
+  fromTripId: TripID;
+  toTripId: TripID;
+  fromStop?: StopID;
+  toStop?: StopID;
 }
 
 /**

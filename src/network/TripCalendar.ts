@@ -1,6 +1,6 @@
 import type { DateNumber, Trip } from "../gtfs/GTFS.js";
 import type { Network } from "./Network.js";
-import type { Service } from "../gtfs/Service.js";
+import type { ServiceCalendar } from "../gtfs/Service.js";
 import { addDays, daysBetween, getDateNumber, getDayOfWeek } from "../query/DateUtil.js";
 
 /**
@@ -24,8 +24,8 @@ export function createTripCalendar(trips: Trip[], startDate: DateNumber, endDate
   const runs = new Uint8Array(days * stride);
 
   // there are far fewer services than trips, so each one is only evaluated once per day
-  const services: Service[] = [];
-  const serviceIndex = new Map<Service, number>();
+  const services: ServiceCalendar[] = [];
+  const serviceIndex = new Map<ServiceCalendar, number>();
   const tripService = new Int32Array(trips.length);
 
   for (let trip = 0; trip < trips.length; trip++) {

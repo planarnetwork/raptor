@@ -349,4 +349,26 @@ describe("Network", () => {
     expect(trips[0].stopTimes.map(s => s.stop)).toEqual(["9100NRCH4", "9100DISS1"]);
   });
 
+  it("adds the trip a passenger stays on across a coupling", () => {
+    const portion = t(st("A", null, 1000), st("B", 1100, 1100));
+    const base = t(st("B", 1150, 1200), st("C", 1300, null));
+    const link = { fromTripId: portion.tripId, toTripId: base.tripId, fromStop: "B", toStop: "B" };
+
+    const { trips } = createNetwork(feed([portion, base], {}, {}, {}, [link]));
+
+    expect(trips.length).toBe(3);
+    expect(trips.some(trip => trip.tripId === `${portion.tripId}_${base.tripId}`)).toBe(true);
+  });
+
+  it("keeps a coupled trip when planning for a single date", () => {
+    const portion = t(st("A", null, 1000), st("B", 1100, 1100));
+    const base = t(st("B", 1150, 1200), st("C", 1300, null));
+    const link = { fromTripId: portion.tripId, toTripId: base.tripId, fromStop: "B", toStop: "B" };
+    const outsideTheCalendar = new Date("2017-06-01T12:00:00Z");
+
+    const { trips } = createNetwork(feed([portion, base], {}, {}, {}, [link]), outsideTheCalendar);
+
+    expect(trips.some(trip => trip.tripId === `${portion.tripId}_${base.tripId}`)).toBe(true);
+  });
+
 });
