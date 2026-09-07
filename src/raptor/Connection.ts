@@ -1,4 +1,4 @@
-import type { StopID, StopTime, Time, Trip } from "../gtfs/GTFS.js";
+import type { StopID, StopTime, Trip } from "../gtfs/GTFS.js";
 import { isCall } from "../gtfs/Normalise.js";
 import type { Network } from "../network/Network.js";
 import type { RouteIdx, StopIdx } from "../network/Timetable.js";
@@ -65,15 +65,6 @@ export function stopTimesOf(network: Network, connection: Connection): StopTime[
   const [, , from, to] = connection;
 
   return trip.stopTimes.slice(callAt(trip, from), callAt(trip, to) + 1);
-}
-
-/**
- * When the connection departs the stop it was boarded at
- */
-export function departureOf(network: Network, connection: Connection): Time {
-  const trip = tripOf(network, connection);
-
-  return trip.stopTimes[callAt(trip, connection[2])].departureTime;
 }
 
 /**

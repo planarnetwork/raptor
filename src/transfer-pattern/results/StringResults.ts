@@ -1,8 +1,8 @@
 import { isTransfer, type Connection, type ConnectionIndex } from "../../raptor/Connection.js";
 import type { Network } from "../../network/Network.js";
-import { departureOf, originIndexOf } from "../../raptor/Connection.js";
+import { originIndexOf } from "../../raptor/Connection.js";
 import type { StopIdx } from "../../network/Timetable.js";
-import type { Interchange, Time } from "../../gtfs/GTFS.js";
+import type { Time } from "../../gtfs/GTFS.js";
 import type { Path } from "./TransferPatternResults.js";
 
 /**
@@ -11,10 +11,6 @@ import type { Path } from "./TransferPatternResults.js";
  */
 export class StringResults {
   private results: TransferPatternIndex = {};
-
-  constructor(
-    private readonly interchange: Interchange
-  ) { }
 
   /**
    * Extract the path from each kConnection result and store it in an index
@@ -66,9 +62,12 @@ export class StringResults {
         ? (network.stopIndex.get(transfer.origin) as StopIdx)
         : originIndexOf(network, connection as Connection);
 
+      // the interchange the scan added on arriving here, which the network holds already resolved
+      // to a station and defaulted. The feed's own interchange is keyed by its stop ids, so it
+      // cannot be looked up by the station a transfer names
       departureTime = transfer
-          ? departureTime - transfer.duration - this.interchange[transfer.destination]
-          : departureOf(network, connection as Connection);
+          ? departureTime - transfer.duration - network.timetable.interchange[destination]
+          : this.departureOf(network, connection as Connection);
 
       path.unshift(network.stopIds[origin]);
 
@@ -76,6 +75,21 @@ export class StringResults {
     }
 
     return [path, departureTime];
+  }
+
+  /**
+   * When the connection departs the stop it was boarded at.
+   *
+   * Read from the timetable rather than the feed's stop times, which hold the same departure but
+   * only after the calls have been counted past the passing points. It is the same value either
+   * way, and taking it from the timetable is what lets a pattern be built without the feed, so a
+   * worker can share a timetable rather than load a feed of its own.
+   */
+  private departureOf(network: Network, [route, trip, from]: Connection): Time {
+    const { stopOffsets, stopTimesBase, tripOffsets, departures } = network.timetable.routes;
+    const stopsInRoute = stopOffsets[route + 1] - stopOffsets[route];
+
+    return departures[stopTimesBase[route] + (trip - tripOffsets[route]) * stopsInRoute + from];
   }
 
 }

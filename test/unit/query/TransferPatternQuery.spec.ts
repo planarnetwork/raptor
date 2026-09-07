@@ -8,7 +8,7 @@ describe("TransferPatternQuery", () => {
 
   it("finds the pattern of a direct journey", () => {
     const network = createNetwork(feed([t(st("A", null, 1000), st("B", 1100, null))]));
-    const query = new TransferPatternQuery(network, () => new StringResults({}));
+    const query = new TransferPatternQuery(network, () => new StringResults());
 
     // an empty pattern is a direct journey, the origin and destination are not part of it
     expect(query.plan("A", new Date("2018-10-16"))).toEqual({ AB: new Set([""]) });
@@ -21,7 +21,7 @@ describe("TransferPatternQuery", () => {
     ];
 
     const network = createNetwork(feed(trips));
-    const query = new TransferPatternQuery(network, () => new StringResults({}));
+    const query = new TransferPatternQuery(network, () => new StringResults());
     const patterns = query.plan("A", new Date("2018-10-16"));
 
     expect(patterns.AB).toEqual(new Set([""]));
@@ -35,21 +35,37 @@ describe("TransferPatternQuery", () => {
     ];
 
     const network = createNetwork(feed(trips, { B: [tf("B", "C", 60)] }));
-    const query = new TransferPatternQuery(network, () => new StringResults({}));
+    const query = new TransferPatternQuery(network, () => new StringResults());
 
     expect(query.plan("A", new Date("2018-10-16")).AD).toEqual(new Set(["B,C"]));
   });
 
+  it("keeps scanning the day after a pattern that ends with a transfer", () => {
+    const trips = [
+      t(st("A", null, 1000), st("B", 1030, null)),
+      // only reachable by starting later, so it is found by a second scan or not at all
+      t(st("A", null, 1200), st("C", 1230, null)),
+      t(st("C", null, 1300), st("B", 1330, null))
+    ];
+
+    // a path made only of footpaths, which is where the time the next scan starts from used to
+    // come back as NaN and end the day after a single scan
+    const network = createNetwork(feed(trips, { A: [tf("A", "D", 60)] }));
+    const query = new TransferPatternQuery(network, () => new StringResults());
+
+    expect(query.plan("A", new Date("2018-10-16")).AB).toEqual(new Set(["", "C"]));
+  });
+
   it("finds nothing from an origin the feed has no stop for", () => {
     const network = createNetwork(feed([t(st("A", null, 1000), st("B", 1100, null))]));
-    const query = new TransferPatternQuery(network, () => new StringResults({}));
+    const query = new TransferPatternQuery(network, () => new StringResults());
 
     expect(query.plan("Z", new Date("2018-10-16"))).toEqual({});
   });
 
   it("rejects a date the timetable has no calendar for", () => {
     const network = createNetwork(feed([t(st("A", null, 1000), st("B", 1100, null))]));
-    const query = new TransferPatternQuery(network, () => new StringResults({}));
+    const query = new TransferPatternQuery(network, () => new StringResults());
 
     expect(() => query.plan("A", new Date("2031-04-18")))
       .toThrow(/covers 20180101 to 20201231, so it cannot plan for 20310418/);
