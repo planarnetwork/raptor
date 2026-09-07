@@ -1,11 +1,10 @@
 import { parentPort, workerData } from "node:worker_threads";
 import type { StopID, Transfer } from "@gb-transit/gtfs-loader";
-import * as mysql from "mysql2/promise";
 import type { Network } from "../network/Network.js";
 import type { Timetable } from "../network/Timetable.js";
 import { TransferPatternQuery } from "../query/TransferPatternQuery.js";
+import { TransferPatternFile } from "../transfer-pattern/TransferPatternFile.js";
 import { StringResults } from "../transfer-pattern/results/StringResults.js";
-import { TransferPatternRepository } from "../transfer-pattern/TransferPatternRepository.js";
 
 /**
  * Worker that finds transfer patterns for a given station.
@@ -14,6 +13,9 @@ import { TransferPatternRepository } from "../transfer-pattern/TransferPatternRe
  * SharedArrayBuffers, so every worker reads the one the main thread built instead of loading the
  * feed again, and building a pattern needs nothing else from it: naming a path takes the stop ids
  * and the transfers, both of which are small enough to copy.
+ *
+ * Its patterns go straight to a file of its own, which the run merges once every station is done.
+ * Folding them into a tree needs all of them in order, so a worker cannot do that part alone.
  */
 interface WorkerInput {
   timetable: Timetable;
@@ -21,21 +23,10 @@ interface WorkerInput {
   transfers: Transfer[];
   stations: Map<StopID, StopID>;
   date: string;
+  output: string;
 }
 
-function getDatabase() {
-  return mysql.createPool({
-    host: process.env.DATABASE_HOSTNAME || "localhost",
-    port: parseInt(process.env.DATABASE_PORT || "3306", 10),
-    user: process.env.DATABASE_USERNAME || "root",
-    password: process.env.DATABASE_PASSWORD || "",
-    database: process.env.OJP_DATABASE_NAME || "ojp",
-    // one query is in flight at a time, and a machine with many cores runs many of these
-    connectionLimit: 1,
-  });
-}
-
-function worker({ timetable, stopIds, transfers, stations, date }: WorkerInput): void {
+function worker({ timetable, stopIds, transfers, stations, date, output }: WorkerInput): void {
   const network: Network = {
     timetable,
     stopIds,
@@ -49,12 +40,19 @@ function worker({ timetable, stopIds, transfers, stations, date }: WorkerInput):
   };
 
   const query = new TransferPatternQuery(network, () => new StringResults());
-  const repository = new TransferPatternRepository(getDatabase());
   const planFor = new Date(date);
+  const patterns = new TransferPatternFile(output);
 
-  parentPort?.on("message", async (stop: StopID) => {
-    await repository.storeTransferPatterns(query.plan(stop, planFor));
+  parentPort?.on("message", async (stop: StopID | null) => {
+    // nothing left to plan, so finish the file before the run takes this thread away
+    if (stop === null) {
+      await patterns.close();
+      parentPort?.postMessage("done");
 
+      return;
+    }
+
+    await patterns.store(query.plan(stop, planFor));
     parentPort?.postMessage("ready");
   });
 
