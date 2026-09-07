@@ -1,6 +1,6 @@
 import type { ConnectionIndex } from "./Connection.js";
 import type { DateNumber, Time } from "../gtfs/GTFS.js";
-import { buildQueue } from "./Queue.js";
+import { RouteQueue } from "./Queue.js";
 import { RouteCursor } from "./RouteCursor.js";
 import { NO_TRIP, TripScanner } from "./TripScanner.js";
 import { type Arrivals, ScanResults } from "./ScanResults.js";
@@ -14,11 +14,13 @@ export class RaptorAlgorithm {
    * Reused by every scan. A scan is synchronous, so there is never more than one route in flight.
    */
   private readonly routes: RouteCursor;
+  private readonly queue: RouteQueue;
 
   constructor(
     private readonly timetable: Timetable
   ) {
     this.routes = new RouteCursor(timetable.routes);
+    this.queue = new RouteQueue(timetable.routes.stopOffsets.length - 1);
   }
 
   /**
@@ -45,13 +47,17 @@ export class RaptorAlgorithm {
   private scanRoutes(results: ScanResults, tripScanner: TripScanner, markedStops: StopIdx[]): void {
     const { interchange } = this.timetable;
 
-    for (const [route, startPosition] of buildQueue(this.timetable.routesByStop, markedStops)) {
+    this.queue.build(this.timetable.routesByStop, markedStops);
+
+    for (let q = 0; q < this.queue.length; q++) {
+      const route = this.queue.routeAt(q);
+
       this.routes.moveTo(route);
 
       let boardingPoint = -1;
       let trip = NO_TRIP;
 
-      for (let pi = startPosition; pi < this.routes.numStops; pi++) {
+      for (let pi = this.queue.startPositionOf(route); pi < this.routes.numStops; pi++) {
         const stop = this.routes.stopAt(pi);
         const previousArrival = results.previousArrival(stop);
         const arrival = trip === NO_TRIP ? NOT_REACHED : this.routes.arrival(trip, pi) + interchange[stop];
