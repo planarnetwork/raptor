@@ -36,11 +36,9 @@
   "homepage": "https://github.com/planarnetwork/raptor#readme",
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
-    "@types/mysql": "2.15.27",
     "@types/node": "24.6.1",
     "@types/progress": "2.0.7",
     "fflate": "^0.8.3",
-    "mysql2": "^3.22.2",
     "progress": "2.0.3",
     "tsx": "^4.23.13",
     "typescript": "5.9.3",
@@ -71,13 +69,5 @@
   ],
   "engines": {
     "node": ">=22"
-  },
-  "peerDependencies": {
-    "mysql2": ">=3"
-  },
-  "peerDependenciesMeta": {
-    "mysql2": {
-      "optional": true
-    }
   }
 }
