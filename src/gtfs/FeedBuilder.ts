@@ -1,4 +1,4 @@
-import type { CalendarIndex, DateIndex, Interchange, StopIndex, TransfersByOrigin, Trip } from "./GTFS.js";
+import type { CalendarIndex, DateIndex, Interchange, StopIndex, TransfersByOrigin, Trip, TripLink } from "./GTFS.js";
 import type { EntityType } from "./EntityType.js";
 import type { Row } from "./CSVParser.js";
 import type { FeedInfo, GTFSFeed } from "./GTFSLoader.js";
@@ -17,6 +17,7 @@ export class FeedBuilder {
   private readonly timeParser = new TimeParser();
   private readonly trips: Trip[] = [];
   private readonly transfers: TransfersByOrigin = {};
+  private readonly links: TripLink[] = [];
   private readonly interchange: Interchange = {};
   private readonly calendars: CalendarIndex = {};
   private readonly dates: Record<string, DateIndex> = {};
@@ -64,6 +65,7 @@ export class FeedBuilder {
     return {
       trips: this.trips,
       transfers: this.transfers,
+      links: this.links,
       interchange: this.interchange,
       stops: this.stops,
       feedInfo: this.feedInfo
@@ -94,12 +96,33 @@ export class FeedBuilder {
   }
 
   private addTransfer(row: Row): void {
-    this.footpath(
-      row,
-      +(row.min_transfer_time as string),
-      row.start_time ? this.timeParser.getTime(row.start_time) : 0,
-      row.end_time ? this.timeParser.getTime(row.end_time) : Number.MAX_SAFE_INTEGER
-    );
+    // 3 forbids a change and 5 requires re-boarding, which is what happens with no row at all
+    if (row.transfer_type === "3" || row.transfer_type === "5") {
+      return;
+    }
+
+    if (row.transfer_type === "4") {
+      this.addLink(row);
+    }
+    else {
+      this.footpath(
+        row,
+        +(row.min_transfer_time as string),
+        row.start_time ? this.timeParser.getTime(row.start_time) : 0,
+        row.end_time ? this.timeParser.getTime(row.end_time) : Number.MAX_SAFE_INTEGER
+      );
+    }
+  }
+
+  private addLink(row: Row): void {
+    if (row.from_trip_id && row.to_trip_id) {
+      this.links.push({
+        fromTripId: this.intern(row.from_trip_id),
+        toTripId: this.intern(row.to_trip_id),
+        fromStop: row.from_stop_id === undefined ? undefined : this.intern(row.from_stop_id),
+        toStop: row.to_stop_id === undefined ? undefined : this.intern(row.to_stop_id)
+      });
+    }
   }
 
   /**

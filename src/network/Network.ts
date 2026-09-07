@@ -3,6 +3,7 @@ import { getDateNumber } from "../query/DateUtil.js";
 import type { GTFSFeed } from "../gtfs/GTFSLoader.js";
 import { createTripCalendar, getCalendarWindow } from "./TripCalendar.js";
 import { normalise } from "../gtfs/Normalise.js";
+import { coupledTripIds } from "../gtfs/LinkedTrips.js";
 import { DROP_OFF, PICK_UP, type RouteIdx, type StopIdx, type Timetable } from "./Timetable.js";
 
 const DEFAULT_INTERCHANGE_TIME = 0;
@@ -28,8 +29,12 @@ export function createNetwork(feed: GTFSFeed, date?: Date): Network {
   if (date) {
     const dateNumber = getDateNumber(date);
     const dow = date.getDay() as DayOfWeek;
+    const coupled = coupledTripIds(feed.links);
 
-    feed = { ...feed, trips: feed.trips.filter(trip => trip.service.runsOn(dateNumber, dow)) };
+    feed = {
+      ...feed,
+      trips: feed.trips.filter(trip => coupled.has(trip.tripId) || trip.service.runsOn(dateNumber, dow))
+    };
   }
 
   const { trips, calls, transfers, interchange, stations } = normalise(feed);

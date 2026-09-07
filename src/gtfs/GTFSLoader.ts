@@ -1,4 +1,4 @@
-import type { DateNumber, Interchange, StopIndex, TransfersByOrigin, Trip } from "./GTFS.js";
+import type { DateNumber, Interchange, StopIndex, TransfersByOrigin, Trip, TripLink } from "./GTFS.js";
 import { COLUMNS, entityTypeOf } from "./EntityType.js";
 import { CSVParser } from "./CSVParser.js";
 import { FeedBuilder } from "./FeedBuilder.js";
@@ -149,6 +149,8 @@ function describe(url: string, status: number | undefined, cause: unknown): stri
 export interface GTFSFeed {
   trips: Trip[];
   transfers: TransfersByOrigin;
+  /** Couplings between trips, which the timetable turns into the trips a passenger stays on */
+  links: TripLink[];
   interchange: Interchange;
   stops: StopIndex;
   /** feed_info.txt, which a feed does not have to provide */

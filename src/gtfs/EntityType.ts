@@ -38,7 +38,10 @@ export const COLUMNS: Record<EntityType, readonly string[]> = {
   calendar_date: ["service_id", "date", "exception_type"],
   trip: ["trip_id", "service_id"],
   stop_time: ["trip_id", "arrival_time", "departure_time", "stop_id", "pickup_type", "drop_off_type"],
-  transfer: ["from_stop_id", "to_stop_id", "min_transfer_time", "start_time", "end_time"],
+  transfer: [
+    "from_stop_id", "to_stop_id", "from_trip_id", "to_trip_id",
+    "transfer_type", "min_transfer_time", "start_time", "end_time"
+  ],
   feed_info: ["feed_start_date", "feed_end_date", "feed_version"],
   stop: [
     "stop_id", "stop_code", "stop_name", "stop_desc", "stop_lat", "stop_lon",

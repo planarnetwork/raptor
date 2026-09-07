@@ -1,5 +1,6 @@
 import type { Interchange, Stop, StopID, StopIndex, StopTime, Transfer, Trip } from "./GTFS.js";
 import type { GTFSFeed } from "./GTFSLoader.js";
+import { linkTrips } from "./LinkedTrips.js";
 
 /**
  * A feed may group stops under a station and those under a station in turn, so the walk up is
@@ -24,7 +25,7 @@ export function normalise(feed: GTFSFeed): TimetableInput {
   const trips: Trip[] = [];
   const calls: StopTime[][] = [];
 
-  for (const trip of feed.trips) {
+  const add = (trip: Trip): void => {
     const tripCalls = trip.stopTimes.filter(isCall);
 
     // a trip that cannot be both boarded and alighted is of no use
@@ -32,6 +33,14 @@ export function normalise(feed: GTFSFeed): TimetableInput {
       trips.push(trip);
       calls.push(tripCalls);
     }
+  };
+
+  for (const trip of feed.trips) {
+    add(trip);
+  }
+
+  for (const trip of linkTrips(feed.trips, feed.links, station)) {
+    add(trip);
   }
 
   const transfers: Transfer[] = [];
