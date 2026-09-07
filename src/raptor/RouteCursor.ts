@@ -15,6 +15,7 @@ export class RouteCursor {
   private timesBase = 0;
   private firstTrip = 0;
   private stopsInRoute = 0;
+  private tripsInRoute = 0;
 
   constructor(private readonly routes: Routes) { }
 
@@ -33,6 +34,13 @@ export class RouteCursor {
   }
 
   /**
+   * Number of trips on the route
+   */
+  public get numTrips(): number {
+    return this.tripsInRoute;
+  }
+
+  /**
    * Position the cursor on a route, resolving where its slice of each global array starts.
    */
   public moveTo(route: RouteIdx): void {
@@ -43,6 +51,7 @@ export class RouteCursor {
     this.stopsInRoute = stopOffsets[route + 1] - this.stopsBase;
     this.timesBase = stopTimesBase[route];
     this.firstTrip = tripOffsets[route];
+    this.tripsInRoute = tripOffsets[route + 1] - this.firstTrip;
   }
 
   public stopAt(position: number): StopIdx {
