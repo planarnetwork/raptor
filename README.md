@@ -83,6 +83,38 @@ const query = new RangeQuery(network, resultsFactory);
 const journeys = query.plan("NRW", "LST", new Date(), 9 * 60 * 60, 11 * 60 * 60);
 ```
 
+### Parallel Range Query
+
+Runs the scans of a range query on a pool of planners instead of one after another, and stops once
+it has enough journeys.
+
+You supply the pool. A planner is anything with an async `plan` matching `GroupStationDepartAfterQuery`,
+so it is usually a worker holding its own network, or a `PlannerClient`.
+
+```
+const {createNetwork, ParallelRangeQuery, MultipleCriteriaFilter} = require("raptor-journey-planner");
+
+const network = createNetwork(feed);
+const planners = workers.map(worker => new PlannerClient(worker));
+const query = new ParallelRangeQuery(network, planners, [new MultipleCriteriaFilter()]);
+const journeys = await query.plan("NRW", "LST", new Date(), 1, 24 * 60 * 60, 20);
+```
+
+The scans are dispatched in batches the size of the pool, so asking for 20 journeys may return a
+few more: the batch that reaches the target is finished rather than abandoned.
+
+### Parallel Depart After Query
+
+Sends each query to the planner in a pool with the least work outstanding. This answers more
+queries at once, it does not make a single query faster.
+
+```
+const {ParallelDepartAfterQuery} = require("raptor-journey-planner");
+
+const query = new ParallelDepartAfterQuery(planners);
+const journeys = await query.plan("NRW", "LST", new Date(), 9 * 60 * 60);
+```
+
 ### Transfer Pattern Query
 
 Finds transfer patterns for a stop on a given date
