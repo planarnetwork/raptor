@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildQueue } from "../../../src/raptor/Queue.js";
-import type { RoutesByStop } from "../../../src/network/Timetable.js";
+import { RouteQueue } from "../../../src/raptor/Queue.js";
+import type { RouteIdx, RoutesByStop } from "../../../src/network/Timetable.js";
 
 const StopA = 0;
 const StopB = 1;
@@ -34,26 +34,49 @@ function routesByStop(...stops: [route: number, position: number][][]): RoutesBy
   };
 }
 
-describe("buildQueue", () => {
+function contentsOf(queue: RouteQueue): [RouteIdx, number][] {
+  return Array.from({ length: queue.length }, (_, i) => {
+    const route = queue.routeAt(i);
+
+    return [route, queue.startPositionOf(route)];
+  });
+}
+
+describe("RouteQueue", () => {
 
   it("enqueues stops", () => {
-    const actual = buildQueue(routesByStop(
+    const queue = new RouteQueue(3);
+
+    queue.build(routesByStop(
       [[RouteA, 1], [RouteB, 2]],
       [[RouteB, 1], [RouteC, 1]]
     ), [StopA, StopB]);
-    const expected = new Map([[RouteA, 1], [RouteB, 1], [RouteC, 1]]);
 
-    expect(actual).toEqual(expected);
+    expect(contentsOf(queue)).toEqual([[RouteA, 1], [RouteB, 1], [RouteC, 1]]);
   });
 
   it("picks the earliest stop on the route", () => {
-    const actual = buildQueue(routesByStop(
+    const queue = new RouteQueue(3);
+
+    queue.build(routesByStop(
       [[RouteA, 1], [RouteB, 1]],
       [[RouteB, 2], [RouteC, 1]]
     ), [StopB, StopA]);
-    const expected = new Map([[RouteB, 1], [RouteC, 1], [RouteA, 1]]);
 
-    expect(actual).toEqual(expected);
+    expect(contentsOf(queue)).toEqual([[RouteB, 1], [RouteC, 1], [RouteA, 1]]);
+  });
+
+  it("replaces the previous round's contents when it is rebuilt", () => {
+    const queue = new RouteQueue(3);
+    const routes = routesByStop(
+      [[RouteA, 1], [RouteB, 2]],
+      [[RouteB, 1], [RouteC, 1]]
+    );
+
+    queue.build(routes, [StopA, StopB]);
+    queue.build(routes, [StopB]);
+
+    expect(contentsOf(queue)).toEqual([[RouteB, 1], [RouteC, 1]]);
   });
 
 });
