@@ -1,4 +1,4 @@
-import type { Time } from "../gtfs/GTFS.js";
+import type { Time } from "@gb-transit/gtfs-loader";
 import { DROP_OFF, PICK_UP, type RouteIdx, type Routes, type StopIdx } from "../network/Timetable.js";
 
 /**

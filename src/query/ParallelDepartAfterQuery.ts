@@ -1,4 +1,4 @@
-import type { StopID, Time } from "../gtfs/GTFS.js";
+import type { StopID, Time } from "@gb-transit/gtfs-loader";
 import type { Journey } from "../results/Journey.js";
 import type { JourneyFilter } from "../results/filter/JourneyFilter.js";
 import type { AsyncPlanner } from "./AsyncPlanner.js";

@@ -1,7 +1,6 @@
-import type { DateNumber, Trip } from "../gtfs/GTFS.js";
+import { addDays, daysBetween, getDateNumber, getDayOfWeek } from "@gb-transit/gtfs-loader";
+import type { DateNumber, ServiceCalendar, Trip } from "@gb-transit/gtfs-loader";
 import type { Network } from "./Network.js";
-import type { ServiceCalendar } from "../gtfs/Service.js";
-import { addDays, daysBetween, getDateNumber, getDayOfWeek } from "../query/DateUtil.js";
 import { sharedUint8Array } from "./SharedMemory.js";
 
 /**

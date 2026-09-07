@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { createNetwork } from "../../../src/network/Network.js";
 import { DROP_OFF, PICK_UP, type Timetable } from "../../../src/network/Timetable.js";
 import { feed, st, t, tf } from "../util.js";
-import type { Stop, StopID, StopIndex } from "../../../src/gtfs/GTFS.js";
+import type { Stop, StopID, StopIndex } from "@gb-transit/gtfs-loader";
 
 function transfersFrom(timetable: Timetable, stop: number): { destination: number, duration: number }[] {
   const { offsets, destination, duration } = timetable.transfers;

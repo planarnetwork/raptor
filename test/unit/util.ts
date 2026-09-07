@@ -1,7 +1,6 @@
-import type { Interchange, StopID, StopIndex, StopTime, Time, Transfer, TransfersByOrigin, Trip, TripLink } from "../../src/gtfs/GTFS.js";
-import type { GTFSFeed } from "../../src/gtfs/GTFSLoader.js";
+import { Service } from "@gb-transit/gtfs-loader";
+import type { GTFSFeed, Interchange, StopID, StopIndex, StopTime, Time, Transfer, TransfersByOrigin, Trip, TripLink } from "@gb-transit/gtfs-loader";
 import type { Journey, TimetableLeg } from "../../src/results/Journey.js";
-import { Service } from "../../src/gtfs/Service.js";
 
 export const allDays = { 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
 

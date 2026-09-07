@@ -1,5 +1,5 @@
 import type { ConnectionIndex } from "./Connection.js";
-import type { DateNumber, Time } from "../gtfs/GTFS.js";
+import type { DateNumber, Time } from "@gb-transit/gtfs-loader";
 import { RouteQueue } from "./Queue.js";
 import { RouteCursor } from "./RouteCursor.js";
 import { NO_TRIP, TripScanner } from "./TripScanner.js";

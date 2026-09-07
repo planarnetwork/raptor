@@ -1,10 +1,10 @@
 import type { ConnectionIndex } from "../raptor/Connection.js";
 import { type Origins, RaptorAlgorithm } from "../raptor/RaptorAlgorithm.js";
-import type { StopID, Time } from "../gtfs/GTFS.js";
+import type { StopID, Time } from "@gb-transit/gtfs-loader";
 import type { Network } from "../network/Network.js";
 import type { ResultsFactory } from "../results/ResultsFactory.js";
 import { checkCovered } from "../network/TripCalendar.js";
-import { getDateNumber } from "./DateUtil.js";
+import { getDateNumber } from "@gb-transit/gtfs-loader";
 import type { Journey } from "../results/Journey.js";
 import type { JourneyFilter } from "../results/filter/JourneyFilter.js";
 import { NOT_REACHED, type StopIdx } from "../network/Timetable.js";

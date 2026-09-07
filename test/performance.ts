@@ -1,4 +1,4 @@
-import { loadGTFS } from "../src/gtfs/GTFSLoader.js";
+import { loadGTFS } from "@gb-transit/gtfs-loader";
 import { JourneyFactory } from "../src/results/JourneyFactory.js";
 import * as fs from "node:fs";
 import { createNetwork } from "../src/network/Network.js";

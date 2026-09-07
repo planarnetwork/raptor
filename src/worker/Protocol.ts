@@ -1,8 +1,5 @@
 import type { TimetableLeg } from "../results/Journey.js";
-import type { ServiceID, StopID, StopTime, Time, Transfer, TripID } from "../gtfs/GTFS.js";
-import type { GTFSSource } from "../gtfs/Source.js";
-import type { LoadProgress } from "../gtfs/Progress.js";
-import type { Stop } from "../gtfs/GTFS.js";
+import type { GTFSSource, LoadProgress, ServiceID, Stop, StopID, StopTime, Time, Transfer, TripID } from "@gb-transit/gtfs-loader";
 
 /**
  * A trip as it crosses the worker boundary.

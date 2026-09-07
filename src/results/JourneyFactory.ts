@@ -1,5 +1,5 @@
 import { isTransfer, type ConnectionIndex } from "../raptor/Connection.js";
-import type { Time } from "../gtfs/GTFS.js";
+import type { Time } from "@gb-transit/gtfs-loader";
 import type { StopIdx } from "../network/Timetable.js";
 import type { Network } from "../network/Network.js";
 import { originIndexOf, stopTimesOf, tripOf } from "../raptor/Connection.js";

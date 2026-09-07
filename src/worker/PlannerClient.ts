@@ -1,6 +1,4 @@
-import type { Stop, StopID, Time } from "../gtfs/GTFS.js";
-import type { LoadProgress } from "../gtfs/Progress.js";
-import type { GTFSSource } from "../gtfs/Source.js";
+import type { GTFSSource, LoadProgress, Stop, StopID, Time } from "@gb-transit/gtfs-loader";
 import {
   type FeedLocation,
   isEvent,

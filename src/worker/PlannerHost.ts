@@ -1,12 +1,10 @@
 import type { Journey, TimetableLeg } from "../results/Journey.js";
 import type { Network } from "../network/Network.js";
-import type { Stop } from "../gtfs/GTFS.js";
-import type { GTFSFeed } from "../gtfs/GTFSLoader.js";
+import { loadGTFS, loadGTFSFromUrl } from "@gb-transit/gtfs-loader";
+import type { GTFSFeed, LoadProgress, Stop } from "@gb-transit/gtfs-loader";
 import { createNetwork } from "../network/Network.js";
 import { GroupStationDepartAfterQuery } from "../query/GroupStationDepartAfterQuery.js";
 import { JourneyFactory } from "../results/JourneyFactory.js";
-import { loadGTFS, loadGTFSFromUrl } from "../gtfs/GTFSLoader.js";
-import type { LoadProgress } from "../gtfs/Progress.js";
 import type { PlainJourney, PlainLeg, PlannerEvent, PlannerRequest, PlannerResponse } from "./Protocol.js";
 
 /**

@@ -1,10 +1,7 @@
-import type { DayOfWeek, StopID, StopTime, Transfer, Trip } from "../gtfs/GTFS.js";
-import { getDateNumber } from "../query/DateUtil.js";
-import type { GTFSFeed } from "../gtfs/GTFSLoader.js";
+import { coupledTripIds, getDateNumber, normalise } from "@gb-transit/gtfs-loader";
+import type { DayOfWeek, GTFSFeed, StopID, StopTime, Transfer, Trip } from "@gb-transit/gtfs-loader";
 import { createTripCalendar, getCalendarWindow } from "./TripCalendar.js";
-import { normalise } from "../gtfs/Normalise.js";
 import { sharedInt32Array, sharedUint8Array } from "./SharedMemory.js";
-import { coupledTripIds } from "../gtfs/LinkedTrips.js";
 import { DROP_OFF, PICK_UP, type RouteIdx, type StopIdx, type Timetable } from "./Timetable.js";
 
 const DEFAULT_INTERCHANGE_TIME = 0;

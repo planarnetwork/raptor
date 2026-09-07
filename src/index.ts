@@ -1,10 +1,22 @@
-export * from "./gtfs/GTFS.js";
-export * from "./gtfs/Service.js";
-export * from "./gtfs/GTFSLoader.js";
-export * from "./gtfs/Source.js";
-export * from "./gtfs/Progress.js";
-export * from "./gtfs/TimeParser.js";
-export * from "./query/DateUtil.js";
+// Reading a feed is @gb-transit/gtfs-loader's job now. These are the names this package used to
+// export from src/gtfs and src/query/DateUtil, listed one by one rather than re-exported wholesale:
+// the loader publishes more than this - CSVParser, FeedBuilder, readZip, normalise, linkTrips - and
+// widening what a journey planner exports should be a decision rather than a side effect of where
+// the code moved to. Anyone wanting those can depend on the loader directly.
+export { GTFSFetchError, loadGTFS, loadGTFSFromUrl } from "@gb-transit/gtfs-loader";
+export type { FeedInfo, FetchOptions, GTFSFeed } from "@gb-transit/gtfs-loader";
+export { LinkedService, Service } from "@gb-transit/gtfs-loader";
+export type { ServiceCalendar } from "@gb-transit/gtfs-loader";
+export { sizeOf, toChunks } from "@gb-transit/gtfs-loader";
+export type { GTFSSource } from "@gb-transit/gtfs-loader";
+export { ProgressReporter } from "@gb-transit/gtfs-loader";
+export type { LoadOptions, LoadProgress } from "@gb-transit/gtfs-loader";
+export { TimeParser } from "@gb-transit/gtfs-loader";
+export { addDays, daysBetween, getDateNumber, getDayOfWeek } from "@gb-transit/gtfs-loader";
+export type {
+  Calendar, CalendarIndex, DateIndex, DateNumber, DayOfWeek, Duration, Interchange, ServiceID,
+  Stop, StopID, StopIndex, StopTime, Time, Transfer, TransfersByOrigin, Trip, TripID, TripLink
+} from "@gb-transit/gtfs-loader";
 export * from "./query/DepartAfterQuery.js";
 export * from "./query/RangeQuery.js";
 export * from "./query/TransferPatternQuery.js";

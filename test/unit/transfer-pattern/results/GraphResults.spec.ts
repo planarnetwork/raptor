@@ -2,7 +2,7 @@ import type { ConnectionIndex } from "../../../../src/raptor/Connection.js";
 import { describe, it, expect } from "vitest";
 import type { Network } from "../../../../src/network/Network.js";
 import {GraphResults} from "../../../../src/transfer-pattern/results/GraphResults.js";
-import type {StopID} from "../../../../src/gtfs/GTFS.js";
+import type { StopID } from "@gb-transit/gtfs-loader";
 
 describe("GraphResults", () => {
 

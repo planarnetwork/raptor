@@ -1,8 +1,8 @@
 import { RaptorAlgorithm } from "../raptor/RaptorAlgorithm.js";
 import type { Network } from "../network/Network.js";
-import type { StopID } from "../gtfs/GTFS.js";
+import type { StopID } from "@gb-transit/gtfs-loader";
 import { checkCovered } from "../network/TripCalendar.js";
-import { getDateNumber } from "./DateUtil.js";
+import { getDateNumber } from "@gb-transit/gtfs-loader";
 import type { StringResults, TransferPatternIndex } from "../transfer-pattern/results/StringResults.js";
 
 /**
