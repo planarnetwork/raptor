@@ -3,6 +3,7 @@ import { getDateNumber } from "../query/DateUtil.js";
 import type { GTFSFeed } from "../gtfs/GTFSLoader.js";
 import { createTripCalendar, getCalendarWindow } from "./TripCalendar.js";
 import { normalise } from "../gtfs/Normalise.js";
+import { sharedInt32Array, sharedUint8Array } from "./SharedMemory.js";
 import { coupledTripIds } from "../gtfs/LinkedTrips.js";
 import { DROP_OFF, PICK_UP, type RouteIdx, type StopIdx, type Timetable } from "./Timetable.js";
 
@@ -49,9 +50,9 @@ export function createNetwork(feed: GTFSFeed, date?: Date): Network {
 
   // size each route's slice of the flat arrays. These are offsets arrays, so the last entry is the
   // total length of the array being sliced.
-  const stopOffsets = new Int32Array(numRoutes + 1);
-  const stopTimesBase = new Int32Array(numRoutes + 1);
-  const tripOffsets = new Int32Array(numRoutes + 1);
+  const stopOffsets = sharedInt32Array(numRoutes + 1);
+  const stopTimesBase = sharedInt32Array(numRoutes + 1);
+  const tripOffsets = sharedInt32Array(numRoutes + 1);
 
   for (let route = 0; route < numRoutes; route++) {
     const stopsInRoute = routeStopSeq[route].length;
@@ -61,10 +62,10 @@ export function createNetwork(feed: GTFSFeed, date?: Date): Network {
     tripOffsets[route + 1] = tripOffsets[route] + routeTrips[route].length;
   }
 
-  const routeStops = new Int32Array(stopOffsets[numRoutes]);
-  const flags = new Uint8Array(stopOffsets[numRoutes]);
-  const arrivals = new Int32Array(stopTimesBase[numRoutes]);
-  const departures = new Int32Array(stopTimesBase[numRoutes]);
+  const routeStops = sharedInt32Array(stopOffsets[numRoutes]);
+  const flags = sharedUint8Array(stopOffsets[numRoutes]);
+  const arrivals = sharedInt32Array(stopTimesBase[numRoutes]);
+  const departures = sharedInt32Array(stopTimesBase[numRoutes]);
 
   for (let route = 0; route < numRoutes; route++) {
     const stops = routeStopSeq[route];
@@ -89,14 +90,14 @@ export function createNetwork(feed: GTFSFeed, date?: Date): Network {
   }
 
   // invert routeStops to get the routes picking up at each stop
-  const byStopOffsets = new Int32Array(numStops + 1);
+  const byStopOffsets = sharedInt32Array(numStops + 1);
 
   for (let stop = 0; stop < numStops; stop++) {
     byStopOffsets[stop + 1] = byStopOffsets[stop] + stopRoutePositions[stop].size;
   }
 
-  const byStopRoute = new Int32Array(byStopOffsets[numStops]);
-  const byStopPosition = new Int32Array(byStopOffsets[numStops]);
+  const byStopRoute = sharedInt32Array(byStopOffsets[numStops]);
+  const byStopPosition = sharedInt32Array(byStopOffsets[numStops]);
 
   for (let stop = 0; stop < numStops; stop++) {
     let offset = byStopOffsets[stop];
@@ -108,7 +109,7 @@ export function createNetwork(feed: GTFSFeed, date?: Date): Network {
     }
   }
 
-  const interchangeTimes = new Int32Array(numStops);
+  const interchangeTimes = sharedInt32Array(numStops);
 
   for (let stop = 0; stop < numStops; stop++) {
     interchangeTimes[stop] = interchange[stopIds[stop]] ?? DEFAULT_INTERCHANGE_TIME;
@@ -257,7 +258,7 @@ function overtakes(latest: StopTime[], calls: StopTime[]): boolean {
  * a result can name the transfer it took.
  */
 function indexTransfers(transfers: Transfer[], stopIndex: Map<StopID, StopIdx>, numStops: number) {
-  const offsets = new Int32Array(numStops + 1);
+  const offsets = sharedInt32Array(numStops + 1);
 
   for (const transfer of transfers) {
     offsets[(stopIndex.get(transfer.origin) as StopIdx) + 1]++;
@@ -267,11 +268,11 @@ function indexTransfers(transfers: Transfer[], stopIndex: Map<StopID, StopIdx>, 
     offsets[stop + 1] += offsets[stop];
   }
 
-  const index = new Int32Array(transfers.length);
-  const destination = new Int32Array(transfers.length);
-  const duration = new Int32Array(transfers.length);
-  const from = new Int32Array(transfers.length);
-  const until = new Int32Array(transfers.length);
+  const index = sharedInt32Array(transfers.length);
+  const destination = sharedInt32Array(transfers.length);
+  const duration = sharedInt32Array(transfers.length);
+  const from = sharedInt32Array(transfers.length);
+  const until = sharedInt32Array(transfers.length);
   const next = offsets.slice();
 
   for (let i = 0; i < transfers.length; i++) {
