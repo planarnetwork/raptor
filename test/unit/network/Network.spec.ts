@@ -82,6 +82,41 @@ describe("Network", () => {
     expect(tripsOnRoute(timetable, 1)).toBe(1);
   });
 
+  it("separates a trip that overtakes at an intermediate call but not at the last", () => {
+    const { timetable } = createNetwork(feed([
+      t(st("A", null, 1000), st("B", 1500, 1600), st("C", 2000, null)),
+      // reaches B first, but is caught up with again by C
+      t(st("A", null, 1100), st("B", 1200, 1300), st("C", 2100, null))
+    ]));
+
+    expect(routeCount(timetable)).toBe(2);
+    expect(tripsOnRoute(timetable, 0)).toBe(1);
+    expect(tripsOnRoute(timetable, 1)).toBe(1);
+  });
+
+  it("separates every overtaking trip, not just the first", () => {
+    const { timetable } = createNetwork(feed([
+      t(st("A", null, 1000), st("B", 4000, null)),
+      t(st("A", null, 2000), st("B", 3500, null)),
+      t(st("A", null, 3000), st("B", 3200, null))
+    ]));
+
+    expect(routeCount(timetable)).toBe(3);
+    expect(tripsOnRoute(timetable, 0)).toBe(1);
+    expect(tripsOnRoute(timetable, 1)).toBe(1);
+    expect(tripsOnRoute(timetable, 2)).toBe(1);
+  });
+
+  it("keeps trips that call at the same times on one route", () => {
+    const { timetable } = createNetwork(feed([
+      t(st("A", null, 1000), st("B", 1100, null)),
+      t(st("A", null, 1000), st("B", 1100, null))
+    ]));
+
+    expect(routeCount(timetable)).toBe(1);
+    expect(tripsOnRoute(timetable, 0)).toBe(2);
+  });
+
   it("lays the stop times out trip-major within each route", () => {
     const { timetable } = createNetwork(feed([
       t(st("A", null, 1000), st("B", 1100, 1150), st("C", 1200, null)),
