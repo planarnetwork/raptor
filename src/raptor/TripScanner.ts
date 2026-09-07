@@ -13,8 +13,8 @@ export const NO_TRIP = -1;
  * returned in order to reduce plan time.
  */
 export class TripScanner {
-  /** Trip each route is scanned back from, starting at its last trip and only ever moving earlier */
-  private readonly scanPosition: Int32Array;
+  /** Trip the route being traversed is scanned back from, which only ever moves earlier */
+  private scanPosition = 0;
   /** The calendar's slice for the date being scanned, or an empty one outside the period it covers */
   private readonly runsToday: Uint8Array;
 
@@ -22,13 +22,21 @@ export class TripScanner {
     const calendar = routes.calendar;
     const offset = dayOffset(calendar, date);
 
-    this.scanPosition = Int32Array.from(
-      { length: routes.tripOffsets.length - 1 },
-      (_, route) => routes.tripOffsets[route + 1] - routes.tripOffsets[route] - 1
-    );
     this.runsToday = offset === NOT_COVERED
       ? new Uint8Array(calendar.stride)
       : calendar.runs.subarray(offset, offset + calendar.stride);
+  }
+
+  /**
+   * Start traversing the route the cursor is positioned on, scanning back from its last trip.
+   *
+   * The scan position is only valid for one traversal. The trip to board can only get earlier as
+   * a route is walked, because a trip is only looked for at all where the stop can be reached
+   * before the trip already boarded departs it, but a later traversal of the same route may start
+   * at an earlier stop or a later time and need a trip further on than the last one found.
+   */
+  public startRoute(cursor: RouteCursor): void {
+    this.scanPosition = cursor.numTrips - 1;
   }
 
   /**
@@ -36,13 +44,12 @@ export class TripScanner {
    * boarded at the given position, or NO_TRIP if there isn't one.
    */
   public earliestTrip(cursor: RouteCursor, position: number, time: Time): number {
-    const route = cursor.route;
     const runsToday = this.runsToday;
 
     let lastFound = NO_TRIP;
 
     // iterate backwards through the trips on the route, starting where we last found a trip
-    for (let i = this.scanPosition[route]; i >= 0; i--) {
+    for (let i = this.scanPosition; i >= 0; i--) {
       // if the trip is unreachable, exit the loop
       if (cursor.departure(i, position) < time) {
         break;
@@ -59,7 +66,7 @@ export class TripScanner {
       // as there may be some services that are reachable but not running before the last found service and searching
       // must continue from the last reachable point.
       if (lastFound === NO_TRIP || lastFound === i) {
-        this.scanPosition[route] = i;
+        this.scanPosition = i;
       }
     }
 

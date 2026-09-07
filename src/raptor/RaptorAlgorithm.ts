@@ -53,6 +53,7 @@ export class RaptorAlgorithm {
       const route = this.queue.routeAt(q);
 
       this.routes.moveTo(route);
+      tripScanner.startRoute(this.routes);
 
       let boardingPoint = -1;
       let trip = NO_TRIP;
