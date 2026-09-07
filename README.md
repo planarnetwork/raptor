@@ -168,6 +168,42 @@ inside the worker before the journey is returned.
 Passing `{ date }` to `load` restricts the timetable to that date, which makes it smaller and
 queries faster.
 
+## Scanning in parallel
+
+`ParallelRaptor` scans the routes of each round on a pool of workers instead of one after another.
+It answers exactly what `RaptorAlgorithm` answers, and is roughly three times faster:
+
+```js
+import { Worker } from "node:worker_threads";
+import { createNetwork, ParallelRaptor } from "raptor-journey-planner";
+
+const network = createNetwork(feed);
+const workers = Array.from({ length: 8 }, () => new Worker(
+  new URL("raptor-journey-planner/parallel-worker", import.meta.url)
+));
+const raptor = new ParallelRaptor(network.timetable, workers);
+const [kConnections, arrivals] = raptor.scan(new Map([[originIndex, 9 * 60 * 60]]), 20181016);
+
+raptor.close();
+```
+
+The workers share one timetable rather than each holding a copy, which is why they start in
+milliseconds. Only the scan is shared with them, so they never need the feed: turning connections
+into journeys stays wherever the network is.
+
+Three things to know before using it.
+
+The thread it runs on **blocks** while the workers scan, so it has to be a thread that is allowed
+to. A node thread is; a worker in the browser is; the browser's main thread is not, and
+`Atomics.wait` will throw there. Only a node entry point is shipped so far.
+
+It needs `SharedArrayBuffer`, which a browser only offers a
+[cross origin isolated](https://web.dev/articles/coop-coep) document. `canShareMemory` says whether
+the timetable got it.
+
+Route scanning is about four fifths of a scan, so Amdahl's law caps this near five whatever the
+pool size. It reaches about three times on eight workers and stops improving after that.
+
 ## Stops and stations
 
 Journeys are planned between stations, because that is where interchange time and transfers are

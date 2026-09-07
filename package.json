@@ -59,6 +59,11 @@
       "types": "./dist/esm/worker/worker.d.ts",
       "import": "./dist/esm/worker/worker.js"
     },
+    "./parallel-worker": {
+      "types": "./dist/esm/raptor/parallel-worker.d.ts",
+      "import": "./dist/esm/raptor/parallel-worker.js",
+      "require": "./dist/cjs/raptor/parallel-worker.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -66,7 +71,9 @@
   ],
   "sideEffects": [
     "./dist/esm/worker/worker.js",
-    "./dist/cjs/worker/worker.js"
+    "./dist/cjs/worker/worker.js",
+    "./dist/esm/raptor/parallel-worker.js",
+    "./dist/cjs/raptor/parallel-worker.js"
   ],
   "engines": {
     "node": ">=22"
