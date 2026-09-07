@@ -117,6 +117,33 @@ describe("Network", () => {
     expect(tripsOnRoute(timetable, 0)).toBe(2);
   });
 
+  it("allocates the arrays a worker scans in memory it can share", () => {
+    const { timetable } = createNetwork(feed([
+      t(st("A", null, 1000), st("B", 1100, null))
+    ], { A: [tf("A", "B", 120)] }, {}, {}));
+
+    const shared = [
+      timetable.routes.stops,
+      timetable.routes.flags,
+      timetable.routes.arrivals,
+      timetable.routes.departures,
+      timetable.routes.stopOffsets,
+      timetable.routes.stopTimesBase,
+      timetable.routes.tripOffsets,
+      timetable.routes.calendar.runs,
+      timetable.routesByStop.offsets,
+      timetable.routesByStop.route,
+      timetable.routesByStop.position,
+      timetable.transfers.offsets,
+      timetable.transfers.destination,
+      timetable.interchange
+    ];
+
+    for (const array of shared) {
+      expect(array.buffer).toBeInstanceOf(SharedArrayBuffer);
+    }
+  });
+
   it("lays the stop times out trip-major within each route", () => {
     const { timetable } = createNetwork(feed([
       t(st("A", null, 1000), st("B", 1100, 1150), st("C", 1200, null)),

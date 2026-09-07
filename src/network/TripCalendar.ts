@@ -2,6 +2,7 @@ import type { DateNumber, Trip } from "../gtfs/GTFS.js";
 import type { Network } from "./Network.js";
 import type { ServiceCalendar } from "../gtfs/Service.js";
 import { addDays, daysBetween, getDateNumber, getDayOfWeek } from "../query/DateUtil.js";
+import { sharedUint8Array } from "./SharedMemory.js";
 
 /**
  * How long a feed is assumed to cover when it does not say
@@ -21,7 +22,7 @@ const DEFAULT_DAYS = 120;
 export function createTripCalendar(trips: Trip[], startDate: DateNumber, endDate: DateNumber): TripCalendar {
   const days = daysBetween(startDate, endDate) + 1;
   const stride = (trips.length + 7) >> 3;
-  const runs = new Uint8Array(days * stride);
+  const runs = sharedUint8Array(days * stride);
 
   // there are far fewer services than trips, so each one is only evaluated once per day
   const services: ServiceCalendar[] = [];
