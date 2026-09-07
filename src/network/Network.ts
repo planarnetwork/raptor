@@ -1,4 +1,4 @@
-import type { DayOfWeek, StopID, StopTime, Time, Transfer, Trip } from "../gtfs/GTFS.js";
+import type { DayOfWeek, StopID, StopTime, Transfer, Trip } from "../gtfs/GTFS.js";
 import { getDateNumber } from "../query/DateUtil.js";
 import type { GTFSFeed } from "../gtfs/GTFSLoader.js";
 import { createTripCalendar, getCalendarWindow } from "./TripCalendar.js";
@@ -13,7 +13,6 @@ const DEFAULT_INTERCHANGE_TIME = 0;
  * the Int32Array it is packed into. Any time past the largest one a feed can express will do.
  */
 const NO_END_TIME = 0x7fffffff;
-const OVERTAKING_ROUTE_SUFFIX = "|overtakes";
 
 /**
  * Build the timetable the algorithm scans, and the tables that turn its integers back into the
@@ -173,32 +172,34 @@ function groupTripsIntoRoutes(
     return index;
   };
 
-  const routeIndex = new Map<string, RouteIdx>();
+  const routeIndex = new Map<string, RouteIdx[]>();
   const routeStops: StopIdx[][] = [];
   const routeTrips: Trip[][] = [];
   const routeCalls: StopTime[][][] = [];
-  const routeLatestArrival: Time[] = [];
+  const routeLatestCalls: StopTime[][] = [];
 
   for (let i = 0; i < trips.length; i++) {
     const tripCalls = calls[i];
     const stops = tripCalls.map(stopTime => internStop(stopTime.stop));
 
-    let signature = routeSignature(stops, tripCalls);
-    const existing = routeIndex.get(signature);
+    const signature = routeSignature(stops, tripCalls);
+    const candidates = routeIndex.get(signature);
 
-    if (existing !== undefined && finalArrival(tripCalls) < routeLatestArrival[existing]) {
-      signature += OVERTAKING_ROUTE_SUFFIX;
-    }
-
-    let route = routeIndex.get(signature);
+    let route = candidates?.find(r => !overtakes(routeLatestCalls[r], tripCalls));
 
     if (route === undefined) {
       route = routeStops.length;
-      routeIndex.set(signature, route);
       routeStops.push(stops);
       routeTrips.push([]);
       routeCalls.push([]);
-      routeLatestArrival.push(Number.MIN_SAFE_INTEGER);
+      routeLatestCalls.push(tripCalls);
+
+      if (candidates === undefined) {
+        routeIndex.set(signature, [route]);
+      }
+      else {
+        candidates.push(route);
+      }
 
       // walk backwards so that on a route calling at a stop twice, the earlier call wins
       for (let p = stops.length - 1; p >= 0; p--) {
@@ -210,10 +211,7 @@ function groupTripsIntoRoutes(
 
     routeTrips[route].push(trips[i]);
     routeCalls[route].push(tripCalls);
-
-    if (finalArrival(tripCalls) > routeLatestArrival[route]) {
-      routeLatestArrival[route] = finalArrival(tripCalls);
-    }
+    routeLatestCalls[route] = tripCalls;
   }
 
   // transfers can reach stops that no trip calls at, so they are interned after the trips
@@ -236,13 +234,22 @@ function routeSignature(stops: StopIdx[], calls: StopTime[]): string {
 }
 
 /**
- * A trip overtakes a route when it arrives earlier than a trip that departed before it. Raptor
- * needs the trips on a route to be ordered, so an overtaking trip is put on a route of its own.
+ * A trip overtakes a route when it calls earlier than a trip already on it, at any of its calls.
+ * Raptor walks a route's trips backwards and stops at the first that departs too early, which is
+ * only sound if the trips are ordered at every call rather than just at the last one, so an
+ * overtaking trip is put on a route of its own.
  *
- * Trips are added in departure order, so comparing against the latest arrival so far is enough.
+ * Trips are added in departure order and none of them overtakes the route it is added to, so the
+ * trip added last is the latest at every call and comparing against it is enough.
  */
-function finalArrival(calls: StopTime[]): Time {
-  return calls[calls.length - 1].arrivalTime;
+function overtakes(latest: StopTime[], calls: StopTime[]): boolean {
+  for (let p = 0; p < calls.length; p++) {
+    if (calls[p].arrivalTime < latest[p].arrivalTime || calls[p].departureTime < latest[p].departureTime) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
