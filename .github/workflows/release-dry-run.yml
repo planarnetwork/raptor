@@ -1,0 +1,30 @@
+name: Release dry run
+
+on:
+  # Every pull request, not only the ones targeting master, so a branch stacked
+  # on another branch is still tested.
+  pull_request:
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # What would this pull request release, if anything? No changeset is a
+      # legitimate answer - it means nothing user-facing changed.
+      - run: npx changeset status --since=origin/master
+        continue-on-error: true
+      # List what the package would ship, so a broken `files`, `exports` or
+      # `main` surfaces here rather than during a release. The registry is
+      # deliberately not contacted: `npm publish --dry-run` still refuses a
+      # version that is already published, which every pull request before a
+      # version bump is.
+      - run: npm pack --dry-run

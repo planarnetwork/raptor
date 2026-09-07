@@ -1,0 +1,51 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+  timezone: "Europe/London",
+
+  // Every update merges itself once the checks on .github/workflows/ci.yml and
+  // .github/workflows/release-dry-run.yml are green. That is only a reasonable
+  // thing to say because of what those checks are: lint, a type check, the unit
+  // tests on every supported Node version, both halves of the dual CJS/ESM
+  // build, and a pack of the package as it would be published. A bump that
+  // breaks this library has to get past all of it.
+  automerge: true,
+  // Use GitHub's own auto-merge rather than Renovate merging on its next run,
+  // so the gate is the branch protection on master and the merge happens the
+  // moment the last check reports.
+  platformAutomerge: true,
+
+  // Nothing that was published in the last three days is merged unattended. A
+  // compromised release is usually pulled within hours, and nothing here is
+  // urgent enough to be worth being the one who finds out. Security fixes opt
+  // out of this below.
+  minimumReleaseAge: "3 days",
+
+  // The transitive half of the tree never moves otherwise: a package-lock.json
+  // only updates when something asks it to, so an indirect dependency can sit
+  // on an old release for as long as its parent's range allows.
+  lockFileMaintenance: {
+    enabled: true,
+    automerge: true,
+  },
+
+  // These are the only PRs that come from an alert. They skip the release-age
+  // wait, because for a known vulnerability the risk runs the other way.
+  vulnerabilityAlerts: {
+    automerge: true,
+    minimumReleaseAge: null,
+    schedule: ["at any time"],
+  },
+
+  // A merged bump publishes nothing on its own - the release needs a changeset,
+  // see .changeset/README.md. That is the right default for devDependencies,
+  // which never reach a consumer. A bump to a runtime dependency does reach
+  // one, so it lands on master and waits for the next release rather than
+  // shipping itself; label them so they are easy to find when writing one.
+  packageRules: [
+    {
+      matchDepTypes: ["dependencies"],
+      addLabels: ["runtime-dependency"],
+    },
+  ],
+}

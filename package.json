@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit -p ./",
     "build": "rm -rf ./dist/ && tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json && cp cjs-package.json dist/cjs/package.json && cp esm-package.json dist/esm/package.json",
     "prepublishOnly": "npm run build",
+    "changeset": "changeset",
+    "release": "changeset publish",
     "lint": "biome lint src/ test/",
     "int": "tsx ./test/integration.ts",
     "perf": "tsx ./test/performance.ts",
@@ -35,14 +37,15 @@
   },
   "homepage": "https://github.com/planarnetwork/raptor#readme",
   "devDependencies": {
-    "@biomejs/biome": "2.4.13",
-    "@types/node": "24.6.1",
+    "@biomejs/biome": "2.5.12",
+    "@changesets/cli": "^3.0.2",
+    "@types/node": "26.5.0",
     "@types/progress": "2.0.7",
     "fflate": "^0.8.3",
     "progress": "2.0.3",
     "tsx": "^4.23.13",
-    "typescript": "5.9.3",
-    "vitest": "^4.1.5"
+    "typescript": "7.0.2",
+    "vitest": "^5.0.0"
   },
   "dependencies": {
     "@gb-transit/gtfs-loader": "^1.1.0"

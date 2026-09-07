@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    branches: [ master ]
+    # A documentation-only commit must not attempt a release.
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - '.changeset/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/publish.yml'
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      # npm trusted publishing
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+      - name: Ensure npm supports trusted publishing
+        run: npm install -g npm@latest
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+      # Pending changesets become a "Version packages" pull request. Merging it
+      # is what triggers the publish below, so the version bump and the publish
+      # cannot come apart: a failed publish leaves nothing tagged. With no
+      # pending changesets and nothing new to release this step is a no-op.
+      - uses: changesets/action@v1
+        with:
+          version: npx changeset version
+          publish: npm run release
+          commit: 'Version packages'
+          title: 'Version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

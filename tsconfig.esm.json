@@ -4,6 +4,7 @@
     "noEmit": false,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "rootDir": "src",
     "outDir": "dist/esm"
   },
   "include": ["src/**/*.ts"],
