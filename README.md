@@ -6,7 +6,10 @@ Raptor Journey Planner
 
 A near direct implementation of the [Round bAsed Public Transit Optimized Router (Raptor)](https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf) journey planning algorithm as described in the paper. 
 
-It does not contain the multi-threading or multi-criteria (mcRaptor) variants but does contain the range query (rRaptor) algorithm.
+It contains the range query (rRaptor) algorithm and runs across multiple threads: a range query can
+spread its scans over a pool of workers, and separate depart after queries can be answered
+concurrently by that same pool. It does not contain the multi-criteria (mcRaptor) variant, although
+results can be filtered on multiple criteria after they are found.
 
 Additional features not in the paper implementation:
  - Calendars are checked to ensure services are running on the specified day
