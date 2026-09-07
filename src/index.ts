@@ -40,7 +40,9 @@ export * from "./results/filter/MultipleCriteriaFilter.js";
 export * from "./results/filter/JourneyFilter.js";
 export * from "./transfer-pattern/results/GraphResults.js";
 export * from "./transfer-pattern/results/StringResults.js";
-export * from "./transfer-pattern/TransferPatternRepository.js";
+export * from "./transfer-pattern/PatternFormat.js";
+export * from "./transfer-pattern/TransferPatternFile.js";
+export * from "./transfer-pattern/TransferPatternMerge.js";
 export * from "./transfer-pattern/results/TransferPatternResults.js";
 // the worker entry point itself is not exported here: it wires itself to a message port on import
 export * from "./worker/PlannerClient.js";

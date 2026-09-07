@@ -7,6 +7,8 @@ import { CSVParser, entityTypeOf, loadGTFS, readZip, toChunks } from "@gb-transi
 import type { StopID } from "@gb-transit/gtfs-loader";
 import { canShareMemory } from "../network/SharedMemory.js";
 import { createNetwork } from "../network/Network.js";
+import { checkCodeWidths } from "../transfer-pattern/PatternFormat.js";
+import { TransferPatternMerge } from "../transfer-pattern/TransferPatternMerge.js";
 
 /**
  * Build the timetable once and give it to every worker, rather than every worker building its own.
@@ -16,7 +18,7 @@ import { createNetwork } from "../network/Network.js";
  * from is hundreds of megabytes and is only needed to name a journey's stop times, which a pattern
  * does not carry.
  */
-async function run(filename: string, dateString: string) {
+async function run(filename: string, dateString: string, output: string) {
   const date = new Date(dateString);
   const stops = await getStops(filename);
 
@@ -24,6 +26,10 @@ async function run(filename: string, dateString: string) {
 
   const feed = await loadGTFS(fs.createReadStream(filename));
   const network = createNetwork(feed, date);
+
+  // every station is written as a fixed width code, so one of another width would run into the
+  // station after it and the whole line would come back wrong
+  checkCodeWidths(network.stopIds);
 
   if (!canShareMemory) {
     console.warn("SharedArrayBuffer is not available, so each worker will be given a copy of the timetable");
@@ -37,23 +43,34 @@ async function run(filename: string, dateString: string) {
   console.log(`Planning ${stops.length} stops on ${workers} workers`);
 
   const bar = new ProgressBar("  [:current of :total] [:bar] :percent eta :eta  ", { total: stops.length });
-  const workerData = {
-    timetable: network.timetable,
-    stopIds: network.stopIds,
-    transfers: network.transfers,
-    stations: network.stations,
-    date: date.toISOString()
-  };
+  const workDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "transfer-patterns-"));
+  const parts = Array.from({ length: workers }, (_, id) => path.join(workDir, `worker-${id}.gz`));
 
-  await Promise.all(Array.from({ length: workers }, () => new Promise<void>((resolve, reject) => {
-    const worker = new Worker(workerFile(), { workerData });
+  await Promise.all(parts.map(part => new Promise<void>((resolve, reject) => {
+    const worker = new Worker(workerFile(), {
+      workerData: {
+        timetable: network.timetable,
+        stopIds: network.stopIds,
+        transfers: network.transfers,
+        stations: network.stations,
+        date: date.toISOString(),
+        output: part
+      }
+    });
 
-    worker.on("message", () => {
+    worker.on("message", (message: string) => {
+      if (message === "done") {
+        resolve();
+        worker.terminate();
+
+        return;
+      }
+
       const stop = stops.pop();
 
       if (stop === undefined) {
-        resolve();
-        worker.terminate();
+        // let it close its file before it is taken away, or the last patterns are lost
+        worker.postMessage(null);
       }
       else {
         bar.tick();
@@ -63,6 +80,14 @@ async function run(filename: string, dateString: string) {
 
     worker.on("error", reject);
   })));
+
+  console.log(`\nMerging into ${output}`);
+
+  const { patterns, bytes } = await new TransferPatternMerge(workDir).merge(parts, output);
+
+  await fs.promises.rm(workDir, { recursive: true, force: true });
+
+  console.log(`${patterns.toLocaleString()} patterns, ${(bytes / 1024 / 1024).toFixed(1)}MB`);
 }
 
 /**
@@ -116,8 +141,9 @@ async function getStops(filename: string): Promise<StopID[]> {
 }
 
 if (process.argv[2] && process.argv[3]) {
-  run(process.argv[2], process.argv[3]).catch(e => console.error(e));
+  run(process.argv[2], process.argv[3], process.argv[4] ?? "transfer-patterns.br")
+    .catch(e => { console.error(e); process.exit(1); });
 }
 else {
-  console.log("Please specify a GTFS file and date.");
+  console.log("Please specify a GTFS file and date, and optionally where to write the patterns.");
 }
