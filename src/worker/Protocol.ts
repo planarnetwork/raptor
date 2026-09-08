@@ -1,6 +1,6 @@
 import type { TimetableLeg } from "../results/Journey.js";
 import type {
-  AgencyIndex, GTFSSource, LoadProgress, RouteIndex, Stop, StopID, Time, Transfer, Trip
+  AgencyIndex, AreaIndex, GTFSSource, LoadProgress, RouteIndex, Stop, StopID, Time, Transfer, Trip
 } from "@gb-transit/gtfs-loader";
 
 /**
@@ -45,7 +45,10 @@ export type PlannerCommand = PlannerRequest extends infer R
   : never;
 
 export type PlannerResponse =
-  | { id: number; type: "loaded"; stops: number; trips: number; routes: RouteIndex; agencies: AgencyIndex }
+  | {
+      id: number; type: "loaded"; stops: number; trips: number;
+      routes: RouteIndex; agencies: AgencyIndex; areas: AreaIndex;
+    }
   | { id: number; type: "planned"; journeys: PlainJourney[] }
   | { id: number; type: "stops"; stops: Stop[] }
   | { id: number; type: "error"; message: string };

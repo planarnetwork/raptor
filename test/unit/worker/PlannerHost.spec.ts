@@ -17,7 +17,16 @@ const FEED = {
     "trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type\n"
     + "t1,10:00:00,10:00:00,A,1,0,0\n"
     + "t1,10:30:00,10:30:00,B,2,0,0\n",
-  "feed_info.txt": "feed_start_date,feed_end_date,feed_version\n20250101,20251231,1\n"
+  "feed_info.txt": "feed_start_date,feed_end_date,feed_version\n20250101,20251231,1\n",
+  "areas.txt": "area_id,area_name\ng1,Ayton and Beeton\n",
+  "stop_areas.txt": "area_id,stop_id\ng1,A\ng1,B\n"
+};
+
+/** A feed with no areas.txt, which most feeds are */
+const UNGROUPED_FEED = {
+  ...FEED,
+  "areas.txt": undefined,
+  "stop_areas.txt": undefined
 };
 
 /** A feed that names neither a route nor an operator, which GTFS allows */
@@ -161,6 +170,49 @@ describe("PlannerHost", () => {
     // the agency id is as the feed wrote it, leading = and all
     expect("=OP").toBe(route?.agencyId);
     expect("Operator Rail").toBe(feed?.agencies[route?.agencyId as string]?.name);
+  });
+
+  /**
+   * An area is a fares construct and no journey refers to one, but a caller planning between group
+   * stations needs its stops, and the feed itself never leaves this side.
+   */
+  it("sends the areas of the feed when it loads", async () => {
+    const response = await ask(new PlannerHost(), { type: "load", feed: feedZip() });
+    const area = response.type === "loaded" ? response.areas.g1 : undefined;
+
+    expect("Ayton and Beeton").toBe(area?.name);
+    expect(["A", "B"]).toEqual(area?.stops);
+  });
+
+  /**
+   * Which is what makes a group station plannable. An area names stop ids, as the feed wrote them,
+   * and a query is asked in the stations those resolve to - the mapping the stops reply is there to
+   * provide. Both come from this one load, so neither needs the zip read a second time.
+   */
+  it("plans into the stations of an area it sent back", async () => {
+    const host = new PlannerHost();
+    const load = await ask(host, { type: "load", feed: feedZip() });
+    const listed = await ask(host, { type: "stops" });
+
+    const stops = listed.type === "stops" ? listed.stops : [];
+    const area = load.type === "loaded" ? load.areas.g1.stops : [];
+    const destinations = area.map(id => stops.find(stop => stop.id === id)?.code as string);
+
+    expect(["AAA", "BBB"]).toEqual(destinations);
+
+    const response = await ask(host, {
+      type: "plan", origins: ["AAA"], destinations,
+      date: new Date("2025-06-02").getTime(), time: 0
+    });
+
+    expect("planned").toBe(response.type);
+    expect(1).toBe(response.type === "planned" ? response.journeys.length : 0);
+  });
+
+  it("sends no areas for a feed that has none", async () => {
+    const response = await ask(new PlannerHost(), { type: "load", feed: feedZip(UNGROUPED_FEED) });
+
+    expect(0).toBe(response.type === "loaded" ? Object.keys(response.areas).length : -1);
   });
 
   it("plans a feed that names neither a route nor an operator", async () => {

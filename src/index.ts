@@ -14,9 +14,9 @@ export type { LoadOptions, LoadProgress } from "@gb-transit/gtfs-loader";
 export { TimeParser } from "@gb-transit/gtfs-loader";
 export { addDays, daysBetween, getDateNumber, getDayOfWeek } from "@gb-transit/gtfs-loader";
 export type {
-  Agency, AgencyID, AgencyIndex, Calendar, CalendarIndex, DateIndex, DateNumber, DayOfWeek,
-  Duration, Interchange, Route, RouteID, RouteIndex, ServiceID, Stop, StopID, StopIndex, StopTime,
-  Time, Transfer, TransfersByOrigin, Trip, TripID, TripLink
+  Agency, AgencyID, AgencyIndex, Area, AreaID, AreaIndex, Calendar, CalendarIndex, DateIndex,
+  DateNumber, DayOfWeek, Duration, Interchange, Route, RouteID, RouteIndex, ServiceID, Stop, StopID,
+  StopIndex, StopTime, Time, Transfer, TransfersByOrigin, Trip, TripID, TripLink
 } from "@gb-transit/gtfs-loader";
 export * from "./query/DepartAfterQuery.js";
 export * from "./query/RangeQuery.js";

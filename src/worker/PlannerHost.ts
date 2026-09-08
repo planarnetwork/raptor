@@ -50,15 +50,18 @@ export class PlannerHost {
 
     this.network = createNetwork(this.feed, request.date === undefined ? undefined : new Date(request.date));
 
-    // the routes and agencies go back once, here, rather than a route name and an operator name
-    // being copied onto every leg of every journey planned afterwards
+    // the routes, agencies and areas go back once, here, rather than a route name and an operator
+    // name being copied onto every leg of every journey planned afterwards. They are small - the GB
+    // feed has under a hundred routes, 41 agencies and 729 areas - and there is no other way to
+    // reach them: the feed itself stays on this side.
     return {
       id: request.id,
       type: "loaded",
       stops: this.network.stopIds.length,
       trips: this.network.trips.length,
       routes: this.feed.routes,
-      agencies: this.feed.agencies
+      agencies: this.feed.agencies,
+      areas: this.feed.areas
     };
   }
 

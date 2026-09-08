@@ -1,4 +1,6 @@
-import type { AgencyIndex, GTFSSource, LoadProgress, RouteIndex, Stop, StopID, Time } from "@gb-transit/gtfs-loader";
+import type {
+  AgencyIndex, AreaIndex, GTFSSource, LoadProgress, RouteIndex, Stop, StopID, Time
+} from "@gb-transit/gtfs-loader";
 import {
   type FeedLocation,
   isEvent,
@@ -60,7 +62,8 @@ export class PlannerClient {
         stops: response.stops,
         trips: response.trips,
         routes: response.routes,
-        agencies: response.agencies
+        agencies: response.agencies,
+        areas: response.areas
       };
     }
     finally {
@@ -151,6 +154,16 @@ export class PlannerClient {
  * const route = feed.routes[leg.trip.routeId];
  * const operator = feed.agencies[route.agencyId].name;
  * ```
+ *
+ * The areas come with it for a different reason. Nothing in a journey refers to one - an area is a
+ * fares construct and the algorithm has no use for it - but a caller planning between group
+ * stations needs the stops of "London Terminals" to ask about them, and the feed stays inside the
+ * worker. Without this the only way to them is to read the zip a second time:
+ *
+ * ```js
+ * const terminals = feed.areas["1072"].stops;
+ * const journeys = await planner.plan(terminals, ["PLY"], date, time);
+ * ```
  */
 export interface LoadedFeed {
   /** Stations the timetable plans between */
@@ -160,4 +173,11 @@ export interface LoadedFeed {
   routes: RouteIndex;
   /** Agencies of the feed by agency id, which is what a route names */
   agencies: AgencyIndex;
+  /**
+   * Areas of the feed by area id - areas.txt and stop_areas.txt read as one thing.
+   *
+   * This is where a group station is: GTFS has no station of stations, so "London Terminals" is an
+   * area holding eighteen stops rather than a parent of them. Empty for a feed with no areas.txt.
+   */
+  areas: AreaIndex;
 }
