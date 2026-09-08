@@ -6,5 +6,5 @@
     "outDir": "dist/cjs"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist/", "src/cli"]
+  "exclude": ["node_modules", "dist/"]
 }
