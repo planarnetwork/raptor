@@ -50,7 +50,16 @@ export class PlannerHost {
 
     this.network = createNetwork(this.feed, request.date === undefined ? undefined : new Date(request.date));
 
-    return { id: request.id, type: "loaded", stops: this.network.stopIds.length, trips: this.network.trips.length };
+    // the routes and agencies go back once, here, rather than a route name and an operator name
+    // being copied onto every leg of every journey planned afterwards
+    return {
+      id: request.id,
+      type: "loaded",
+      stops: this.network.stopIds.length,
+      trips: this.network.trips.length,
+      routes: this.feed.routes,
+      agencies: this.feed.agencies
+    };
   }
 
   private plan(request: Extract<PlannerRequest, { type: "plan" }>): PlannerResponse {
@@ -99,14 +108,14 @@ function toPlainLeg(leg: PlainLeg | TimetableLeg): PlainLeg {
     return leg as PlainLeg;
   }
 
+  // everything a trip carries crosses except its Service, so the Service is taken off and the rest
+  // is kept as it is - a field the loader adds to Trip needs no change here to arrive with a leg
+  const { service, ...trip } = timetableLeg.trip;
+
   return {
     origin: timetableLeg.origin,
     destination: timetableLeg.destination,
     stopTimes: timetableLeg.stopTimes,
-    trip: {
-      tripId: timetableLeg.trip.tripId,
-      serviceId: timetableLeg.trip.serviceId,
-      stopTimes: timetableLeg.trip.stopTimes
-    }
+    trip
   };
 }

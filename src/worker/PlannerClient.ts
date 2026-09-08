@@ -1,4 +1,4 @@
-import type { GTFSSource, LoadProgress, Stop, StopID, Time } from "@gb-transit/gtfs-loader";
+import type { AgencyIndex, GTFSSource, LoadProgress, RouteIndex, Stop, StopID, Time } from "@gb-transit/gtfs-loader";
 import {
   type FeedLocation,
   isEvent,
@@ -56,7 +56,12 @@ export class PlannerClient {
         throw new Error(`Unexpected reply to load: ${response.type}`);
       }
 
-      return { stops: response.stops, trips: response.trips };
+      return {
+        stops: response.stops,
+        trips: response.trips,
+        routes: response.routes,
+        agencies: response.agencies
+      };
     }
     finally {
       this.onProgress = undefined;
@@ -133,8 +138,26 @@ export class PlannerClient {
 
 }
 
+/**
+ * What the worker has, after loading a feed.
+ *
+ * The routes and agencies come with it because a journey's legs do not carry them: a leg names the
+ * route its trip runs on, and these are what turn that id into a route and an operator. They are
+ * few enough - the GB feed has under a hundred routes and 41 agencies - to send whole, once, which
+ * is cheaper than copying an operator's name onto every leg of every journey planned afterwards.
+ *
+ * ```js
+ * const feed = await planner.load({ url });
+ * const route = feed.routes[leg.trip.routeId];
+ * const operator = feed.agencies[route.agencyId].name;
+ * ```
+ */
 export interface LoadedFeed {
   /** Stations the timetable plans between */
   stops: number;
   trips: number;
+  /** Routes of the feed by route id, which is what a leg's trip names */
+  routes: RouteIndex;
+  /** Agencies of the feed by agency id, which is what a route names */
+  agencies: AgencyIndex;
 }
