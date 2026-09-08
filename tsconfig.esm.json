@@ -8,5 +8,5 @@
     "outDir": "dist/esm"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist/", "src/cli"]
+  "exclude": ["node_modules", "dist/"]
 }

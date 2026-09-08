@@ -15,9 +15,7 @@
     "release": "changeset publish",
     "lint": "biome lint src/ test/",
     "int": "tsx ./test/integration.ts",
-    "perf": "tsx ./test/performance.ts",
-    "patterns": "NODE_OPTIONS='--max-old-space-size=6000' tsx ./src/cli/transfer-patterns.ts",
-    "test-patterns": "tsx ./test/transfer-patterns.ts"
+    "perf": "tsx ./test/performance.ts"
   },
   "repository": {
     "type": "git",
@@ -40,9 +38,7 @@
     "@biomejs/biome": "2.5.12",
     "@changesets/cli": "^3.0.2",
     "@types/node": "26.5.0",
-    "@types/progress": "2.0.7",
     "fflate": "^0.8.3",
-    "progress": "2.0.3",
     "tsx": "^4.23.13",
     "typescript": "7.0.2",
     "vitest": "^5.0.0"

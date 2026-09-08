@@ -20,7 +20,6 @@ export type {
 } from "@gb-transit/gtfs-loader";
 export * from "./query/DepartAfterQuery.js";
 export * from "./query/RangeQuery.js";
-export * from "./query/TransferPatternQuery.js";
 export * from "./query/GroupStationDepartAfterQuery.js";
 export * from "./query/AsyncPlanner.js";
 export * from "./query/ParallelRangeQuery.js";
@@ -39,12 +38,6 @@ export * from "./raptor/Connection.js";
 export * from "./results/ResultsFactory.js";
 export * from "./results/filter/MultipleCriteriaFilter.js";
 export * from "./results/filter/JourneyFilter.js";
-export * from "./transfer-pattern/results/GraphResults.js";
-export * from "./transfer-pattern/results/StringResults.js";
-export * from "./transfer-pattern/PatternFormat.js";
-export * from "./transfer-pattern/TransferPatternFile.js";
-export * from "./transfer-pattern/TransferPatternMerge.js";
-export * from "./transfer-pattern/results/TransferPatternResults.js";
 // the worker entry point itself is not exported here: it wires itself to a message port on import
 export * from "./worker/PlannerClient.js";
 export * from "./worker/Protocol.js";
