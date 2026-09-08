@@ -202,6 +202,29 @@ const route = feed.routes[trip.routeId];
 
 A feed need not name either, so `routeId` may be missing and the indexes empty.
 
+`load` hands back the feed's areas too — `areas.txt` and `stop_areas.txt` read as one thing. Nothing
+the algorithm does refers to one: an area is a fares construct, and no journey mentions it. It is
+here because a group station has nowhere else to live. GTFS has no station of stations —
+`parent_station` is forbidden on a station and the hierarchy is one level deep — so "London
+Terminals" is an area holding eighteen stops rather than a parent of them, and `transfers.txt` is
+the wrong tool for the job because it asserts a rider can walk between the two stops, which Euston
+and Waterloo are not.
+
+An area names stop ids as the feed wrote them, and a query is asked in stations, so `stops()`
+resolves one to the other. Both come from the same load, so planning between group stations needs
+no second reading of the zip:
+
+```js
+const feed = await planner.load({ url: "/gtfs.zip" });
+const stops = await planner.stops();
+const byId = new Map(stops.map(stop => [stop.id, stop]));
+
+const terminals = feed.areas["1072"].stops.map(id => byId.get(id).code);
+await planner.plan(["BTN"], terminals, new Date(), 9 * 60 * 60);
+```
+
+The index is empty for a feed with no `areas.txt`, which most feeds are.
+
 Passing `{ date }` to `load` restricts the timetable to that date, which makes it smaller and
 queries faster.
 
