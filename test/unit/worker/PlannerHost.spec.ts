@@ -1,14 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { strToU8, zipSync } from "fflate";
 import { PlannerHost } from "../../../src/worker/PlannerHost.js";
-import type { PlannerCommand, PlannerEvent, PlannerRequest, PlannerResponse } from "../../../src/worker/Protocol.js";
+import type {
+  PlainTrip, PlannerCommand, PlannerEvent, PlannerRequest, PlannerResponse
+} from "../../../src/worker/Protocol.js";
 
 const FEED = {
   "stops.txt": "stop_id,stop_code,stop_name,stop_lat,stop_lon\nA,AAA,Ayton,1,2\nB,BBB,Beeton,3,4\n",
   "calendar.txt":
     "service_id,start_date,end_date,monday,tuesday,wednesday,thursday,friday,saturday,sunday\n"
     + "s1,20250101,20251231,1,1,1,1,1,1,1\n",
-  "trips.txt": "trip_id,service_id\nt1,s1\n",
+  "agency.txt": "agency_id,agency_name\n=OP,Operator Rail\n",
+  "routes.txt": "route_id,agency_id,route_short_name,route_long_name,route_type\nr1,=OP,OPR,Ayton to Beeton,2\n",
+  "trips.txt": "trip_id,route_id,service_id,trip_short_name,trip_headsign\nt1,r1,s1,OP1000,Beeton\n",
   "stop_times.txt":
     "trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type\n"
     + "t1,10:00:00,10:00:00,A,1,0,0\n"
@@ -16,11 +20,21 @@ const FEED = {
   "feed_info.txt": "feed_start_date,feed_end_date,feed_version\n20250101,20251231,1\n"
 };
 
-function feedZip(): Uint8Array<ArrayBuffer> {
+/** A feed that names neither a route nor an operator, which GTFS allows */
+const ANONYMOUS_FEED = {
+  ...FEED,
+  "agency.txt": undefined,
+  "routes.txt": undefined,
+  "trips.txt": "trip_id,service_id\nt1,s1\n"
+};
+
+function feedZip(files: Record<string, string | undefined> = FEED): Uint8Array<ArrayBuffer> {
   const contents: Record<string, Uint8Array> = {};
 
-  for (const [name, text] of Object.entries(FEED)) {
-    contents[name] = strToU8(text);
+  for (const [name, text] of Object.entries(files)) {
+    if (text !== undefined) {
+      contents[name] = strToU8(text);
+    }
   }
 
   return zipSync(contents);
@@ -112,6 +126,60 @@ describe("PlannerHost", () => {
     expect("t1").toBe(trip?.tripId);
     expect("s1").toBe(trip?.serviceId);
     expect(false).toBe(Object.hasOwn(trip as object, "service"));
+  });
+
+  /**
+   * The route and the two names are the loader's, and cross with the trip because they are data.
+   * A caller that has a Trip from loadGTFS reads the same three fields here.
+   */
+  it("carries the trip's route and its own names across with a leg", async () => {
+    const host = await loaded();
+    const response = await ask(host, {
+      type: "plan", origins: ["AAA"], destinations: ["BBB"],
+      date: new Date("2025-06-02").getTime(), time: 0
+    });
+
+    const leg = response.type === "planned" ? response.journeys[0].legs[0] : undefined;
+    const trip = (leg as { trip?: PlainTrip })?.trip;
+
+    expect("r1").toBe(trip?.routeId);
+    expect("OP1000").toBe(trip?.shortName);
+    expect("Beeton").toBe(trip?.headsign);
+  });
+
+  /**
+   * A leg names a route and stops there, so the indexes that turn that id into an operator are sent
+   * once with the load rather than denormalised onto every leg of every journey.
+   */
+  it("sends the routes and agencies of the feed when it loads", async () => {
+    const response = await ask(new PlannerHost(), { type: "load", feed: feedZip() });
+    const feed = response.type === "loaded" ? response : undefined;
+    const route = feed?.routes.r1;
+
+    expect("OPR").toBe(route?.shortName);
+    expect("Ayton to Beeton").toBe(route?.longName);
+    // the agency id is as the feed wrote it, leading = and all
+    expect("=OP").toBe(route?.agencyId);
+    expect("Operator Rail").toBe(feed?.agencies[route?.agencyId as string]?.name);
+  });
+
+  it("plans a feed that names neither a route nor an operator", async () => {
+    const host = new PlannerHost();
+    const load = await ask(host, { type: "load", feed: feedZip(ANONYMOUS_FEED) });
+
+    expect(0).toBe(load.type === "loaded" ? Object.keys(load.routes).length : -1);
+    expect(0).toBe(load.type === "loaded" ? Object.keys(load.agencies).length : -1);
+
+    const response = await ask(host, {
+      type: "plan", origins: ["AAA"], destinations: ["BBB"],
+      date: new Date("2025-06-02").getTime(), time: 0
+    });
+
+    const leg = response.type === "planned" ? response.journeys[0].legs[0] : undefined;
+    const trip = (leg as { trip?: PlainTrip })?.trip;
+
+    expect("t1").toBe(trip?.tripId);
+    expect(undefined).toBe(trip?.routeId);
   });
 
   it("returns something that survives being posted", async () => {

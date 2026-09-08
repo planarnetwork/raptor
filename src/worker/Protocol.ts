@@ -1,19 +1,21 @@
 import type { TimetableLeg } from "../results/Journey.js";
-import type { GTFSSource, LoadProgress, ServiceID, Stop, StopID, StopTime, Time, Transfer, TripID } from "@gb-transit/gtfs-loader";
+import type {
+  AgencyIndex, GTFSSource, LoadProgress, RouteIndex, Stop, StopID, Time, Transfer, Trip
+} from "@gb-transit/gtfs-loader";
 
 /**
- * A trip as it crosses the worker boundary.
+ * A trip as it crosses the worker boundary: the trip, less its Service.
  *
- * The trip's Service does not come with it. Posting a message copies the data of an object but not
- * the class it belongs to, so a Service would arrive with its fields and without its runsOn, which
- * is worse than not sending it: the caller cannot see that it is broken. Whether a trip runs on a
- * date is settled inside the worker before the journey is returned anyway.
+ * Posting a message copies the data of an object but not the class it belongs to, so a Service
+ * would arrive with its fields and without its runsOn, which is worse than not sending it: the
+ * caller cannot see that it is broken. Whether a trip runs on a date is settled inside the worker
+ * before the journey is returned anyway.
+ *
+ * Everything else a trip carries is data and crosses as it is, so this says what is taken away
+ * rather than listing what is kept: a field the loader adds to Trip arrives on the other side
+ * without this file being touched, and reads there under the name it has here.
  */
-export interface PlainTrip {
-  tripId: TripID;
-  serviceId: ServiceID;
-  stopTimes: StopTime[];
-}
+export type PlainTrip = Omit<Trip, "service">;
 
 export type PlainLeg = Transfer | (Omit<TimetableLeg, "trip"> & { trip: PlainTrip });
 
@@ -43,7 +45,7 @@ export type PlannerCommand = PlannerRequest extends infer R
   : never;
 
 export type PlannerResponse =
-  | { id: number; type: "loaded"; stops: number; trips: number }
+  | { id: number; type: "loaded"; stops: number; trips: number; routes: RouteIndex; agencies: AgencyIndex }
   | { id: number; type: "planned"; journeys: PlainJourney[] }
   | { id: number; type: "stops"; stops: Stop[] }
   | { id: number; type: "error"; message: string };

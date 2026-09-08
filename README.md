@@ -246,6 +246,24 @@ its `service`: a class does not survive being posted, so it would arrive with it
 without its `runsOn`, which is worse than leaving it out. Whether a trip runs on a date is settled
 inside the worker before the journey is returned.
 
+`load` hands back the feed's routes and agencies along with what it loaded. A leg names the route
+its trip runs on and stops there, so these are what turn that id into a route and an operator. They
+are sent once, when the feed loads, because a feed has few of them — the GB feed has 98 routes and
+41 agencies against 290,640 trips — and copying an operator's name onto every leg of every journey
+would cost more:
+
+```js
+const feed = await planner.load({ url: "/gtfs.zip" });
+const [journey] = await planner.plan(["PAD"], ["PLY"], new Date(), 9 * 60 * 60);
+const { trip } = journey.legs[0];
+const route = feed.routes[trip.routeId];
+
+`${trip.shortName} to ${trip.headsign}, ${feed.agencies[route.agencyId].name}`;
+// "GW130700 to Plymouth, GWR"
+```
+
+A feed need not name either, so `routeId` may be missing and the indexes empty.
+
 Passing `{ date }` to `load` restricts the timetable to that date, which makes it smaller and
 queries faster.
 
