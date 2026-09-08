@@ -1,5 +1,5 @@
 ---
-"raptor-journey-planner": major
+"raptor-journey-planner": minor
 ---
 
 Remove transfer pattern generation, which now lives in transfer-pattern-planner.
