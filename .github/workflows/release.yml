@@ -10,7 +10,7 @@ on:
       - '.changeset/**'
       - 'package.json'
       - 'package-lock.json'
-      - '.github/workflows/publish.yml'
+      - '.github/workflows/release.yml'
 
 concurrency:
   group: publish-npm
