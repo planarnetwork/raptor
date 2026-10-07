@@ -106,6 +106,40 @@ describe("GroupStationDepartAfterQuery", () => {
     ]);
   });
 
+  it("puts a journey found over two days onto one clock", () => {
+    const trips = [
+      t(
+        st("A", null, 1000),
+        st("B", 1030, null)
+      ),
+      // the only way on to C leaves before the train from A gets in, so it is tomorrow's
+      t(
+        st("B", null, 500),
+        st("C", 600, null)
+      )
+    ];
+
+    const network = createNetwork(feed(trips));
+    const query = new GroupStationDepartAfterQuery(network, journeyFactory, 2, filters);
+    const result = query.plan(["A"], ["C"], new Date("2019-04-18"), 900);
+
+    setDefaultTrip(result);
+
+    // the second day's legs are a day on from the first day's, rather than back at its midnight
+    expect(result).toEqual([
+      j(
+        [
+          st("A", null, 1000),
+          st("B", 1030, null)
+        ],
+        [
+          st("B", null, 86900),
+          st("C", 87000, null)
+        ]
+      )
+    ]);
+  });
+
   it("plans from multiple origins", () => {
     const trips = [
       t(

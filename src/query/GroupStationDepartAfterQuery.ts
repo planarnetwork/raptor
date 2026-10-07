@@ -5,10 +5,16 @@ import type { Network } from "../network/Network.js";
 import type { ResultsFactory } from "../results/ResultsFactory.js";
 import { checkCovered } from "../network/TripCalendar.js";
 import { getDateNumber } from "@gb-transit/gtfs-loader";
-import type { Journey } from "../results/Journey.js";
+import { isTimetableLeg } from "../results/Journey.js";
+import type { AnyLeg, Journey } from "../results/Journey.js";
 import type { JourneyFilter } from "../results/filter/JourneyFilter.js";
 import { NOT_REACHED, type StopIdx } from "../network/Timetable.js";
 import type { Arrivals } from "../raptor/ScanResults.js";
+
+/**
+ * Seconds in a day
+ */
+const DAY = 86400;
 
 /**
  * Implementation of Raptor that searches for journeys between a set of origin and destinations.
@@ -79,7 +85,7 @@ export class GroupStationDepartAfterQuery {
     // create the origin departure times by subtracting 1 day from the best arrival time
     for (let stop = 0; stop < kConnections.length; stop++) {
       if (kConnections[stop].length > 0 && bestArrivals[stop] !== NOT_REACHED) {
-        origins.set(stop, Math.max(1, bestArrivals[stop] - 86400));
+        origins.set(stop, Math.max(1, bestArrivals[stop] - DAY));
       }
     }
 
@@ -132,9 +138,37 @@ export class GroupStationDepartAfterQuery {
    */
   private mergeJourneys(journeyA: Journey, journeyB: Journey): Journey {
     return {
-      legs: journeyA.legs.concat(journeyB.legs),
+      legs: journeyA.legs.concat(journeyB.legs.map(leg => this.nextDay(leg))),
       departureTime: journeyA.departureTime,
-      arrivalTime: journeyB.arrivalTime + 86400
+      arrivalTime: journeyB.arrivalTime + DAY
+    };
+  }
+
+  /**
+   * A leg from the following day's scan, moved onto the clock the journey departed on.
+   *
+   * Every time in a journey counts from the midnight it started at and runs past a day rather than
+   * wrapping, but each day is scanned on its own and hands back the times the feed writes for it,
+   * which count from that day's midnight. Left alone, the second day's legs sit a day behind the
+   * first day's and every duration taken from them - the journey's, a change's, a leg's - comes out
+   * short by a day, or negative.
+   *
+   * The stop times are copied rather than adjusted in place: they are the feed's own, shared with
+   * every other journey over the same trip. A transfer is left alone, since the times it carries
+   * are the window it is available in rather than when it was made.
+   */
+  private nextDay(leg: AnyLeg): AnyLeg {
+    if (!isTimetableLeg(leg)) {
+      return leg;
+    }
+
+    return {
+      ...leg,
+      stopTimes: leg.stopTimes.map(stopTime => ({
+        ...stopTime,
+        arrivalTime: stopTime.arrivalTime + DAY,
+        departureTime: stopTime.departureTime + DAY
+      }))
     };
   }
 

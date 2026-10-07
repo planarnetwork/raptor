@@ -25,10 +25,22 @@ export interface TimetableLeg extends Leg {
 export type AnyLeg = Transfer | TimetableLeg;
 
 /**
- * A journey is a collection of legs
+ * A journey is a collection of legs.
+ *
+ * Every time in one counts in seconds from the midnight the journey departed, and keeps counting
+ * past a day rather than wrapping, which is how a feed writes an overnight trip anyway: a train
+ * leaving at 23:50 and arriving twenty minutes into the next day arrives at 24:10. A duration is
+ * therefore always a subtraction, whether or not the journey crosses midnight.
  */
 export interface Journey {
   legs: AnyLeg[];
   departureTime: Time,
   arrivalTime: Time
+}
+
+/**
+ * A leg taken on a vehicle carries the stop times it covers; one taken on foot has none
+ */
+export function isTimetableLeg(leg: AnyLeg): leg is TimetableLeg {
+  return (leg as TimetableLeg).stopTimes !== undefined;
 }

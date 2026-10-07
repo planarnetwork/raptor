@@ -915,12 +915,14 @@ describe("DepartAfterQuery", () => {
 
     setDefaultTrip(result);
 
+    // the second leg is tomorrow's, so it leaves B a day after the first leg gets in rather than
+    // five minutes before
     const expected = j([
       st("A", null, 1000),
       st("B", 1035, 1035),
     ], [
-      st("B", 1030, 1030),
-      st("E", 1100, null)
+      st("B", 1030 + 86400, 1030 + 86400),
+      st("E", 1100 + 86400, null)
     ]);
 
     expect(result[0].legs).toEqual(expected.legs);
@@ -1000,18 +1002,20 @@ describe("DepartAfterQuery", () => {
     const result = query.plan("A", "E", new Date("2019-04-23"), 900);
 
     setDefaultTrip(result);
+
+    // in both, everything after the first leg is the next day's and carries a day with it
     const change = j(
       [
         st("A", null, 1900),
         st("B", 1930, 1935)
       ],
       [
-        st("B", null, 1035),
-        st("D", 1100, null)
+        st("B", null, 1035 + 86400),
+        st("D", 1100 + 86400, null)
       ],
       [
-        st("D", null, 1100),
-        st("E", 1130, null)
+        st("D", null, 1100 + 86400),
+        st("E", 1130 + 86400, null)
       ]
     );
 
@@ -1022,21 +1026,12 @@ describe("DepartAfterQuery", () => {
         st("C", 2000, null)
       ],
       [
-        st("C", null, 1130),
-        st("E", 1200, null)
+        st("C", null, 1130 + 86400),
+        st("E", 1200 + 86400, null)
       ]
     );
 
-    const expected = [
-      noChange,
-      change,
-    ];
-
-    for (const journey of expected) {
-      journey.arrivalTime += 86400;
-    }
-
-    expect(result).toEqual(expected);
+    expect(result).toEqual([noChange, change]);
   });
 
   it("does not return overnight journeys that cannot be made", () => {
