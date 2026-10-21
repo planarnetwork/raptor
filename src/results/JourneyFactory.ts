@@ -4,7 +4,8 @@ import type { StopIdx } from "../network/Timetable.js";
 import type { Network } from "../network/Network.js";
 import { originIndexOf, stopTimesOf, tripOf } from "../raptor/Connection.js";
 import type { ResultsFactory } from "./ResultsFactory.js";
-import type { AnyLeg, Journey, TimetableLeg } from "./Journey.js";
+import { isTimetableLeg } from "./Journey.js";
+import type { AnyLeg, Journey } from "./Journey.js";
 
 /**
  * Extracts journeys from the kConnections index.
@@ -69,7 +70,7 @@ export class JourneyFactory implements ResultsFactory {
     let transferDuration = 0;
 
     for (const leg of legs) {
-      if (!this.isTimetableLeg(leg)) {
+      if (!isTimetableLeg(leg)) {
         transferDuration += leg.duration;
       }
       else {
@@ -86,7 +87,7 @@ export class JourneyFactory implements ResultsFactory {
     for (let i = legs.length - 1; i >= 0; i--) {
       const leg = legs[i];
 
-      if (!this.isTimetableLeg(leg)) {
+      if (!isTimetableLeg(leg)) {
         transferDuration += leg.duration;
       }
       else {
@@ -95,9 +96,5 @@ export class JourneyFactory implements ResultsFactory {
     }
 
     return 0;
-  }
-
-  private isTimetableLeg(connection: AnyLeg): connection is TimetableLeg {
-    return (connection as TimetableLeg).stopTimes !== undefined;
   }
 }
